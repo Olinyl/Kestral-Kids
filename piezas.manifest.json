@@ -1,0 +1,17 @@
+{
+  "$schema": "https://piezas.ai/schemas/piezas-manifest.schema.json",
+  "schemaVersion": 1,
+  "generatedBy": "piezas-mcp",
+  "appName": "Kestrel Kids Safety Desk",
+  "apiBaseUrl": "https://api.piezas.ai",
+  "contractVersion": "15",
+  "deploymentMode": "server-runtime",
+  "deploy": {
+    "appId": null,
+    "requiredEnv": [],
+    "dir": "build/runtime"
+  },
+  "notes": [
+    "Run npx piezas doctor after generated changes to verify this project against the served contract."
+  ]
+}

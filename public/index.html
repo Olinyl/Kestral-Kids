@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kestrel Kids Safety Desk</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/workspace.js"></script>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap brand">
+      <span class="brand-mark" aria-hidden="true">▲</span>
+      <strong>Kestrel Kids</strong>
+      <span class="brand-detail">Safety Desk</span>
+    </div>
+  </header>
+  <section class="demo" aria-label="Demo controls" data-testid="demo-banner">
+    <div class="wrap demo-inner">
+      <div><strong>Interactive demo</strong><p>Fictional records for one lesson day.</p></div>
+      <label for="view-as">View as
+        <select id="view-as" data-testid="view-as" disabled></select>
+      </label>
+    </div>
+  </section>
+  <div class="navigation">
+    <nav class="wrap" aria-label="Workspace" data-testid="workspace-nav"></nav>
+  </div>
+  <main class="wrap">
+    <div class="workspace">
+      <p class="date" id="lesson-date"></p>
+      <h1 data-testid="workspace-title">School desk workspace</h1>
+      <section class="panel" aria-labelledby="section-title">
+        <div class="panel-head">
+          <h2 id="section-title"></h2>
+          <label class="search" hidden>Find a child
+            <input type="search" placeholder="Name or bib" data-testid="roster-search">
+          </label>
+        </div>
+        <p id="message" class="message" role="status">Loading lesson day…</p>
+        <ul id="roster" class="roster" aria-label="Children"></ul>
+      </section>
+    </div>
+  </main>
+  <template id="roster-item">
+    <li data-testid="roster-row">
+      <div class="identity"><strong></strong><span class="group"></span></div>
+      <span class="bib"></span>
+      <span class="status"></span>
+    </li>
+  </template>
+</body>
+</html>
