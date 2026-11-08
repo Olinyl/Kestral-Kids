@@ -6,7 +6,7 @@ const workspaces = {
   desk: {
     label: 'School desk', tabs: ['Roster', 'Incidents'],
   },
-  guardian: { label: 'Guardian', tabs: ['My children'] },
+  guardian: { label: 'Guardian', tabs: ['My children', 'Messages'] },
   director: { label: 'Director', tabs: ['Overview', 'Children', 'Guardians', 'Instructors', 'Lesson groups'] },
   instructor: { label: 'Instructor', tabs: ['Group roster'] },
   patrol: { label: 'Patrol', tabs: ['Active alerts'] },
@@ -75,7 +75,7 @@ function renderRoster() {
 function renderWorkspace() {
   const workspace = workspaces[role];
   nav.style.setProperty('--tab-count',workspace.tabs.length);
-  title.textContent = workspace.label + ' workspace';
+  title.textContent = role === 'guardian' ? 'Hello, Alyssa' : workspace.label + ' workspace';
   sectionTitle.textContent = tab === 'Today' ? 'Today’s roster' : tab;
   searchLabel.hidden = true;
   nav.replaceChildren(...workspace.tabs.map(label => {
