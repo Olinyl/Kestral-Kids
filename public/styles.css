@@ -90,6 +90,11 @@ h2 { margin: 0; font-size: 1.1rem; }
 .g-locked { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:12px; background:var(--tint); border-radius:8px; }
 .g-form input[readonly] { background:#f1f4f3; }
 .g-form .g-check { display:flex; align-items:center; gap:9px; }
+.g-form .g-required-check,.g-form .g-optional-check { min-height:44px; padding:10px 12px; background:var(--tint); border:1px solid var(--line); border-radius:7px; font-size:.9rem; }
+.g-form .g-check input { flex:0 0 auto; width:18px; height:18px; min-height:18px; margin:0; accent-color:#1f6c55; }
+.g-form .g-optional-check span { color:var(--muted); }
+.g-use { padding:12px 14px; border-left:3px solid #57907e; background:var(--tint); border-radius:0 7px 7px 0; font-size:.9rem; }
+.g-use p { margin:4px 0 0; }
 .g-back { border:0; padding:0; margin-bottom:20px; font-weight:650; background:transparent!important; }
 .g-child-state { display:grid; justify-items:end; gap:4px; }
 .g-child-state small,.g-updated { color:var(--muted); font-size:.78rem; }
