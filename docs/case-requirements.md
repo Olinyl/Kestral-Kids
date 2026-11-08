@@ -13,7 +13,7 @@ Sources supplied by the owner: the Kestrel Kids team Google Doc linked in SPEC.m
 ## Front desk desktop workflow
 
 - Check in many children quickly by name, group or bib and record current clothing rather than relying on memory.
-- Show missing consent or emergency information clearly. The owner decides whether incomplete consent blocks check-in.
+- Show missing consent or emergency information clearly. The owner confirmed that missing guardian consent blocks check-in, with no staff override.
 - Show both emergency contacts, medical alerts, linked guardian and currently authorized pickup adults.
 - Pickup authorization can be temporary and must be evaluated for the lesson day. A claimed family relationship does not authorize pickup.
 - Record actual release adult, verifying staff and time. An unauthorized adult cannot complete release.

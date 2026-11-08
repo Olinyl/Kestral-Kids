@@ -38,9 +38,15 @@ All records are fictional and come from demo-fixture.json. There is no database 
 
 - R-011: The instructor phone preview shows only Alex's assigned group, with bibs, ability level, meeting place, current clothing and relevant medical alerts. Large controls open child details without showing family contact lists.
 - R-012: An instructor can prepare a missing-child radio checklist with last seen time/place, clothing, equipment and injuries. Preparing it never claims to send a report. Desk staff can separately log a received radio report.
-- R-013: Desk staff can search by name, alternate name, bib or group, inspect both emergency contacts and medical information, and record current clothing at check-in. Consent handling awaits the owner's policy decision.
+- R-013: Desk staff can search by name, alternate name, bib or group, inspect both emergency contacts and medical information, and record current clothing at check-in. Missing guardian consent blocks check-in, with no staff override. (Owner decision, 2026-11-07.)
 - R-014: Desk pickup uses adults authorized on the lesson date; staff must choose one, record verifying staff and confirm the identity check. Release records retain adult, staff and time. An unlisted adult cannot release a child.
 - R-015: Desk staff can log an instructor radio report with child identity, last seen details, clothing/equipment and injuries. The log states that patrol handoff happens by radio; it does not send notifications.
+- R-016: Desk and director lists support 200 or more children with full-roster search, visible result counts and pages of 25; desk also has group/status filters. A local-only prototype offers demo, 200, 1,000, worst-case, empty and one-child data; every instructor still has at most six children. (Owner scale concern; page size is an implementation assumption.)
+- R-017: Every role uses the same fixed bottom navigation style with safe-area padding and content clear of controls. Desk tabs are Today, Children, Pickup and Incidents; director tabs are Overview, Children, Guardians, Instructors and Lesson groups. The same layout works on phones, tablets and desktops. (Owner's explicit navigation requests; Figma desk frame 2:101.)
+- R-018: Every role keeps the owner's green palette, using Figma only for layout inspiration: compact phone rosters and visible group medical reminders. Keep readable touch controls and real data-driven identities; do not claim offline functionality. (Owner's design ideas, Figma frames 2:45 and 2:101, file CDfKgyYvSobrwn8xAfzuEr.)
+- R-019: Directors manage group membership directly in Lesson groups: add, remove or move a child, and open a child's details to edit. Membership changes are staged until the group is saved, respect the six-child limit per instructor, and show a warning for a manual placement at a different recorded ability level. (Owner clarification.)
+- R-020: Directors can preview and apply automatic assignment of unassigned children to existing groups with matching recorded ability levels. Preserve existing assignments and respect the six-child limit per instructor across groups. Explain children left unassigned for missing ability level, missing matching group or capacity. Never guess a child's level. (Owner agreed to recorded ability levels, 2026-11-07.)
+- R-021: Desktop desk check-in keeps a searchable child list on the left and selected child's details on the right. Clothing entry, consent gating and contacts remain visible in that panel. Phones use a single list with a details dialog. (Owner's desktop reference at the bottom left of Figma, visually inspected after connector rate limit.)
 
 
 ## Acceptance Scenarios
@@ -137,10 +143,58 @@ Then the report appears with bib 214 and those details and does not claim patrol
 
 Assumptions: all new workflows are fictional-data previews in shared page memory. The instructor has one fixed demo identity. Actual authentication and access isolation belong to the later Piezas-backed milestone.
 
+### S-020: Missing guardian consent prevents check-in
+covers: R-013
+Given Noah has no guardian consent and is expected today.
+When I open his desk profile and enter current clothing.
+Then check-in is disabled with a guardian-consent explanation, and Noah remains expected after I reopen the profile.
+
+### S-021: I can find children in a large lesson-day roster
+covers: R-016
+Given I load the local prototype with 200 fictional children.
+When I move to the next page, search for the last child's bib and filter by consent needed.
+Then each page has at most 25 rows, the last child is found across the whole roster, and the filter shows only children missing consent; the same search works with 1,000 children.
+
+### S-022: Desk navigation stays at the bottom
+covers: R-017
+Given I open the desk on phone and desktop.
+When I scroll and select Today, Children, Pickup and Incidents.
+Then the selected screen appears, every tab remains reachable at the viewport bottom, and the last content stays above the bar.
+
+### S-023: My instructor roster stays small and shows safety reminders
+covers: R-018
+Given the local prototype has 200 children assigned across instructors.
+When I select Instructor and open a child.
+Then only my six assigned children appear, group medical reminders are visible, child details open, and there is no claim that offline access is available.
+
+### S-024: I can manage children from Lesson groups
+covers: R-019
+Given I am in the director's Lesson groups view.
+When I open Spruce 3, remove Maya, add Noah from Cedar 1, and save.
+Then Spruce 3 contains Noah and no Maya, Cedar 1 no longer contains Noah, and I can edit Noah's details directly from the group list.
+
+### S-025: I can review automatic assignment by ability level
+covers: R-020
+Given existing assignments are kept and I add seven unassigned Level 1 children and one child with no recorded level.
+When I preview Auto-assign and apply the proposed assignments.
+Then only five Level 1 children join Spruce 3, its instructor has six children, the other children remain unassigned with reasons, and existing assignments are unchanged.
+
+### S-026: Every role has consistent bottom navigation
+covers: R-017
+Given I open the demo on a phone or tablet.
+When I switch between Director, School desk, Guardian, Instructor and Patrol and choose their available tabs.
+Then every role uses the same bottom navigation style, all five director tabs fit, and the selected page stays reachable without horizontal overflow.
+
+### S-027: Desktop check-in keeps the roster beside child details
+covers: R-021
+Given I open School desk on a desktop.
+When I select Noah and then Maya and save Maya's current clothing.
+Then the roster stays visible to the left of the details panel, Noah's check-in is blocked without consent, and Maya's saved clothing appears on the right.
+
 ## Architecture and build order
 
 
-Use the existing Node.js development server and plain JavaScript UI. npm run build produces both build/runtime for future server hosting and build/preview for this static milestone. Only six public files are uploaded for the preview; no key, server source, private settings or dependencies are uploaded.
+Use the existing Node.js development server and plain JavaScript UI. npm run build produces both build/runtime for future server hosting and build/preview for this static milestone. Only the built public files are uploaded for the preview; no key, server source, private settings or dependencies are uploaded.
 
 Use the existing Kestrel-Kids app identified by the owner's downloaded key. No additional app is needed. Team membership is administered by the owner in the Piezas console and GitHub repository settings.
 

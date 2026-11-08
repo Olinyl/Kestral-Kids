@@ -72,6 +72,7 @@ function renderRoster() {
 
 function renderWorkspace() {
   const workspace = workspaces[role];
+  nav.style.setProperty('--tab-count',workspace.tabs.length);
   title.textContent = workspace.label + ' workspace';
   sectionTitle.textContent = tab === 'Today' ? 'Today’s roster' : tab;
   searchLabel.hidden = true;
@@ -112,7 +113,13 @@ async function start() {
   try {
     const response = await fetch('/demo-fixture.json');
     if (!response.ok) throw new Error('Fixture unavailable');
-    const seed = await response.json();
+    let seed = await response.json();
+    if (location.pathname === '/prototype') {
+      const {prototypeSeed,addPrototypeControls} = await import('/prototype-fixtures.js');
+      const mode = new URLSearchParams(location.search).get('data') || 'demo';
+      seed = prototypeSeed(seed,mode);
+      addPrototypeControls(mode);
+    }
     function updateRows() {
       const groups = new Map(seed.groups.map(group => [group.id, group]));
       const children = new Map(seed.children.map(child => [child.id, child]));

@@ -226,6 +226,139 @@
       ],
       "recordedAt": "2026-11-08T03:30:05.701Z",
       "updatedAt": "2026-11-08T03:34:12.764Z"
+    },
+    "S-020": {
+      "checks": [
+        "expect(page.getByTestId('checkin-save')).toBeDisabled()",
+        "expect(page.getByTestId('ops-detail')).toContainText('Guardian consent is required before check-in')",
+        "expect(page.getByTestId('roster-row').filter({hasText:'Noah Singh'})).toContainText('Expected')",
+        "expect(page.getByTestId('checkin-save')).toBeDisabled()"
+      ],
+      "scenarioFingerprint": "1ed9531f699d",
+      "files": [
+        "tests/scenarios/S-020-missing-guardian-consent-prevents-check-in.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T04:14:14.185Z"
+    },
+    "S-021": {
+      "checks": [
+        "expect(page.getByTestId('roster-row')).toHaveCount(25)",
+        "expect(page.getByTestId('roster-page-summary')).toContainText('of '+size.toLocaleString('en-CA'))",
+        "expect(page.getByTestId('roster-page-summary')).toContainText('26')",
+        "expect(page.getByTestId('roster-row')).toHaveCount(25)",
+        "expect(page.getByTestId('roster-row')).toHaveCount(1)",
+        "expect(page.getByTestId('roster-row')).toContainText('Zara Winters')",
+        "expect(row).toContainText('Consent needed')",
+        "expect(page.getByTestId('roster-row')).toHaveCount(6)",
+        "expect(page.getByTestId('director-child-row')).toHaveCount(25)",
+        "expect(page.getByTestId('director-child-row')).toHaveCount(1)",
+        "expect(page.getByTestId('director-child-row')).toContainText(String(1000+size-1))"
+      ],
+      "scenarioFingerprint": "f61ad616f393",
+      "files": [
+        "tests/scenarios/S-021-i-can-find-children-in-a-large-lesson-day-roster.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T04:14:14.185Z"
+    },
+    "S-022": {
+      "checks": [
+        "expect(tab).toHaveAttribute('aria-current','page')",
+        "expect(page.getByTestId('operations')).toBeVisible()",
+        "expect(box.y+box.height).toBeLessThanOrEqual(844)",
+        "expect(box.y).toBeGreaterThan(750)",
+        "expect(page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()",
+        "expect(footer).toContainText('Contact patrol by radio')"
+      ],
+      "scenarioFingerprint": "9961e3f5bb3f",
+      "files": [
+        "tests/scenarios/S-022-desk-navigation-stays-at-the-bottom.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T04:14:14.185Z"
+    },
+    "S-023": {
+      "checks": [
+        "expect(page.getByTestId('roster-row')).toHaveCount(6)",
+        "expect(page.getByTestId('instructor-medical')).toContainText('Peanut allergy')",
+        "expect(page.getByTestId('operations')).not.toContainText('Roster saved for offline use')",
+        "expect(page.getByTestId('ops-dialog')).toContainText('Maya')",
+        "expect(page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()"
+      ],
+      "scenarioFingerprint": "aff596b577c8",
+      "files": [
+        "tests/scenarios/S-023-my-instructor-roster-stays-small-and-shows-safet.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T04:14:14.185Z"
+    },
+    "S-024": {
+      "checks": [
+        "expect(page.getByTestId('group-members')).toContainText('Noah Singh')",
+        "expect(page.getByTestId('group-members')).not.toContainText('Maya Chen')",
+        "expect(spruce).toContainText('Noah Singh')",
+        "expect(spruce).not.toContainText('Maya Chen')",
+        "expect(cedar).not.toContainText('Noah Singh')",
+        "expect(spruce).toContainText('Noah Demo')",
+        "expect(page.getByTestId('form-error')).toContainText('six children')",
+        "expect(page.getByTestId('group-members').locator('[data-group-remove]')).toHaveCount(6)"
+      ],
+      "scenarioFingerprint": "860bcbe2f520",
+      "files": [
+        "tests/scenarios/S-024-i-can-manage-children-from-lesson-groups.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T04:25:12.922Z",
+      "updatedAt": "2026-11-08T04:30:46.196Z"
+    },
+    "S-025": {
+      "checks": [
+        "expect(page.getByTestId('autoassign-preview')).toContainText('5 children can be assigned')",
+        "expect(page.getByTestId('autoassign-preview')).toContainText('No capacity')",
+        "expect(page.getByTestId('autoassign-preview')).toContainText('No recorded ability level')",
+        "expect(spruce).toContainText('6 / 6')",
+        "expect(spruce).toContainText('Maya Chen')",
+        "expect(page.getByTestId('director-group-row').filter({hasText:'Cedar 1'})).toContainText('Noah Singh')",
+        "expect(page.getByTestId('director-child-row')).toContainText('Unassigned')",
+        "expect(page.getByTestId('autoassign-preview')).toContainText('No matching group with an instructor')",
+        "expect(page.getByTestId('autoassign-apply')).toBeDisabled()",
+        "expect(page.getByTestId('director-child-row')).toContainText('Unassigned')"
+      ],
+      "scenarioFingerprint": "20dc3f09c8dd",
+      "files": [
+        "tests/scenarios/S-025-i-can-review-automatic-assignment-by-ability-lev.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T04:25:12.922Z",
+      "updatedAt": "2026-11-08T04:30:46.196Z"
+    },
+    "S-026": {
+      "checks": [
+        "expect(tabs).toHaveCount(5)",
+        "expect(tab).toHaveAttribute('aria-current','page')",
+        "expect(box.y).toBeGreaterThan(800)",
+        "expect(box.y+box.height).toBeLessThanOrEqual(900)",
+        "expect(page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()"
+      ],
+      "scenarioFingerprint": "9c1d9075db0c",
+      "files": [
+        "tests/scenarios/S-026-every-role-has-consistent-bottom-navigation.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T04:25:12.922Z"
+    },
+    "S-027": {
+      "checks": [
+        "expect(page.getByTestId('desk-detail')).toBeVisible()",
+        "expect(page.getByTestId('checkin-save')).toBeDisabled()",
+        "expect(page.getByTestId('roster-row')).toHaveCount(2)",
+        "expect(roster.x+roster.width).toBeLessThanOrEqual(details.x)",
+        "expect(page.getByTestId('desk-detail')).toContainText('Red jacket,blue helmet')",
+        "expect(page.getByTestId('roster-row')).toHaveCount(2)",
+        "expect(page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()",
+        "expect(page.getByTestId('ops-dialog')).toBeVisible()",
+        "expect(page.getByTestId('ops-detail')).toContainText('Peanut allergy')",
+        "expect(page.getByTestId('roster-row')).toHaveCount(2)"
+      ],
+      "scenarioFingerprint": "21b386b9ad72",
+      "files": [
+        "tests/scenarios/S-027-desktop-check-in-keeps-the-roster-beside-child-d.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T04:26:43.361Z"
     }
   },
   "history": []
