@@ -13,7 +13,7 @@ await writeFile(new URL('package.json', output), JSON.stringify({
 }, null, 2) + '\n');
 console.log('Demo build saved to build/runtime');
 await mkdir(preview, { recursive: true });
-for (const name of ['index.html', 'workspace.js', 'styles.css', 'director.js', 'director.css']) {
+for (const name of ['index.html', 'workspace.js', 'styles.css', 'director.js', 'director.css', 'operations.js', 'operations.css']) {
   await cp(new URL('public/' + name, root), new URL(name, preview));
 }
 await cp(new URL('demo-fixture.json', root), new URL('demo-fixture.json', preview));

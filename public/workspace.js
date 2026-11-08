@@ -1,4 +1,5 @@
 import { createDirector } from './director.js';
+import { createOperations } from './operations.js';
 
 const workspaces = {
   desk: {
@@ -25,6 +26,7 @@ let role = Object.hasOwn(workspaces, requestedView) ? requestedView : 'desk';
 let tab = workspaces[role].tabs[0];
 let rows = [];
 let director;
+let operations;
 
 function visibleRows() {
   switch (role) {
@@ -72,7 +74,7 @@ function renderWorkspace() {
   const workspace = workspaces[role];
   title.textContent = workspace.label + ' workspace';
   sectionTitle.textContent = tab === 'Today' ? 'Today’s roster' : tab;
-  searchLabel.hidden = !(role === 'desk' && ['Today', 'Children'].includes(tab));
+  searchLabel.hidden = true;
   nav.replaceChildren(...workspace.tabs.map(label => {
     const button = document.createElement('button');
     button.type = 'button';
@@ -87,9 +89,18 @@ function renderWorkspace() {
     });
     return button;
   }));
-  document.querySelector('#starter-panel').hidden = role === 'director';
+  const operational = ['desk', 'instructor'].includes(role);
+  operations.clear();
+  roster.replaceChildren();
+  document.querySelector('#starter-panel').hidden = role === 'director' || operational;
+  search.toggleAttribute('data-testid', !operational);
+  if (!operational) search.dataset.testid = 'roster-search';
+  document.querySelector('#operations').hidden = !operational;
   document.querySelector('#director').hidden = role !== 'director';
   document.body.classList.toggle('director-view', role === 'director');
+  document.body.classList.toggle('instructor-view', role === 'instructor');
+  document.body.classList.toggle('desk-view', role === 'desk');
+  if (operational) { director.clear?.(); operations.render(role,tab); return; }
   if (role === 'director') {
     director.render(tab);
     return;
@@ -116,6 +127,7 @@ async function start() {
       });
     }
     updateRows();
+    operations = createOperations(document.querySelector('#operations'), seed, {onChange: updateRows});
     director = createDirector(document.querySelector('#director'), seed, {
       onChange: updateRows,
       onNavigate: next => { tab = next; renderWorkspace(); },

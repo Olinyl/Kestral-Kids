@@ -31,12 +31,12 @@ export function createDirector(root, seed, { onChange, onNavigate }) {
 
   function overview() {
     const incomplete = seed.children.filter(child => gaps(child).length);
-    const checked = seed.attendance.filter(row => row.status === 'checked_in').length;
+    const checked = seed.attendance.filter(row => row.status === 'checked_in' && !row.release).length;
     const medical = seed.children.filter(child => child.medicalStatus === 'alert' && child.medical?.trim() && seed.attendance.some(row => row.childId === child.id));
     return `<div class="d-page-heading"><div><h2>School overview</h2><p>Start with the children who need your attention.</p></div>${button('View all children', 'view-children', '', 'd-primary')}</div>
       <dl class="d-totals" aria-label="Lesson day summary">
         <div><dt>Children today</dt><dd data-testid="director-today-count">${seed.attendance.length}</dd></div>
-        <div><dt>Checked in</dt><dd>${checked}<span> / ${seed.attendance.length}</span></dd></div>
+        <div><dt>Checked in</dt><dd data-testid="director-checked-count">${checked}<span> / ${seed.attendance.length}</span></dd></div>
         <div><dt>Lesson groups</dt><dd data-testid="director-group-count">${seed.groups.length}</dd></div>
         <div><dt>Profiles need attention</dt><dd class="${incomplete.length ? 'd-amber-text' : ''}">${incomplete.length}</dd></div>
       </dl>
@@ -53,7 +53,7 @@ export function createDirector(root, seed, { onChange, onNavigate }) {
       const group = childGroup(child.id);
       const attendance = seed.attendance.find(row => row.childId === child.id);
       const missing = gaps(child);
-      return `<tr data-testid="director-child-row"><td data-label="Child"><strong>${escape(child.displayName)}</strong><span class="d-subline">${escape(guardian(child)?.name ?? 'No linked guardian')}</span></td><td data-label="Group & bib">${escape(group?.label ?? 'Unassigned')}<span class="d-subline">${attendance?.bib ? 'Bib ' + escape(attendance.bib) : 'No bib assigned'}</span></td><td data-label="Profile">${state(missing.length ? 'Needs attention' : 'Ready', missing.length ? 'd-warning' : 'd-success')}<span class="d-subline">${escape(missing.join(' · ') || (child.medicalStatus === 'alert' ? 'Medical alert on file' : 'All required details present'))}</span></td><td data-label="Today">${state(attendance?.status === 'checked_in' ? 'Checked in' : 'Expected')}</td><td class="d-row-action">${openChild(child)}</td></tr>`;
+      return `<tr data-testid="director-child-row"><td data-label="Child"><strong>${escape(child.displayName)}</strong><span class="d-subline">${escape(guardian(child)?.name ?? 'No linked guardian')}</span></td><td data-label="Group & bib">${escape(group?.label ?? 'Unassigned')}<span class="d-subline">${attendance?.bib ? 'Bib ' + escape(attendance.bib) : 'No bib assigned'}</span></td><td data-label="Profile">${state(missing.length ? 'Needs attention' : 'Ready', missing.length ? 'd-warning' : 'd-success')}<span class="d-subline">${escape(missing.join(' · ') || (child.medicalStatus === 'alert' ? 'Medical alert on file' : 'All required details present'))}</span></td><td data-label="Today">${state(attendance?.release ? 'Released' : attendance?.status === 'checked_in' ? 'Checked in' : 'Expected')}</td><td class="d-row-action">${openChild(child)}</td></tr>`;
     }).join('')}</tbody></table></div>` : '<div class="d-empty" data-testid="director-empty"><strong>No children match your search.</strong><p>Try a different name or bib, or change the profile filter.</p></div>';
   }
 

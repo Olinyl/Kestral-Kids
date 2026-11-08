@@ -34,6 +34,15 @@ All records are fictional and come from demo-fixture.json. There is no database 
 - Instructor: ID, name, email, phone and qualification.
 - Lesson group details: ID, label, level, meeting place and instructor ID. Attendance links children to groups for the seeded lesson day.
 
+## Role preview expansion
+
+- R-011: The instructor phone preview shows only Alex's assigned group, with bibs, ability level, meeting place, current clothing and relevant medical alerts. Large controls open child details without showing family contact lists.
+- R-012: An instructor can prepare a missing-child radio checklist with last seen time/place, clothing, equipment and injuries. Preparing it never claims to send a report. Desk staff can separately log a received radio report.
+- R-013: Desk staff can search by name, alternate name, bib or group, inspect both emergency contacts and medical information, and record current clothing at check-in. Consent handling awaits the owner's policy decision.
+- R-014: Desk pickup uses adults authorized on the lesson date; staff must choose one, record verifying staff and confirm the identity check. Release records retain adult, staff and time. An unlisted adult cannot release a child.
+- R-015: Desk staff can log an instructor radio report with child identity, last seen details, clothing/equipment and injuries. The log states that patrol handoff happens by radio; it does not send notifications.
+
+
 ## Acceptance Scenarios
 
 ### S-001: I can preview the Patrol workspace
@@ -96,7 +105,40 @@ Given I open a child's director profile and a lesson group.
 When I give a pickup adult an authorization that ended before the lesson date and set the group to Level 3.
 Then the pickup adult is labelled expired for that lesson day and the group displays Level 3.
 
+### S-015: I can see my own group on my phone
+covers: R-011
+Given I open Instructor on a 390-pixel-wide screen.
+When I open Maya's details and return to the roster.
+Then I see bib 214, her allergy and current clothing, no Noah or guardian phone list, and no horizontal overflow.
+
+### S-016: I can prepare a clear radio handoff
+covers: R-012
+Given I am viewing Maya in Instructor.
+When I enter last seen time and place, equipment and injuries and prepare the radio checklist.
+Then the checklist contains the child identity, bib and entered details and clearly says it has not been sent.
+
+### S-017: I can find a child and review check-in information
+covers: R-013
+Given I open School desk on desktop.
+When I search by Cedar 1 and open Noah.
+Then I see Noah's consent gap, both emergency contact slots, medical information gap and clothing entry.
+
+### S-018: I can release a child only to an authorized adult
+covers: R-014
+Given Maya is checked in and I open Pickup.
+When I open Maya, choose Daniel Chen, enter verifying staff and confirm the identity check.
+Then release is recorded with Daniel, staff and time, and Maya cannot be released twice.
+
+### S-019: I can log an instructor radio report at the desk
+covers: R-015
+Given I open Incidents at the desk.
+When I log a radio report for Maya with last seen time and place, clothing, equipment, injuries and receiving staff.
+Then the report appears with bib 214 and those details and does not claim patrol was notified automatically.
+
+Assumptions: all new workflows are fictional-data previews in shared page memory. The instructor has one fixed demo identity. Actual authentication and access isolation belong to the later Piezas-backed milestone.
+
 ## Architecture and build order
+
 
 Use the existing Node.js development server and plain JavaScript UI. npm run build produces both build/runtime for future server hosting and build/preview for this static milestone. Only six public files are uploaded for the preview; no key, server source, private settings or dependencies are uploaded.
 

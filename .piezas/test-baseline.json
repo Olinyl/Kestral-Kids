@@ -144,6 +144,88 @@
         "tests/scenarios/S-014-i-can-set-dated-pickup-permissions-and-numbered.spec.ts"
       ],
       "recordedAt": "2026-11-08T00:52:14.447Z"
+    },
+    "S-015": {
+      "checks": [
+        "expect(page.getByTestId('ops-detail')).toContainText('Peanut allergy')",
+        "expect(page.getByTestId('ops-detail')).toContainText('Green jacket,white helmet')",
+        "expect(page.getByTestId('ops-detail')).not.toContainText('604')",
+        "expect(page.getByTestId('roster-row')).toHaveCount(1)",
+        "expect(page.getByTestId('roster-row')).toContainText('Bib 214')",
+        "expect(page.getByTestId('operations')).not.toContainText('Noah')",
+        "expect(page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()"
+      ],
+      "scenarioFingerprint": "df77ee1d9b4d",
+      "files": [
+        "tests/scenarios/S-015-i-can-see-my-own-group-on-my-phone.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T03:28:21.949Z"
+    },
+    "S-016": {
+      "checks": [
+        "expect(page.getByTestId('radio-checklist')).toContainText('Maya Chen')",
+        "expect(page.getByTestId('radio-checklist')).toContainText('214')",
+        "expect(page.getByTestId('radio-checklist')).toContainText('Green run junction')",
+        "expect(page.getByTestId('radio-checklist')).toContainText('Blue skis')",
+        "expect(page.getByTestId('radio-checklist')).toContainText('None observed')",
+        "expect(page.getByTestId('radio-checklist')).toContainText('Not sent')"
+      ],
+      "scenarioFingerprint": "5b3d5c3482b6",
+      "files": [
+        "tests/scenarios/S-016-i-can-prepare-a-clear-radio-handoff.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T03:28:21.949Z"
+    },
+    "S-017": {
+      "checks": [
+        "expect(page.getByTestId('roster-row')).toHaveCount(1)",
+        "expect(page.getByTestId('ops-detail')).toContainText('Consent needed')",
+        "expect(page.getByTestId('ops-detail')).toContainText('Priya Singh')",
+        "expect(page.getByTestId('ops-detail')).toContainText('Second emergency contact')",
+        "expect(page.getByTestId('ops-detail')).toContainText('Medical information missing')",
+        "expect(page.getByTestId('checkin-clothing')).toBeVisible()",
+        "expect(page.getByTestId('checkin-clothing')).toHaveValue('Orange jacket,white helmet')",
+        "expect(page.getByTestId('ops-detail')).toContainText('Orange jacket,white helmet')"
+      ],
+      "scenarioFingerprint": "68ea61c415bc",
+      "files": [
+        "tests/scenarios/S-017-i-can-find-a-child-and-review-check-in-informati.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T03:28:21.949Z",
+      "updatedAt": "2026-11-08T03:34:12.764Z"
+    },
+    "S-019": {
+      "checks": [
+        "expect(page.getByTestId('incident-row')).toContainText('Bib 214')",
+        "expect(page.getByTestId('incident-row')).toContainText('Green run junction')",
+        "expect(page.getByTestId('incident-row')).toContainText('Blue skis')",
+        "expect(page.getByTestId('incident-row')).toContainText('Unknown')",
+        "expect(page.getByTestId('incident-row')).toContainText('Desk Demo')",
+        "expect(page.getByTestId('operations')).toContainText('Contact patrol by radio')"
+      ],
+      "scenarioFingerprint": "0af267020486",
+      "files": [
+        "tests/scenarios/S-019-i-can-log-an-instructor-radio-report-at-the-desk.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T03:28:21.949Z"
+    },
+    "S-018": {
+      "checks": [
+        "expect(page.getByTestId('pickup-adult')).not.toContainText('Unlisted')",
+        "expect(page.getByTestId('pickup-adult')).toContainText('Daniel Chen')",
+        "expect(page.getByTestId('ops-detail')).toContainText('Released to Daniel Chen')",
+        "expect(page.getByTestId('ops-detail')).toContainText('Desk Demo')",
+        "expect(page.getByTestId('pickup-save')).toHaveCount(0)",
+        "expect(page.getByTestId('release-time')).toContainText(/\\d{2}:\\d{2}/)",
+        "expect(page.getByTestId('director-checked-count')).toHaveText('0 / 2')",
+        "expect(page.getByTestId('director-child-row').filter({hasText:'Maya Chen'})).toContainText('Released')"
+      ],
+      "scenarioFingerprint": "e54958c03e99",
+      "files": [
+        "tests/scenarios/S-018-i-can-release-a-child-only-to-an-authorized-adul.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T03:30:05.701Z",
+      "updatedAt": "2026-11-08T03:34:12.764Z"
     }
   },
   "history": []

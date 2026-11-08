@@ -7,6 +7,8 @@ const routes = new Map([
   ['/styles.css', ['public/styles.css', 'text/css; charset=utf-8']],
   ['/director.js', ['public/director.js', 'text/javascript; charset=utf-8']],
   ['/director.css', ['public/director.css', 'text/css; charset=utf-8']],
+  ['/operations.js', ['public/operations.js', 'text/javascript; charset=utf-8']],
+  ['/operations.css', ['public/operations.css', 'text/css; charset=utf-8']],
   ['/demo-fixture.json', ['demo-fixture.json', 'application/json; charset=utf-8']],
 ]);
 
