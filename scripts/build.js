@@ -2,7 +2,6 @@ import { cp, mkdir, writeFile } from 'node:fs/promises';
 
 const root = new URL('../', import.meta.url);
 const output = new URL('build/runtime/', root);
-const preview = new URL('build/preview/', root);
 await mkdir(output, { recursive: true });
 for (const name of ['server.js', 'demo-fixture.json', 'public']) {
   await cp(new URL(name, root), new URL(name, output), { recursive: true });
@@ -12,9 +11,3 @@ await writeFile(new URL('package.json', output), JSON.stringify({
   scripts: { start: 'node server.js' },
 }, null, 2) + '\n');
 console.log('Demo build saved to build/runtime');
-await mkdir(preview, { recursive: true });
-for (const name of ['index.html', 'workspace.js', 'styles.css', 'director.js', 'director.css', 'operations.js', 'operations.css', 'patrol.js', 'patrol.css', 'grouping.js']) {
-  await cp(new URL('public/' + name, root), new URL(name, preview));
-}
-await cp(new URL('demo-fixture.json', root), new URL('demo-fixture.json', preview));
-console.log('Static team preview saved to build/preview');

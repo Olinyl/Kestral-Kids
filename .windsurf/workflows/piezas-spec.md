@@ -1,7 +1,6 @@
 ---
 description: Piezas spec mode - interview one question at a time, write SPEC.md, stop
 ---
-
 ---
 description: Interview the user and write a buildable Piezas-backed software spec before coding
 argument-hint: [optional one-line product idea]

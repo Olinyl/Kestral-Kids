@@ -11,9 +11,7 @@
     {
       "id": "spruce-3",
       "label": "Spruce 3",
-      "instructorId": "demo-instructor-01",
-      "level": "Level 1",
-      "meeting": "Green meeting flag"
+      "instructorId": "demo-instructor-01"
     },
     {
       "id": "cedar-1",
@@ -38,56 +36,13 @@
       "id": "demo-child-01",
       "displayName": "Maya Chen",
       "guardianId": "demo-guardian-01",
-      "consentStatus": "complete",
-      "consentUpdatedAt": "2026-11-06",
-      "birthDate": "2018-04-16",
-      "emergencyName": "Alyssa Chen",
-      "emergencyPhone": "+1 604 555 0101",
-      "medical": "Peanut allergy. Carries an epinephrine auto-injector.",
-      "pickup": "Alyssa Chen; Daniel Chen",
-      "emergencyName2": "Daniel Chen",
-      "emergencyPhone2": "+1 604 555 0111",
-      "alternateName": "Maya Lee-Chen",
-      "pickupAdults": [
-        {
-          "name": "Alyssa Chen",
-          "relationship": "Mother",
-          "validFrom": "",
-          "validUntil": ""
-        },
-        {
-          "name": "Daniel Chen",
-          "relationship": "Father",
-          "validFrom": "",
-          "validUntil": ""
-        }
-      ],
-      "medicalStatus": "alert",
-      "abilityLevel": "Level 1"
+      "consentStatus": "complete"
     },
     {
       "id": "demo-child-02",
       "displayName": "Noah Singh",
       "guardianId": "demo-guardian-02",
-      "consentStatus": "incomplete",
-      "birthDate": "2017-09-22",
-      "emergencyName": "Priya Singh",
-      "emergencyPhone": "+1 604 555 0102",
-      "medical": "",
-      "pickup": "Priya Singh",
-      "emergencyName2": "",
-      "emergencyPhone2": "",
-      "alternateName": "Noah Kaur-Singh",
-      "pickupAdults": [
-        {
-          "name": "Priya Singh",
-          "relationship": "Mother",
-          "validFrom": "",
-          "validUntil": ""
-        }
-      ],
-      "medicalStatus": "",
-      "abilityLevel": "Level 3"
+      "consentStatus": "incomplete"
     },
     { "id": "demo-child-03", "displayName": "Owen Okafor-Parr", "guardianId": "demo-guardian-03", "consentStatus": "complete" },
     { "id": "demo-child-04", "displayName": "Ava Chen", "guardianId": "demo-guardian-04", "consentStatus": "complete" },
@@ -118,72 +73,5 @@
     { "childId": "demo-child-07", "groupId": "group-14", "bib": "14-05", "status": "checked_in", "clothing": "" },
     { "childId": "demo-child-08", "groupId": "group-14", "bib": "14-06", "status": "checked_in", "clothing": "" }
   ],
-  "incidents": [],
-  "patrolAlerts": [
-    {
-      "id": "demo-alert-1042",
-      "caseNumber": "MC-1042",
-      "active": true,
-      "childId": "KKS-2026-014",
-      "childName": "Owen Parr",
-      "alternateName": "Owen Okafor-Parr",
-      "age": 8,
-      "group": "Group 14 · Level 3",
-      "status": "Searching",
-      "source": "School desk",
-      "receivedTime": "Feb 7, 2:40 PM",
-      "lastSeenTime": "Feb 7, 2:30 PM",
-      "lastSeenPlace": "Top of Pigeon chair",
-      "visibility": "Under 20 metres",
-      "clothing": "Blue jacket · White helmet",
-      "clothingConfidence": "Instructor report · unverified",
-      "equipment": "Not recorded by instructor",
-      "injuries": "Unknown",
-      "medical": "Mild asthma · Blue inhaler kept in jacket pocket",
-      "liftScan": null,
-      "liftScanUnavailableReason": "Pass number is unknown and is not linked to the child.",
-      "emergencyContacts": [
-        { "name": "Melissa Parr", "relationship": "Mother · registration contact", "phone": "416-555-0142", "phoneStatus": "Available for police handoff" },
-        { "name": "Daniel Okafor", "relationship": "Father · consent form contact", "phone": "604-555-187", "phoneStatus": "Incomplete number · verify before use" }
-      ],
-      "escalation": "If still missing at 3:30 PM (60 minutes after last seen), escalate to police. Police request search and rescue through 911 and handle family communication."
-    }
-  ],
-  "guardians": [
-    {
-      "id": "demo-guardian-01",
-      "name": "Alyssa Chen",
-      "email": "alyssa@example.test",
-      "phone": "+1 604 555 0101"
-    },
-    {
-      "id": "demo-guardian-02",
-      "name": "Priya Singh",
-      "email": "priya@example.test",
-      "phone": "+1 604 555 0102"
-    }
-  ],
-  "instructors": [
-    {
-      "id": "demo-instructor-01",
-      "name": "Alex Morgan",
-      "email": "alex@example.test",
-      "phone": "+1 604 555 0103",
-      "qualification": "CSIA Level 2"
-    },
-    {
-      "id": "demo-instructor-02",
-      "name": "Jamie Park",
-      "email": "jamie@example.test",
-      "phone": "+1 604 555 0104",
-      "qualification": "CSIA Level 1"
-    },
-    {
-      "id": "demo-instructor-03",
-      "name": "Sam Wilson",
-      "email": "sam@example.test",
-      "phone": "+1 604 555 0105",
-      "qualification": "CSIA Level 2"
-    }
-  ]
+  "incidents": []
 }

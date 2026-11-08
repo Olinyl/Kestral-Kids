@@ -1,14 +1,9 @@
-import { createDirector } from './director.js';
-import { createOperations } from './operations.js';
-import { createGuardian } from './guardian.js';
-import { createPatrol } from './patrol.js';
-
 const workspaces = {
   desk: {
-    label: 'School desk', tabs: ['Roster', 'Incidents'],
+    label: 'School desk', tabs: ['Today', 'Children', 'Pickup', 'Incidents'],
   },
-  guardian: { label: 'Guardian', tabs: ['My children', 'Messages'] },
-  director: { label: 'Director', tabs: ['Overview', 'Children', 'Guardians', 'Instructors', 'Lesson groups'] },
+  guardian: { label: 'Guardian', tabs: ['My children'] },
+  director: { label: 'Director', tabs: ['Incomplete profiles'] },
   instructor: { label: 'Instructor', tabs: ['Group roster'] },
   patrol: { label: 'Patrol', tabs: ['Active alerts'] },
 };
@@ -22,16 +17,17 @@ const template = document.querySelector('#roster-item');
 const searchLabel = document.querySelector('.search');
 const search = searchLabel.querySelector('input');
 const message = document.querySelector('#message');
+const standardPanel = document.querySelector('.panel');
+const instructorView = document.querySelector('#instructor-view');
+const instructorRoster = document.querySelector('#instructor-roster');
+const instructorItem = document.querySelector('#instructor-roster-item');
+const radioReport = document.querySelector('#radio-report');
+const reportMissing = document.querySelector('#report-missing');
 
-const requestedView = new URLSearchParams(window.location.search).get('view');
-let role = Object.hasOwn(workspaces, requestedView) ? requestedView : 'desk';
-let tab = workspaces[role].tabs[0];
+let role = 'desk';
+let tab = 'Today';
 let rows = [];
 let instructorGroup;
-let director;
-let operations;
-let guardian;
-let patrol;
 
 function visibleRows() {
   switch (role) {
@@ -77,8 +73,7 @@ function renderRoster() {
 
 function renderWorkspace() {
   const workspace = workspaces[role];
-  nav.style.setProperty('--tab-count',workspace.tabs.length);
-  title.textContent = role === 'guardian' ? 'Hello, Alyssa' : workspace.label + ' workspace';
+  title.textContent = workspace.label + ' workspace';
   sectionTitle.textContent = tab === 'Today' ? 'Today’s roster' : tab;
   searchLabel.hidden = !(role === 'desk' && ['Today', 'Children'].includes(tab));
   standardPanel.hidden = role === 'instructor';
@@ -87,7 +82,6 @@ function renderWorkspace() {
     const button = document.createElement('button');
     button.type = 'button';
     button.textContent = label;
-    if (role === 'director') button.dataset.testid = 'director-nav-' + ({ 'Lesson groups': 'groups' }[label] ?? label.toLowerCase());
     if (label === tab) button.setAttribute('aria-current', 'page');
     button.addEventListener('click', () => {
       tab = label;
@@ -97,30 +91,6 @@ function renderWorkspace() {
     });
     return button;
   }));
-  const operational = ['desk', 'instructor'].includes(role);
-  operations.clear();
-  guardian.clear();
-  patrol.clear();
-  roster.replaceChildren();
-  document.querySelector('#starter-panel').hidden = role === 'director' || operational || role === 'guardian' || role === 'patrol';
-  search.toggleAttribute('data-testid', !operational);
-  if (!operational) search.dataset.testid = 'roster-search';
-  document.querySelector('#operations').hidden = !operational;
-  document.querySelector('#patrol').hidden = role !== 'patrol';
-  document.querySelector('#guardian').hidden = role !== 'guardian';
-  document.querySelector('#director').hidden = role !== 'director';
-  document.body.classList.toggle('director-view', role === 'director');
-  document.body.classList.toggle('instructor-view', role === 'instructor');
-  document.body.classList.toggle('desk-view', role === 'desk');
-  document.body.classList.toggle('guardian-view', role === 'guardian');
-  document.body.classList.toggle('patrol-view', role === 'patrol');
-  if (operational) { director.clear?.(); operations.render(role,tab); return; }
-  if (role === 'director') {
-    director.render(tab);
-    return;
-  }
-  if (role === 'guardian') { guardian.render(tab); return; }
-  if (role === 'patrol') { patrol.render(tab); return; }
   renderRoster();
   if (role === 'instructor') renderInstructor();
 }
@@ -159,23 +129,16 @@ async function start() {
   try {
     const response = await fetch('/demo-fixture.json');
     if (!response.ok) throw new Error('Fixture unavailable');
-    let seed = await response.json();
-    if (location.pathname === '/prototype') {
-      const {prototypeSeed,addPrototypeControls} = await import('/prototype-fixtures.js');
-      const mode = new URLSearchParams(location.search).get('data') || 'demo';
-      seed = prototypeSeed(seed,mode);
-      addPrototypeControls(mode);
-    }
-    function updateRows() {
-      const groups = new Map(seed.groups.map(group => [group.id, group]));
-      const children = new Map(seed.children.map(child => [child.id, child]));
-      rows = seed.attendance.map(attendance => {
+    const seed = await response.json();
+    const groups = new Map(seed.groups.map(group => [group.id, group]));
+    const children = new Map(seed.children.map(child => [child.id, child]));
+    rows = seed.attendance.map(attendance => {
       const group = groups.get(attendance.groupId);
       return {
         ...attendance,
         ...children.get(attendance.childId),
-        groupLabel: group?.label ?? 'Unassigned',
-        instructorId: group?.instructorId,
+        groupLabel: group.label,
+        instructorId: group.instructorId,
       };
     });
     instructorGroup = seed.groups.find(group => group.id === 'group-14');

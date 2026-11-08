@@ -10,15 +10,9 @@
     "dev": "node --watch server.js",
     "start": "node server.js",
     "build": "node scripts/build.js",
-    "test": "playwright test",
-    "check": "node scripts/check.js"
+    "test": "node --test tests/scenarios/*.test.js"
   },
   "devDependencies": {
-    "piezas": "^0.7.7",
-    "playwright": "^1.57.0",
-    "@playwright/test": "^1.47.0"
-  },
-  "dependencies": {
-    "@piezas/sdk": "^0.5.2"
+    "playwright": "^1.57.0"
   }
 }
