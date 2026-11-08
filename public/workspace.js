@@ -105,6 +105,7 @@ function renderWorkspace() {
   document.body.classList.toggle('director-view', role === 'director');
   document.body.classList.toggle('instructor-view', role === 'instructor');
   document.body.classList.toggle('desk-view', role === 'desk');
+  document.body.classList.toggle('guardian-view', role === 'guardian');
   if (operational) { director.clear?.(); operations.render(role,tab); return; }
   if (role === 'director') {
     director.render(tab);
