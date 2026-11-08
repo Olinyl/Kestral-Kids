@@ -6,3 +6,11 @@ node_modules/
 playwright-report/
 test-results/
 build/
+.piezas/screenshots/
+.piezas/test-results/
+.piezas/tmp/
+.piezas/guard.json
+.piezas/quality-scan/
+.piezas/quality-attestation.json
+.piezas/test-attestation.json
+.piezas/test-running.json

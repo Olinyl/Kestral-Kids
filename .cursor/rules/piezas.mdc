@@ -3,7 +3,7 @@ description: Use Piezas backend APIs and SDK
 alwaysApply: true
 ---
 <!-- PIEZAS-CONTEXT:START -->
-<!-- Piezas contract v15 · served by https://mcp.piezas.ai/contract -->
+<!-- Piezas contract v15 · fetched 2026-11-08 from https://mcp.piezas.ai/contract -->
 ## Backend - Piezas.ai
 
 This app uses Piezas for business backend services. Keep the generated app focused on UI, routing, auth/session glue, workflow-specific orchestration, and calls to Piezas APIs.

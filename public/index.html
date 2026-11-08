@@ -2,9 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <meta name="theme-color" content="#ffffff">
   <title>Kestrel Kids Safety Desk</title>
   <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/director.css">
+  <link rel="stylesheet" href="/operations.css">
+  <link rel="stylesheet" href="/patrol.css">
   <script type="module" src="/workspace.js"></script>
 </head>
 <body>
@@ -17,7 +21,7 @@
   </header>
   <section class="demo" aria-label="Demo controls" data-testid="demo-banner">
     <div class="wrap demo-inner">
-      <div><strong>Interactive demo</strong><p>Fictional records for one lesson day.</p></div>
+      <div><strong>Interactive demo</strong></div>
       <label for="view-as">View as
         <select id="view-as" data-testid="view-as" disabled></select>
       </label>
@@ -30,7 +34,11 @@
     <div class="workspace">
       <p class="date" id="lesson-date"></p>
       <h1 data-testid="workspace-title">School desk workspace</h1>
-      <section class="panel" aria-labelledby="section-title">
+      <div id="director" hidden></div>
+      <div id="operations" hidden data-testid="operations"></div>
+      <div id="patrol" hidden data-testid="patrol"></div>
+      <div id="guardian" hidden data-testid="guardian"></div>
+      <section id="starter-panel" class="panel" aria-labelledby="section-title">
         <div class="panel-head">
           <h2 id="section-title"></h2>
           <label class="search" hidden>Find a child
