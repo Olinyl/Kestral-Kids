@@ -2,16 +2,21 @@
   "$schema": "https://piezas.ai/schemas/piezas-manifest.schema.json",
   "schemaVersion": 1,
   "generatedBy": "piezas-mcp",
-  "appName": "Kestrel Kids Safety Desk",
+  "appName": "Kestrel-Kids",
   "apiBaseUrl": "https://api.piezas.ai",
   "contractVersion": "15",
-  "deploymentMode": "server-runtime",
+  "deploymentMode": "static",
   "deploy": {
-    "appId": null,
+    "appId": "5f6d96c7-a11c-489f-a1f8-bcc5734401b7",
     "requiredEnv": [],
-    "dir": "build/runtime"
+    "optionalEnv": ["HOST", "PIEZAS_HOOK_STATE_DIR"],
+    "dir": "build/preview"
   },
   "notes": [
-    "Run npx piezas doctor after generated changes to verify this project against the served contract."
-  ]
+    "Milestone 0: static fictional-data preview; no public sessions or business API calls.",
+    "Backend milestone: restore server-runtime and build/runtime before adding Piezas service calls.",
+    "App identity verified from the owner's downloaded key through SDK whoami."
+  ],
+  "contractFetchedAt": "2026-11-07T22:39:30.346Z",
+  "rules": "short"
 }

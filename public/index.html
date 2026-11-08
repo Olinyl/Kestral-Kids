@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Kestrel Kids Safety Desk</title>
   <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/director.css">
   <script type="module" src="/workspace.js"></script>
 </head>
 <body>
@@ -30,7 +31,8 @@
     <div class="workspace">
       <p class="date" id="lesson-date"></p>
       <h1 data-testid="workspace-title">School desk workspace</h1>
-      <section class="panel" aria-labelledby="section-title">
+      <div id="director" hidden></div>
+      <section id="starter-panel" class="panel" aria-labelledby="section-title">
         <div class="panel-head">
           <h2 id="section-title"></h2>
           <label class="search" hidden>Find a child
