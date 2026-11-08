@@ -9,7 +9,7 @@
   "deploy": {
     "appId": "5f6d96c7-a11c-489f-a1f8-bcc5734401b7",
     "requiredEnv": [],
-    "optionalEnv": ["HOST", "PIEZAS_HOOK_STATE_DIR"],
+    "optionalEnv": ["HOST", "PIEZAS_HOOK_STATE_DIR", "KESTREL_BROWSER"],
     "dir": "build/preview"
   },
   "notes": [

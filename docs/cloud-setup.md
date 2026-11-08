@@ -7,7 +7,9 @@ Create the environment from Work in > Cloud > Create environment (or Settings > 
 
 ## Installation and checks
 
-Use Node.js 22 or later. Run `bash scripts/cloud-setup.sh` during setup. It installs the locked dependencies, Chromium and its Linux prerequisites, builds the preview, checks the Piezas rules and runs the browser acceptance checks. Run `npm run dev` only when a task needs a local preview; the development server is not permanent hosting.
+Use Node.js 22 or later. Run `bash scripts/cloud-setup.sh` during setup. It installs the locked dependencies, uses `/usr/bin/chromium` when available (otherwise installs Playwright Chromium and its Linux prerequisites), builds the preview, checks the Piezas rules and runs the browser acceptance checks. Run `npm run dev` only when a task needs a local preview; the development server is not permanent hosting.
+
+On cloud machines with preinstalled Chromium, prefix later browser checks with `KESTREL_BROWSER=/usr/bin/chromium`. The Playwright configuration accepts this optional executable override. It avoids requiring administrative package installation or a browser download. Do not enable unrestricted internet access for the mock.
 
 For task instructions, load AGENTS.md and SPEC.md, use the repository's Piezas skills under .agents/skills, and read the relevant .piezas/rules topic before Piezas service work. Published package versions are locked in package-lock.json. Do not copy or edit the toolkit's source.
 

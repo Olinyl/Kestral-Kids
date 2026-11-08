@@ -25,6 +25,7 @@ export default defineConfig({
   retries: 1,
   reporter: 'list',
   use: {
+    launchOptions: process.env.KESTREL_BROWSER ? { executablePath: process.env.KESTREL_BROWSER } : {},
     baseURL: process.env.PW_BASE_URL || `http://localhost:${port}`,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
