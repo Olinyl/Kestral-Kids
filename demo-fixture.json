@@ -11,12 +11,16 @@
     {
       "id": "spruce-3",
       "label": "Spruce 3",
-      "instructorId": "demo-instructor-01"
+      "instructorId": "demo-instructor-01",
+      "level": "Level 1",
+      "meeting": "Green meeting flag"
     },
     {
       "id": "cedar-1",
       "label": "Cedar 1",
-      "instructorId": "demo-instructor-02"
+      "instructorId": "demo-instructor-02",
+      "level": "Level 3",
+      "meeting": "Cedar meeting flag"
     }
   ],
   "children": [
@@ -24,13 +28,55 @@
       "id": "demo-child-01",
       "displayName": "Maya Chen",
       "guardianId": "demo-guardian-01",
-      "consentStatus": "complete"
+      "consentStatus": "complete",
+      "birthDate": "2018-04-16",
+      "emergencyName": "Alyssa Chen",
+      "emergencyPhone": "+1 604 555 0101",
+      "medical": "Peanut allergy. Carries an epinephrine auto-injector.",
+      "pickup": "Alyssa Chen; Daniel Chen",
+      "emergencyName2": "Daniel Chen",
+      "emergencyPhone2": "+1 604 555 0111",
+      "alternateName": "Maya Lee-Chen",
+      "pickupAdults": [
+        {
+          "name": "Alyssa Chen",
+          "relationship": "Mother",
+          "validFrom": "",
+          "validUntil": ""
+        },
+        {
+          "name": "Daniel Chen",
+          "relationship": "Father",
+          "validFrom": "",
+          "validUntil": ""
+        }
+      ],
+      "medicalStatus": "alert",
+      "abilityLevel": "Level 1"
     },
     {
       "id": "demo-child-02",
       "displayName": "Noah Singh",
       "guardianId": "demo-guardian-02",
-      "consentStatus": "incomplete"
+      "consentStatus": "incomplete",
+      "birthDate": "2017-09-22",
+      "emergencyName": "Priya Singh",
+      "emergencyPhone": "+1 604 555 0102",
+      "medical": "",
+      "pickup": "Priya Singh",
+      "emergencyName2": "",
+      "emergencyPhone2": "",
+      "alternateName": "Noah Kaur-Singh",
+      "pickupAdults": [
+        {
+          "name": "Priya Singh",
+          "relationship": "Mother",
+          "validFrom": "",
+          "validUntil": ""
+        }
+      ],
+      "medicalStatus": "",
+      "abilityLevel": "Level 3"
     }
   ],
   "attendance": [
@@ -49,5 +95,42 @@
       "clothing": null
     }
   ],
-  "incidents": []
+  "incidents": [],
+  "guardians": [
+    {
+      "id": "demo-guardian-01",
+      "name": "Alyssa Chen",
+      "email": "alyssa@example.test",
+      "phone": "+1 604 555 0101"
+    },
+    {
+      "id": "demo-guardian-02",
+      "name": "Priya Singh",
+      "email": "priya@example.test",
+      "phone": "+1 604 555 0102"
+    }
+  ],
+  "instructors": [
+    {
+      "id": "demo-instructor-01",
+      "name": "Alex Morgan",
+      "email": "alex@example.test",
+      "phone": "+1 604 555 0103",
+      "qualification": "CSIA Level 2"
+    },
+    {
+      "id": "demo-instructor-02",
+      "name": "Jamie Park",
+      "email": "jamie@example.test",
+      "phone": "+1 604 555 0104",
+      "qualification": "CSIA Level 1"
+    },
+    {
+      "id": "demo-instructor-03",
+      "name": "Sam Wilson",
+      "email": "sam@example.test",
+      "phone": "+1 604 555 0105",
+      "qualification": "CSIA Level 2"
+    }
+  ]
 }

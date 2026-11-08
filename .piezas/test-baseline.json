@@ -1,0 +1,365 @@
+{
+  "version": 1,
+  "scenarios": {
+    "S-001": {
+      "checks": [
+        "expect(response?.status()).toBe(200)",
+        "expect(page.getByTestId('workspace-title')).toHaveText('School desk workspace')",
+        "expect(page.getByTestId('workspace-title')).toHaveText('Patrol workspace')",
+        "expect(page.getByTestId('workspace-nav')).toHaveText('Active alerts')",
+        "expect(page.getByTestId('demo-banner')).toBeVisible()"
+      ],
+      "scenarioFingerprint": "d4d7614f90dd",
+      "files": [
+        "tests/scenarios/S-001-i-can-preview-the-patrol-workspace.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T00:42:59.128Z"
+    },
+    "S-002": {
+      "checks": [
+        "expect((page.goto('/'))?.status()).toBe(200)",
+        "expect(rows).toHaveCount(1)",
+        "expect(rows.first().locator('strong')).toHaveText('Maya Chen')",
+        "expect(rows.first().locator('.bib')).toHaveText('Bib 214')",
+        "expect(rows).toHaveCount(1)",
+        "expect(rows.first().locator('strong')).toHaveText('Maya Chen')",
+        "expect(rows.first().locator('.bib')).toHaveText('Bib 214')",
+        "expect(page.getByTestId('roster-search')).toBeVisible()",
+        "expect(rows).toHaveCount(2)"
+      ],
+      "scenarioFingerprint": "21ff2e29489c",
+      "files": [
+        "tests/scenarios/S-002-the-same-child-and-bib-appear-across-workspaces.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T00:42:59.128Z"
+    },
+    "S-007": {
+      "checks": [
+        "expect(page.getByTestId('director-today-count')).toHaveText('2')",
+        "expect(page.getByTestId('director-group-count')).toHaveText('2')",
+        "expect(page.getByTestId('director-child-row')).toHaveCount(1)",
+        "expect(page.getByTestId('director-child-row')).toContainText('Noah Singh')",
+        "expect(page.getByTestId('child-dialog')).toContainText('Consent needed')"
+      ],
+      "scenarioFingerprint": "b6690ea1681b",
+      "files": [
+        "tests/scenarios/S-007-i-can-see-what-needs-attention-today.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T00:42:59.128Z"
+    },
+    "S-008": {
+      "checks": [
+        "expect(page.getByTestId('director-child-row')).toHaveCount(1)",
+        "expect(page.getByTestId('form-error')).toContainText('valid phone')",
+        "expect(page.getByTestId('child-dialog')).not.toBeVisible()",
+        "expect(page.getByTestId('child-emergency-phone')).toHaveValue('+1 604 555 0199')",
+        "expect(page.getByTestId('child-medical')).toHaveValue('Carries an inhaler.')",
+        "expect(page.getByTestId('child-consent')).toHaveText('Consent needed \\u2014 guardian action required')",
+        "expect(page.getByTestId('child-dialog').getByRole('checkbox')).toHaveCount(0)"
+      ],
+      "scenarioFingerprint": "dab6450f2216",
+      "files": [
+        "tests/scenarios/S-008-i-can-find-and-update-a-child-s-details.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T00:42:59.128Z"
+    },
+    "S-009": {
+      "checks": [
+        "expect(page.getByTestId('guardian-dialog')).toContainText('Maya Chen')",
+        "expect(page.getByTestId('guardian-dialog')).not.toBeVisible()",
+        "expect(page.getByTestId('director-guardian-row').filter({hasText: 'Alyssa Chen'})).toContainText('+1 604 555 0188')"
+      ],
+      "scenarioFingerprint": "dd4be1b01f2b",
+      "files": [
+        "tests/scenarios/S-009-i-can-update-a-guardian-s-contact-details.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T00:42:59.128Z"
+    },
+    "S-010": {
+      "checks": [
+        "expect(page.getByTestId('director-instructor-row').filter({hasText: 'Taylor Reed'})).toBeVisible()",
+        "expect(page.getByTestId('director-group-row').filter({hasText: 'Aspen 2'})).toBeVisible()",
+        "expect(page.getByTestId('child-dialog')).not.toBeVisible()",
+        "expect(page.getByTestId('child-dialog')).not.toBeVisible()",
+        "expect(page.getByTestId('form-error')).toContainText('six children')",
+        "expect(page.getByTestId('director-group-row').filter({hasText: 'Aspen 2'})).toContainText('6 / 6')"
+      ],
+      "scenarioFingerprint": "12deff189ccb",
+      "files": [
+        "tests/scenarios/S-010-i-can-manage-groups-without-overloading-an-instr.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T00:42:59.128Z"
+    },
+    "S-011": {
+      "checks": [
+        "expect(page.getByTestId('roster-row').filter({hasText: 'Bib 214'})).toContainText('Maya Demo')",
+        "expect(page.getByTestId('director-child-row').filter({hasText: 'Maya Demo'})).toBeVisible()",
+        "expect(page.getByTestId('director-child-row').filter({hasText: 'Maya Chen'})).toBeVisible()",
+        "expect(page.getByTestId('demo-banner')).toBeVisible()"
+      ],
+      "scenarioFingerprint": "9a368dcca2b1",
+      "files": [
+        "tests/scenarios/S-011-my-demo-edits-stay-consistent-and-reset-on-reloa.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T00:42:59.128Z"
+    },
+    "S-012": {
+      "checks": [
+        "expect(page.getByTestId('director-empty')).toContainText('No children match')",
+        "expect(page.getByTestId('director-child-row')).toHaveCount(2)",
+        "expect(page.getByTestId('child-dialog')).toBeVisible()",
+        "expect(page.getByTestId('child-dialog')).not.toBeVisible()",
+        "expect(page.evaluate(()=> document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)"
+      ],
+      "scenarioFingerprint": "675acdad9e36",
+      "files": [
+        "tests/scenarios/S-012-i-can-use-the-director-workspace-on-my-phone-and.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T00:42:59.128Z"
+    },
+    "S-013": {
+      "checks": [
+        "expect(page.getByTestId('director-child-row')).toHaveCount(1)",
+        "expect(page.getByTestId('child-record-id')).toContainText('demo-child-02')",
+        "expect(page.getByTestId('director-child-row')).toContainText('Consent needed')",
+        "expect(page.getByTestId('child-emergency-name')).toHaveValue('Priya Singh')",
+        "expect(page.getByTestId('child-emergency-name2')).toHaveValue('Arjun Singh')",
+        "expect(page.getByTestId('child-emergency-phone2')).toHaveValue('+1 604 555 0112')",
+        "expect(maya).toContainText('Medical information missing')",
+        "expect(maya).toContainText('Needs attention')"
+      ],
+      "scenarioFingerprint": "c2505ef2966d",
+      "files": [
+        "tests/scenarios/S-013-i-can-identify-a-child-and-both-emergency-contac.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T00:52:14.447Z"
+    },
+    "S-014": {
+      "checks": [
+        "expect(page.getByTestId('pickup-0-status')).toHaveText('Expired')",
+        "expect(page.getByTestId('director-group-row').filter({hasText: 'Spruce 3'})).toContainText('Level 3')"
+      ],
+      "scenarioFingerprint": "ed93441ee802",
+      "files": [
+        "tests/scenarios/S-014-i-can-set-dated-pickup-permissions-and-numbered.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T00:52:14.447Z"
+    },
+    "S-015": {
+      "checks": [
+        "expect(page.getByTestId('ops-detail')).toContainText('Peanut allergy')",
+        "expect(page.getByTestId('ops-detail')).toContainText('Green jacket,white helmet')",
+        "expect(page.getByTestId('ops-detail')).not.toContainText('604')",
+        "expect(page.getByTestId('roster-row')).toHaveCount(1)",
+        "expect(page.getByTestId('roster-row')).toContainText('Bib 214')",
+        "expect(page.getByTestId('operations')).not.toContainText('Noah')",
+        "expect(page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()"
+      ],
+      "scenarioFingerprint": "df77ee1d9b4d",
+      "files": [
+        "tests/scenarios/S-015-i-can-see-my-own-group-on-my-phone.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T03:28:21.949Z"
+    },
+    "S-016": {
+      "checks": [
+        "expect(page.getByTestId('radio-checklist')).toContainText('Maya Chen')",
+        "expect(page.getByTestId('radio-checklist')).toContainText('214')",
+        "expect(page.getByTestId('radio-checklist')).toContainText('Green run junction')",
+        "expect(page.getByTestId('radio-checklist')).toContainText('Blue skis')",
+        "expect(page.getByTestId('radio-checklist')).toContainText('None observed')",
+        "expect(page.getByTestId('radio-checklist')).toContainText('Not sent')"
+      ],
+      "scenarioFingerprint": "5b3d5c3482b6",
+      "files": [
+        "tests/scenarios/S-016-i-can-prepare-a-clear-radio-handoff.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T03:28:21.949Z"
+    },
+    "S-017": {
+      "checks": [
+        "expect(page.getByTestId('roster-row')).toHaveCount(1)",
+        "expect(page.getByTestId('ops-detail')).toContainText('Consent needed')",
+        "expect(page.getByTestId('ops-detail')).toContainText('Priya Singh')",
+        "expect(page.getByTestId('ops-detail')).toContainText('Second emergency contact')",
+        "expect(page.getByTestId('ops-detail')).toContainText('Medical information missing')",
+        "expect(page.getByTestId('checkin-clothing')).toBeVisible()",
+        "expect(page.getByTestId('checkin-clothing')).toHaveValue('Orange jacket,white helmet')",
+        "expect(page.getByTestId('ops-detail')).toContainText('Orange jacket,white helmet')"
+      ],
+      "scenarioFingerprint": "68ea61c415bc",
+      "files": [
+        "tests/scenarios/S-017-i-can-find-a-child-and-review-check-in-informati.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T03:28:21.949Z",
+      "updatedAt": "2026-11-08T03:34:12.764Z"
+    },
+    "S-019": {
+      "checks": [
+        "expect(page.getByTestId('incident-row')).toContainText('Bib 214')",
+        "expect(page.getByTestId('incident-row')).toContainText('Green run junction')",
+        "expect(page.getByTestId('incident-row')).toContainText('Blue skis')",
+        "expect(page.getByTestId('incident-row')).toContainText('Unknown')",
+        "expect(page.getByTestId('incident-row')).toContainText('Desk Demo')",
+        "expect(page.getByTestId('operations')).toContainText('Contact patrol by radio')"
+      ],
+      "scenarioFingerprint": "0af267020486",
+      "files": [
+        "tests/scenarios/S-019-i-can-log-an-instructor-radio-report-at-the-desk.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T03:28:21.949Z"
+    },
+    "S-018": {
+      "checks": [
+        "expect(page.getByTestId('pickup-adult')).not.toContainText('Unlisted')",
+        "expect(page.getByTestId('pickup-adult')).toContainText('Daniel Chen')",
+        "expect(page.getByTestId('ops-detail')).toContainText('Released to Daniel Chen')",
+        "expect(page.getByTestId('ops-detail')).toContainText('Desk Demo')",
+        "expect(page.getByTestId('pickup-save')).toHaveCount(0)",
+        "expect(page.getByTestId('release-time')).toContainText(/\\d{2}:\\d{2}/)",
+        "expect(page.getByTestId('director-checked-count')).toHaveText('0 / 2')",
+        "expect(page.getByTestId('director-child-row').filter({hasText:'Maya Chen'})).toContainText('Released')"
+      ],
+      "scenarioFingerprint": "e54958c03e99",
+      "files": [
+        "tests/scenarios/S-018-i-can-release-a-child-only-to-an-authorized-adul.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T03:30:05.701Z",
+      "updatedAt": "2026-11-08T03:34:12.764Z"
+    },
+    "S-020": {
+      "checks": [
+        "expect(page.getByTestId('checkin-save')).toBeDisabled()",
+        "expect(page.getByTestId('ops-detail')).toContainText('Guardian consent is required before check-in')",
+        "expect(page.getByTestId('roster-row').filter({hasText:'Noah Singh'})).toContainText('Expected')",
+        "expect(page.getByTestId('checkin-save')).toBeDisabled()"
+      ],
+      "scenarioFingerprint": "1ed9531f699d",
+      "files": [
+        "tests/scenarios/S-020-missing-guardian-consent-prevents-check-in.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T04:14:14.185Z"
+    },
+    "S-021": {
+      "checks": [
+        "expect(page.getByTestId('roster-row')).toHaveCount(25)",
+        "expect(page.getByTestId('roster-page-summary')).toContainText('of '+size.toLocaleString('en-CA'))",
+        "expect(page.getByTestId('roster-page-summary')).toContainText('26')",
+        "expect(page.getByTestId('roster-row')).toHaveCount(25)",
+        "expect(page.getByTestId('roster-row')).toHaveCount(1)",
+        "expect(page.getByTestId('roster-row')).toContainText('Zara Winters')",
+        "expect(row).toContainText('Consent needed')",
+        "expect(page.getByTestId('roster-row')).toHaveCount(6)",
+        "expect(page.getByTestId('director-child-row')).toHaveCount(25)",
+        "expect(page.getByTestId('director-child-row')).toHaveCount(1)",
+        "expect(page.getByTestId('director-child-row')).toContainText(String(1000+size-1))"
+      ],
+      "scenarioFingerprint": "f61ad616f393",
+      "files": [
+        "tests/scenarios/S-021-i-can-find-children-in-a-large-lesson-day-roster.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T04:14:14.185Z"
+    },
+    "S-022": {
+      "checks": [
+        "expect(tab).toHaveAttribute('aria-current','page')",
+        "expect(page.getByTestId('operations')).toBeVisible()",
+        "expect(box.y+box.height).toBeLessThanOrEqual(844)",
+        "expect(box.y).toBeGreaterThan(750)",
+        "expect(page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()",
+        "expect(footer).toContainText('Contact patrol by radio')"
+      ],
+      "scenarioFingerprint": "9961e3f5bb3f",
+      "files": [
+        "tests/scenarios/S-022-desk-navigation-stays-at-the-bottom.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T04:14:14.185Z"
+    },
+    "S-023": {
+      "checks": [
+        "expect(page.getByTestId('roster-row')).toHaveCount(6)",
+        "expect(page.getByTestId('instructor-medical')).toContainText('Peanut allergy')",
+        "expect(page.getByTestId('operations')).not.toContainText('Roster saved for offline use')",
+        "expect(page.getByTestId('ops-dialog')).toContainText('Maya')",
+        "expect(page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()"
+      ],
+      "scenarioFingerprint": "aff596b577c8",
+      "files": [
+        "tests/scenarios/S-023-my-instructor-roster-stays-small-and-shows-safet.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T04:14:14.185Z"
+    },
+    "S-024": {
+      "checks": [
+        "expect(page.getByTestId('group-members')).toContainText('Noah Singh')",
+        "expect(page.getByTestId('group-members')).not.toContainText('Maya Chen')",
+        "expect(spruce).toContainText('Noah Singh')",
+        "expect(spruce).not.toContainText('Maya Chen')",
+        "expect(cedar).not.toContainText('Noah Singh')",
+        "expect(spruce).toContainText('Noah Demo')",
+        "expect(page.getByTestId('form-error')).toContainText('six children')",
+        "expect(page.getByTestId('group-members').locator('[data-group-remove]')).toHaveCount(6)"
+      ],
+      "scenarioFingerprint": "860bcbe2f520",
+      "files": [
+        "tests/scenarios/S-024-i-can-manage-children-from-lesson-groups.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T04:25:12.922Z",
+      "updatedAt": "2026-11-08T04:30:46.196Z"
+    },
+    "S-025": {
+      "checks": [
+        "expect(page.getByTestId('autoassign-preview')).toContainText('5 children can be assigned')",
+        "expect(page.getByTestId('autoassign-preview')).toContainText('No capacity')",
+        "expect(page.getByTestId('autoassign-preview')).toContainText('No recorded ability level')",
+        "expect(spruce).toContainText('6 / 6')",
+        "expect(spruce).toContainText('Maya Chen')",
+        "expect(page.getByTestId('director-group-row').filter({hasText:'Cedar 1'})).toContainText('Noah Singh')",
+        "expect(page.getByTestId('director-child-row')).toContainText('Unassigned')",
+        "expect(page.getByTestId('autoassign-preview')).toContainText('No matching group with an instructor')",
+        "expect(page.getByTestId('autoassign-apply')).toBeDisabled()",
+        "expect(page.getByTestId('director-child-row')).toContainText('Unassigned')"
+      ],
+      "scenarioFingerprint": "20dc3f09c8dd",
+      "files": [
+        "tests/scenarios/S-025-i-can-review-automatic-assignment-by-ability-lev.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T04:25:12.922Z",
+      "updatedAt": "2026-11-08T04:30:46.196Z"
+    },
+    "S-026": {
+      "checks": [
+        "expect(tabs).toHaveCount(5)",
+        "expect(tab).toHaveAttribute('aria-current','page')",
+        "expect(box.y).toBeGreaterThan(800)",
+        "expect(box.y+box.height).toBeLessThanOrEqual(900)",
+        "expect(page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()"
+      ],
+      "scenarioFingerprint": "9c1d9075db0c",
+      "files": [
+        "tests/scenarios/S-026-every-role-has-consistent-bottom-navigation.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T04:25:12.922Z"
+    },
+    "S-027": {
+      "checks": [
+        "expect(page.getByTestId('desk-detail')).toBeVisible()",
+        "expect(page.getByTestId('checkin-save')).toBeDisabled()",
+        "expect(page.getByTestId('roster-row')).toHaveCount(2)",
+        "expect(roster.x+roster.width).toBeLessThanOrEqual(details.x)",
+        "expect(page.getByTestId('desk-detail')).toContainText('Red jacket,blue helmet')",
+        "expect(page.getByTestId('roster-row')).toHaveCount(2)",
+        "expect(page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()",
+        "expect(page.getByTestId('ops-dialog')).toBeVisible()",
+        "expect(page.getByTestId('ops-detail')).toContainText('Peanut allergy')",
+        "expect(page.getByTestId('roster-row')).toHaveCount(2)"
+      ],
+      "scenarioFingerprint": "21b386b9ad72",
+      "files": [
+        "tests/scenarios/S-027-desktop-check-in-keeps-the-roster-beside-child-d.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T04:26:43.361Z"
+    }
+  },
+  "history": []
+}

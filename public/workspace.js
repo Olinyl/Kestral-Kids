@@ -1,9 +1,12 @@
+import { createDirector } from './director.js';
+import { createOperations } from './operations.js';
+
 const workspaces = {
   desk: {
     label: 'School desk', tabs: ['Today', 'Children', 'Pickup', 'Incidents'],
   },
   guardian: { label: 'Guardian', tabs: ['My children'] },
-  director: { label: 'Director', tabs: ['Incomplete profiles'] },
+  director: { label: 'Director', tabs: ['Overview', 'Children', 'Guardians', 'Instructors', 'Lesson groups'] },
   instructor: { label: 'Instructor', tabs: ['Group roster'] },
   patrol: { label: 'Patrol', tabs: ['Active alerts'] },
 };
@@ -18,9 +21,12 @@ const searchLabel = document.querySelector('.search');
 const search = searchLabel.querySelector('input');
 const message = document.querySelector('#message');
 
-let role = 'desk';
-let tab = 'Today';
+const requestedView = new URLSearchParams(window.location.search).get('view');
+let role = Object.hasOwn(workspaces, requestedView) ? requestedView : 'desk';
+let tab = workspaces[role].tabs[0];
 let rows = [];
+let director;
+let operations;
 
 function visibleRows() {
   switch (role) {
@@ -66,13 +72,15 @@ function renderRoster() {
 
 function renderWorkspace() {
   const workspace = workspaces[role];
+  nav.style.setProperty('--tab-count',workspace.tabs.length);
   title.textContent = workspace.label + ' workspace';
   sectionTitle.textContent = tab === 'Today' ? 'Today’s roster' : tab;
-  searchLabel.hidden = !(role === 'desk' && ['Today', 'Children'].includes(tab));
+  searchLabel.hidden = true;
   nav.replaceChildren(...workspace.tabs.map(label => {
     const button = document.createElement('button');
     button.type = 'button';
     button.textContent = label;
+    if (role === 'director') button.dataset.testid = 'director-nav-' + ({ 'Lesson groups': 'groups' }[label] ?? label.toLowerCase());
     if (label === tab) button.setAttribute('aria-current', 'page');
     button.addEventListener('click', () => {
       tab = label;
@@ -82,6 +90,22 @@ function renderWorkspace() {
     });
     return button;
   }));
+  const operational = ['desk', 'instructor'].includes(role);
+  operations.clear();
+  roster.replaceChildren();
+  document.querySelector('#starter-panel').hidden = role === 'director' || operational;
+  search.toggleAttribute('data-testid', !operational);
+  if (!operational) search.dataset.testid = 'roster-search';
+  document.querySelector('#operations').hidden = !operational;
+  document.querySelector('#director').hidden = role !== 'director';
+  document.body.classList.toggle('director-view', role === 'director');
+  document.body.classList.toggle('instructor-view', role === 'instructor');
+  document.body.classList.toggle('desk-view', role === 'desk');
+  if (operational) { director.clear?.(); operations.render(role,tab); return; }
+  if (role === 'director') {
+    director.render(tab);
+    return;
+  }
   renderRoster();
 }
 
@@ -89,17 +113,31 @@ async function start() {
   try {
     const response = await fetch('/demo-fixture.json');
     if (!response.ok) throw new Error('Fixture unavailable');
-    const seed = await response.json();
-    const groups = new Map(seed.groups.map(group => [group.id, group]));
-    const children = new Map(seed.children.map(child => [child.id, child]));
-    rows = seed.attendance.map(attendance => {
+    let seed = await response.json();
+    if (location.pathname === '/prototype') {
+      const {prototypeSeed,addPrototypeControls} = await import('/prototype-fixtures.js');
+      const mode = new URLSearchParams(location.search).get('data') || 'demo';
+      seed = prototypeSeed(seed,mode);
+      addPrototypeControls(mode);
+    }
+    function updateRows() {
+      const groups = new Map(seed.groups.map(group => [group.id, group]));
+      const children = new Map(seed.children.map(child => [child.id, child]));
+      rows = seed.attendance.map(attendance => {
       const group = groups.get(attendance.groupId);
       return {
         ...attendance,
         ...children.get(attendance.childId),
-        groupLabel: group.label,
-        instructorId: group.instructorId,
+        groupLabel: group?.label ?? 'Unassigned',
+        instructorId: group?.instructorId,
       };
+      });
+    }
+    updateRows();
+    operations = createOperations(document.querySelector('#operations'), seed, {onChange: updateRows});
+    director = createDirector(document.querySelector('#director'), seed, {
+      onChange: updateRows,
+      onNavigate: next => { tab = next; renderWorkspace(); },
     });
     document.querySelector('#lesson-date').textContent = new Intl.DateTimeFormat(
       'en-CA', { dateStyle: 'full', timeZone: 'UTC' }

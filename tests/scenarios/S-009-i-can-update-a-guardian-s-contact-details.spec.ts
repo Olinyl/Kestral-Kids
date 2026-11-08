@@ -1,0 +1,13 @@
+// piezas-scenario: S-009 v=dd4be1b01f2b
+import { expect, test } from '@playwright/test';
+test('S-009: I can update a guardian contact', async ({ page }) => {
+  await page.goto('/');
+  await page.getByTestId('view-as').selectOption('director');
+  await page.getByTestId('director-nav-guardians').click();
+  await page.getByTestId('guardian-open-demo-guardian-01').click();
+  await expect(page.getByTestId('guardian-dialog')).toContainText('Maya Chen');
+  await page.getByTestId('guardian-phone').fill('+1 604 555 0188');
+  await page.getByTestId('guardian-save').click();
+  await expect(page.getByTestId('guardian-dialog')).not.toBeVisible();
+  await expect(page.getByTestId('director-guardian-row').filter({ hasText: 'Alyssa Chen' })).toContainText('+1 604 555 0188');
+});
