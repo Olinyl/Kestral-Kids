@@ -1,5 +1,19 @@
 // piezas-scenario: S-027 v=21b386b9ad72
 import {expect,test} from '@playwright/test';
+test('Desk fits a laptop viewport with independently scrolling child details',async({page})=>{
+  for(const size of [{width:1366,height:768},{width:1440,height:900}]) {
+    await page.setViewportSize(size);
+    await page.goto('/');
+    await page.getByTestId('ops-open-demo-child-01').click();
+    await expect(page.getByTestId('checkin-save')).toBeVisible();
+    await expect(page.getByTestId('pickup-save')).toBeAttached();
+    expect(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight)).toBeTruthy();
+    const panel=await page.getByTestId('desk-detail').boundingBox();
+    const nav=await page.getByTestId('workspace-nav').boundingBox();
+    expect(panel.y+panel.height).toBeLessThanOrEqual(nav.y);
+    await page.screenshot({path:'.piezas/screenshots/desk-'+size.width+'.png'});
+  }
+});
 test('S-027: Desktop check-in keeps both panes visible',async({page})=>{
   await page.setViewportSize({width:1440,height:1000});
   await page.goto('/');

@@ -153,6 +153,33 @@ body .navigation nav button[aria-current] {background:#e3f0e6;color:#205d46;}
  .d-group-children input,.d-group-children select {font-size:16px;}
 }
 .o-inline-detail {display:none;}
+/* The desktop desk uses the available window; each work pane scrolls itself. */
+@media(min-width:1024px) {
+ body.desk-view {height:100dvh;display:flex;flex-direction:column;overflow:hidden;}
+ .desk-view .brand {min-height:44px;}
+ .desk-view .demo-inner {padding-block:5px;}
+ .desk-view .demo p {display:none;}
+ .desk-view .demo strong {font-size:13px;}
+ .desk-view .demo select {min-height:32px;padding-block:2px;}
+ .desk-view main.wrap {flex:1;min-height:0;display:flex;}
+ .desk-view .workspace {flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;padding:10px 0 82px;}
+ .desk-view .workspace>h1 {font-size:22px;margin-bottom:8px;}
+ .desk-view #operations {flex:1;min-height:0;display:flex;flex-direction:column;overflow:auto;}
+ .desk-view .o-heading {margin-bottom:10px;}
+ .desk-view .o-heading h2 {font-size:18px;}
+ .desk-view .o-heading p {font-size:13px;}
+ .desk-view #operations .o-desk-layout {flex:1;min-height:0;align-items:stretch;gap:18px;}
+ .desk-view .o-desk-roster {display:flex;flex-direction:column;min-height:0;}
+ .desk-view .o-desk-roster .o-search {margin-bottom:8px;gap:2px;}
+ .desk-view .o-filters {margin-bottom:8px;gap:10px;}
+ .desk-view .o-desk-roster .o-list {flex:1;min-height:0;max-height:none;overflow:auto;}
+ .desk-view .o-desk-roster .o-pagination {flex-shrink:0;margin-top:8px;}
+ .desk-view .o-desk-roster .o-pagination>div {margin-top:4px;}
+ .desk-view #desk-detail {position:static;min-height:0;max-height:none;overflow:auto;}
+ .desk-view .o-footer {margin:5px 0 0;font-size:12px;flex-shrink:0;}
+ .desk-view .o-inline-detail>header,.desk-view .o-dialog-body {padding:16px;}
+ .desk-view .o-dialog form {gap:12px;margin-top:18px;}
+}
 @media(min-width:1024px) {
  .o-desk-layout {display:grid;grid-template-columns:minmax(300px,360px) minmax(0,1fr);gap:24px;align-items:start;}
  .o-desk-roster {min-width:0;}

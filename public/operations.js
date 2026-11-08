@@ -5,7 +5,7 @@ const button = (id, label, primary = false) => `<button type="button" class="o-b
 const status = row => row.release ? 'Released' : row.status === 'checked_in' ? 'Checked in' : 'Expected';
 
 export function createOperations(root, seed, {onChange}) {
-  let role = 'desk', tab = 'Today', query = '', groupFilter = '', statusFilter = 'all', page = 0, selected, opener;
+  let role = 'desk', tab = 'Roster', query = '', groupFilter = '', statusFilter = 'all', page = 0, selected, opener;
   const pageSize = 25;
   const number = value => value.toLocaleString('en-CA');
   const dialog = document.createElement('dialog');
@@ -50,11 +50,10 @@ export function createOperations(root, seed, {onChange}) {
     } else {
       body += `<p class="${row.consentStatus === 'complete' ? 'o-note' : 'o-warning'}">${row.consentStatus === 'complete' ? 'Guardian consent on file' : 'Consent needed'}</p><dl class="o-facts"><div><dt>Emergency contact</dt><dd>${e(row.emergencyName)}<br>${e(row.emergencyPhone)}</dd></div><div><dt>Second emergency contact</dt><dd>${e(row.emergencyName2 || 'Not provided')}<br>${e(row.emergencyPhone2)}</dd></div></dl>`;
       if (row.release) body += `<div class="o-confirmation">Released to ${e(row.release.adult)}<br>Verified by ${e(row.release.staff)}<br><time data-testid="release-time">${e(row.release.time)}</time></div>`;
-      else if (tab === 'Pickup') {
+      else {
+        body += `<form id="checkin-form"><h3>${row.status === 'checked_in' ? 'Update clothing' : 'Drop-off'}</h3>${field('checkin-clothing','Current clothing and helmet',row.clothing || '')}<p class="o-note">Confirm what the child is wearing today.</p>${row.consentStatus !== 'complete' ? '<p class="o-warning">Guardian consent is required before check-in. Ask the guardian to complete consent; staff cannot override it.</p>' : ''}<button class="o-button o-primary" data-testid="checkin-save" ${row.consentStatus !== 'complete' ? 'disabled' : ''}>${row.status === 'checked_in' ? 'Save clothing' : 'Record check-in'}</button></form>`;
         const adults = activeAdults(row);
         body += `<form id="pickup-form"><h3>Verify pickup</h3><p>Check the adult's identity against today's authorization before releasing the child.</p><label>Authorized adult<select data-testid="pickup-adult" required><option value="">Choose an adult</option>${adults.map((a,i)=>`<option value="${i}">${e(a.name)} — ${e(a.relationship)}</option>`).join('')}</select></label>${field('pickup-staff','Verifying staff')}<label class="o-checkbox"><input type="checkbox" data-testid="pickup-verified" required> I checked this adult's identity and authorization.</label><p class="o-note">An unlisted adult cannot collect this child. Ask the director to resolve authorization.</p><button class="o-button o-primary" data-testid="pickup-save" ${row.status !== 'checked_in' || !adults.length ? 'disabled' : ''}>Record release</button>${row.status !== 'checked_in' ? '<p class="o-warning">This child has not checked in.</p>' : ''}</form>`;
-      } else {
-        body += `<form id="checkin-form"><h3>${row.status === 'checked_in' ? 'Update clothing' : 'Check-in'}</h3>${field('checkin-clothing','Current clothing and helmet',row.clothing || '')}<p class="o-note">Confirm what the child is wearing today.</p>${row.consentStatus !== 'complete' ? '<p class="o-warning">Guardian consent is required before check-in. Ask the guardian to complete consent; staff cannot override it.</p>' : ''}<button class="o-button o-primary" data-testid="checkin-save" ${row.consentStatus !== 'complete' ? 'disabled' : ''}>${row.status === 'checked_in' ? 'Save clothing' : 'Record check-in'}</button></form>`;
       }
     }
     show(row.displayName, body, trigger, true);

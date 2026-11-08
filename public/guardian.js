@@ -19,6 +19,16 @@ export function createGuardian(root, seed) {
     const tagInput=root.querySelector('[data-tag-input]'), tags=root.querySelector('.g-tag-list');
     tagInput.addEventListener('keydown',event=>{if(event.key==='Enter'&&tagInput.value.trim()){event.preventDefault();const tag=document.createElement('span');tag.className='g-tag';tag.textContent=tagInput.value.trim();const remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.setAttribute('aria-label','Remove '+tagInput.value.trim());remove.onclick=()=>tag.remove();tag.append(remove);tags.append(tag);tagInput.value='';}});
     const form=root.querySelector('form');
+    const fields=['displayName','birthDate','emergencyName','emergencyPhone','emergencyRelationship','emergencyName2','emergencyPhone2','emergencyRelationship2','medical','medications','allergies','pickupInput','photoPermission','guardianSignature','consentDate'];
+    const required=new Set(['emergencyName','emergencyPhone','emergencyRelationship','emergencyName2','emergencyPhone2','emergencyRelationship2','guardianSignature','consentDate']);
+    form.querySelectorAll('input,textarea').forEach((input,index)=>{
+      const name=fields[index]; input.name=name;input.dataset.testid='consent-'+name;
+      input.required=required.has(name);
+      if(input.type==='checkbox') input.checked=Boolean(child[name]);
+      else if(name!=='pickupInput') input.value=child[name]||'';
+    });
+    const priorAdults=child.pickupAdults||[];
+    for(const adult of priorAdults) {tagInput.value=adult.name+' ('+adult.relationship+')';tagInput.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter'}));}
     form.noValidate=true;
     const today=new Date();
     form.querySelector('input[type=date]').value=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');
@@ -33,6 +43,7 @@ export function createGuardian(root, seed) {
       event.preventDefault();
       form.querySelectorAll('.g-error').forEach(error=>error.remove());
       form.querySelectorAll('.g-contact input').forEach(input=>input.setCustomValidity(''));
+      if(tagInput.value.trim()) tagInput.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter'}));
       const contacts=[...form.querySelectorAll('.g-contact')];
       const contactComplete=contacts.map(section=>[...section.querySelectorAll('input')].map(input=>input.value.trim()));
       const errors=[];
@@ -51,6 +62,16 @@ export function createGuardian(root, seed) {
       if(!date.value){errors.push('Enter the signature date.');mark(date);}
       if(errors.length){const message=document.createElement('div');message.className='g-error';message.setAttribute('role','alert');message.innerHTML='<strong>Please complete these items:</strong><ul>'+errors.map(error=>`<li>${esc(error)}</li>`).join('')+'</ul>';form.prepend(message);message.scrollIntoView({behavior:'smooth',block:'center'});return;}
       consentDates[child.id]=new Intl.DateTimeFormat('en-CA',{timeZone:'UTC',year:'numeric',month:'short',day:'numeric'}).format(new Date());
+      for(const name of fields.slice(2)) {
+        if(name==='pickupInput') continue;
+        const input=form.elements.namedItem(name);
+        child[name]=input.type==='checkbox'?input.checked:input.value.trim();
+      }
+      child.pickupAdults=[...tags.querySelectorAll('.g-tag')].map(tag=>{
+        const text=tag.firstChild.textContent.trim();const match=/^(.*) \((.*)\)$/.exec(text);
+        const name=match?match[1]:text, relationship=match?match[2]:'Authorized adult';
+        return {...priorAdults.find(adult=>adult.name===name),name,relationship};
+      });
       child.consentStatus='complete';render('My children');
     };
   }

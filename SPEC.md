@@ -42,7 +42,7 @@ All records are fictional and come from demo-fixture.json. There is no database 
 - R-014: Desk pickup uses adults authorized on the lesson date; staff must choose one, record verifying staff and confirm the identity check. Release records retain adult, staff and time. An unlisted adult cannot release a child.
 - R-015: Desk staff can log an instructor radio report with child identity, last seen details, clothing/equipment and injuries. The log states that patrol handoff happens by radio; it does not send notifications.
 - R-016: Desk and director lists support 200 or more children with full-roster search, visible result counts and pages of 25; desk also has group/status filters. A local-only prototype offers demo, 200, 1,000, worst-case, empty and one-child data; every instructor still has at most six children. (Owner scale concern; page size is an implementation assumption.)
-- R-017: Every role uses the same fixed bottom navigation style with safe-area padding and content clear of controls. Desk tabs are Today, Children, Pickup and Incidents; director tabs are Overview, Children, Guardians, Instructors and Lesson groups. The same layout works on phones, tablets and desktops. (Owner's explicit navigation requests; Figma desk frame 2:101.)
+- R-017: Every role uses the same fixed bottom navigation style with safe-area padding and content clear of controls. Desk tabs are Roster and Incidents, with drop-off and verified pickup in each child's details; director tabs are Overview, Children, Guardians, Instructors and Lesson groups. The same layout works on phones, tablets and desktops. (Owner's explicit navigation requests; Figma desk frame 2:101.)
 - R-018: Every role keeps the owner's green palette, using Figma only for layout inspiration: compact phone rosters and visible group medical reminders. Keep readable touch controls and real data-driven identities; do not claim offline functionality. (Owner's design ideas, Figma frames 2:45 and 2:101, file CDfKgyYvSobrwn8xAfzuEr.)
 - R-019: Directors manage group membership directly in Lesson groups: add, remove or move a child, and open a child's details to edit. Membership changes are staged until the group is saved, respect the six-child limit per instructor, and show a warning for a manual placement at a different recorded ability level. (Owner clarification.)
 - R-020: Directors can preview and apply automatic assignment of unassigned children to existing groups with matching recorded ability levels. Preserve existing assignments and respect the six-child limit per instructor across groups. Explain children left unassigned for missing ability level, missing matching group or capacity. Never guess a child's level. (Owner agreed to recorded ability levels, 2026-11-07.)
@@ -131,7 +131,7 @@ Then I see Noah's consent gap, both emergency contact slots, medical information
 
 ### S-018: I can release a child only to an authorized adult
 covers: R-014
-Given Maya is checked in and I open Pickup.
+Given Maya is checked in and I open the desk roster.
 When I open Maya, choose Daniel Chen, enter verifying staff and confirm the identity check.
 Then release is recorded with Daniel, staff and time, and Maya cannot be released twice.
 
@@ -158,7 +158,7 @@ Then each page has at most 25 rows, the last child is found across the whole ros
 ### S-022: Desk navigation stays at the bottom
 covers: R-017
 Given I open the desk on phone and desktop.
-When I scroll and select Today, Children, Pickup and Incidents.
+When I scroll and select Roster and Incidents.
 Then the selected screen appears, every tab remains reachable at the viewport bottom, and the last content stays above the bar.
 
 ### S-023: My instructor roster stays small and shows safety reminders

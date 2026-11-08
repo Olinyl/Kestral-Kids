@@ -1,11 +1,5 @@
 {
   "version": 1,
   "skipped": {},
-  "checkChangeApprovals": [],
-  "keepTrying": {
-    "from": 0,
-    "said": "try again?",
-    "via": "owner-reply",
-    "at": "2026-11-08T07:12:26.863Z"
-  }
+  "checkChangeApprovals": []
 }

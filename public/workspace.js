@@ -4,7 +4,7 @@ import { createGuardian } from './guardian.js';
 
 const workspaces = {
   desk: {
-    label: 'School desk', tabs: ['Today', 'Children', 'Pickup', 'Incidents'],
+    label: 'School desk', tabs: ['Roster', 'Incidents'],
   },
   guardian: { label: 'Guardian', tabs: ['My children'] },
   director: { label: 'Director', tabs: ['Overview', 'Children', 'Guardians', 'Instructors', 'Lesson groups'] },

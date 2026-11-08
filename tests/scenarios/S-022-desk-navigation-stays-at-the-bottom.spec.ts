@@ -5,7 +5,8 @@ test('S-022: role requirement',async({page})=>{
   for(const width of [320,1440]) {
     await page.setViewportSize({width,height:844});
     await page.goto('/');
-    for(const name of ['Today','Children','Pickup','Incidents']) {
+    await expect(page.getByTestId('workspace-nav').getByRole('button')).toHaveCount(2);
+    for(const name of ['Roster','Incidents']) {
       const tab=page.getByTestId('workspace-nav').getByRole('button',{name,exact:true});
       await tab.click();
       await expect(tab).toHaveAttribute('aria-current','page');

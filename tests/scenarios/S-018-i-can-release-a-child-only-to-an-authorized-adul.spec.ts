@@ -3,7 +3,6 @@ import { expect, test } from '@playwright/test';
 
 test('S-018: role workflow', async ({page}) => {
   await page.goto('/');
-  await page.getByRole('button',{name:'Pickup',exact:true}).click();
   await page.getByTestId('ops-open-demo-child-01').click();
   await expect(page.getByTestId('pickup-adult')).not.toContainText('Unlisted');
   await expect(page.getByTestId('pickup-adult')).toContainText('Daniel Chen');

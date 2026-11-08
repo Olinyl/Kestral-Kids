@@ -220,12 +220,12 @@
         "expect(page.getByTestId('director-checked-count')).toHaveText('0 / 2')",
         "expect(page.getByTestId('director-child-row').filter({hasText:'Maya Chen'})).toContainText('Released')"
       ],
-      "scenarioFingerprint": "e54958c03e99",
+      "scenarioFingerprint": "f748e7ddeef0",
       "files": [
         "tests/scenarios/S-018-i-can-release-a-child-only-to-an-authorized-adul.spec.ts"
       ],
       "recordedAt": "2026-11-08T03:30:05.701Z",
-      "updatedAt": "2026-11-08T03:34:12.764Z"
+      "updatedAt": "2026-11-08T08:05:28.310Z"
     },
     "S-020": {
       "checks": [
@@ -262,6 +262,7 @@
     },
     "S-022": {
       "checks": [
+        "expect(page.getByTestId('workspace-nav').getByRole('button')).toHaveCount(2)",
         "expect(tab).toHaveAttribute('aria-current','page')",
         "expect(page.getByTestId('operations')).toBeVisible()",
         "expect(box.y+box.height).toBeLessThanOrEqual(844)",
@@ -269,11 +270,12 @@
         "expect(page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()",
         "expect(footer).toContainText('Contact patrol by radio')"
       ],
-      "scenarioFingerprint": "9961e3f5bb3f",
+      "scenarioFingerprint": "36e97f8aa1a2",
       "files": [
         "tests/scenarios/S-022-desk-navigation-stays-at-the-bottom.spec.ts"
       ],
-      "recordedAt": "2026-11-08T04:14:14.185Z"
+      "recordedAt": "2026-11-08T04:14:14.185Z",
+      "updatedAt": "2026-11-08T08:05:28.310Z"
     },
     "S-023": {
       "checks": [
@@ -343,6 +345,10 @@
     },
     "S-027": {
       "checks": [
+        "expect(page.getByTestId('checkin-save')).toBeVisible()",
+        "expect(page.getByTestId('pickup-save')).toBeAttached()",
+        "expect(page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight)).toBeTruthy()",
+        "expect(panel.y+panel.height).toBeLessThanOrEqual(nav.y)",
         "expect(page.getByTestId('desk-detail')).toBeVisible()",
         "expect(page.getByTestId('checkin-save')).toBeDisabled()",
         "expect(page.getByTestId('roster-row')).toHaveCount(2)",
@@ -358,7 +364,8 @@
       "files": [
         "tests/scenarios/S-027-desktop-check-in-keeps-the-roster-beside-child-d.spec.ts"
       ],
-      "recordedAt": "2026-11-08T04:26:43.361Z"
+      "recordedAt": "2026-11-08T04:26:43.361Z",
+      "updatedAt": "2026-11-08T08:05:28.310Z"
     }
   },
   "history": []
