@@ -15,7 +15,12 @@ function fact(icon, label, value) {
   return `<div class="p-fact"><span class="p-icon p-icon-soft">${icon}</span><div><h3>${label}</h3><p>${escapeHtml(value || 'Not recorded')}</p></div></div>`;
 }
 
+function logRows(entries) {
+  return entries.map(entry => `<div class="p-log-row"><time>${escapeHtml(entry.time)}</time><span>${escapeHtml(entry.action)}</span><strong>${escapeHtml(entry.actor)}</strong></div>`).join('');
+}
+
 export function createPatrol(root, seed, { onSignOut }) {
+  const localSearchLogs = new Map();
   function render() {
     const alerts = (seed.patrolAlerts ?? []).filter(alert => alert.source === 'School desk' && alert.active !== false);
     root.innerHTML = `<section class="patrol-shell" aria-label="Patrol workspace">
@@ -31,11 +36,13 @@ export function createPatrol(root, seed, { onSignOut }) {
         <h2 class="p-title">Alerted missing children</h2>
         <p class="p-intro">Only active alerts issued by the school desk are shown.</p>
         ${alerts.length ? `<div class="p-alert-list">${alerts.map(alert => `<article class="p-alert-card" data-testid="patrol-alert">
+          <div class="p-alert-main">
           <div class="p-alert-head">
             <span class="p-icon p-alert-icon">${icons.alert}</span>
             <div class="p-child"><span class="p-case">${escapeHtml(alert.caseNumber)}</span><h3>${escapeHtml(alert.childName)}</h3><p class="p-alias">Consent form: ${escapeHtml(alert.alternateName)}</p></div>
             <span class="p-status">${escapeHtml(alert.status)}</span>
             <div class="p-child-meta"><span>Child ID <strong>${escapeHtml(alert.childId)}</strong></span><span>Age ${escapeHtml(alert.age)}</span><span>${escapeHtml(alert.group)}</span><span>Desk alert received ${escapeHtml(alert.receivedTime)}</span></div>
+            <div class="p-radio-channel" data-testid="patrol-radio-channel"><span>Radio</span><strong>${escapeHtml(alert.radioChannel || 'Not assigned')}</strong></div>
           </div>
           <div class="p-facts">
             ${fact(icons.clock, 'Last seen time', alert.lastSeenTime)}
@@ -70,6 +77,26 @@ export function createPatrol(root, seed, { onSignOut }) {
             <p class="p-family-note">Police lead family communication once engaged.</p>
             <p class="p-action-message" role="status" aria-live="polite" data-testid="patrol-action-message" hidden></p>
           </section>
+          </div>
+          <div class="p-patrol-logs" data-testid="patrol-logs">
+            <section class="p-log-panel" aria-labelledby="system-log-title">
+              <div class="p-log-heading"><h3 id="system-log-title">System log</h3><span class="p-log-badge p-automatic">Automatic</span></div>
+              <div class="p-log-entries">${logRows(alert.systemLog || [])}</div>
+              <p class="p-log-note">App events only. Radio coordination is not captured.</p>
+            </section>
+            <section class="p-log-panel" aria-labelledby="search-log-title">
+              <div class="p-log-heading"><h3 id="search-log-title">Search log</h3><span class="p-log-badge p-patrol-entry">Patrol entry</span></div>
+              <p class="p-search-log-intro">Tap to log key actions between radio calls.</p>
+              <div class="p-log-actions">
+                <button type="button" class="p-log-button p-log-dispatched" data-testid="patrol-log-dispatched" data-search-action="dispatched" data-alert-id="${escapeHtml(alert.id)}">+ Dispatched</button>
+                <button type="button" class="p-log-button" data-testid="patrol-log-broadcast" data-search-action="broadcast" data-alert-id="${escapeHtml(alert.id)}">+ Broadcast</button>
+                <button type="button" class="p-log-button" data-testid="patrol-log-lift-scan" data-search-action="lift-scan" data-alert-id="${escapeHtml(alert.id)}">+ Lift scan</button>
+                <button type="button" class="p-log-button" data-testid="patrol-log-found" data-search-action="found" data-alert-id="${escapeHtml(alert.id)}">+ Found</button>
+              </div>
+              <div class="p-log-entries" data-testid="patrol-search-log-entries" id="patrol-search-log-${escapeHtml(alert.id)}">${logRows(localSearchLogs.get(alert.id) || alert.searchLog || [])}</div>
+              <p class="p-log-note">Entries are demo-only; radio messages are not sent or recorded.</p>
+            </section>
+          </div>
         </article>`).join('')}</div>` : '<p class="p-empty" data-testid="patrol-empty">No active alerts from the school desk.</p>'}
       </div>
     </section>`;
@@ -121,6 +148,25 @@ export function createPatrol(root, seed, { onSignOut }) {
           reveal('Could not copy automatically. You can still read and share the details above by following your procedure.');
         }
       }
+    }));
+    root.querySelectorAll('[data-search-action]').forEach(button => button.addEventListener('click', () => {
+      const selectedAlert = alerts.find(item => item.id === button.dataset.alertId);
+      if (!selectedAlert) return;
+      const entries = localSearchLogs.get(selectedAlert.id) || [...(selectedAlert.searchLog || [])];
+      const [lastHour, lastMinute] = (entries.at(-1)?.time || '2:40').split(':').map(Number);
+      const nextMinuteTotal = lastHour * 60 + lastMinute + 1;
+      const actionLabels = {
+        dispatched: 'Dispatched (4)',
+        broadcast: 'Description broadcast',
+        'lift-scan': 'Lift scan lookup blocked — pass number unavailable',
+        found: 'Found marker — desk confirmation pending',
+      };
+      const hour = Math.floor(nextMinuteTotal / 60) % 12 || 12;
+      const minute = String(nextMinuteTotal % 60).padStart(2, '0');
+      entries.push({ time: `${hour}:${minute}`, action: actionLabels[button.dataset.searchAction], actor: 'R. Fournier', type: button.dataset.searchAction });
+      localSearchLogs.set(selectedAlert.id, entries);
+      const entryList = root.querySelector(`#patrol-search-log-${CSS.escape(selectedAlert.id)}`);
+      if (entryList) entryList.innerHTML = logRows(entries);
     }));
   }
   return { render, clear() { root.replaceChildren(); } };

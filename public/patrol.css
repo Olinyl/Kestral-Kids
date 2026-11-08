@@ -2,7 +2,7 @@ body.patrol-view { background:#f5f8f7; color:#173f39; }
 .patrol-view .date { display:none; }
 .patrol-view .workspace { padding-top:12px; padding-bottom:112px; }
 .patrol-view .workspace>h1 { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
-.patrol-view .patrol-shell { max-width:760px; margin:0 auto; background:#f7f9f8; border:1px solid #e0e9e6; border-radius:24px; overflow:hidden; min-height:min(78dvh,920px); }
+.patrol-view .patrol-shell { max-width:1080px; margin:0 auto; background:#f7f9f8; border:1px solid #e0e9e6; border-radius:24px; overflow:hidden; min-height:min(78dvh,920px); }
 .p-topbar { display:flex; justify-content:space-between; align-items:center; gap:18px; padding:18px 20px 16px; background:#fff; border-bottom:1px solid #dce6e2; }
 .p-brand { margin:0 0 4px; color:#72968d; font-size:11px; font-weight:750; text-transform:uppercase; letter-spacing:.16em; }
 .p-topbar h2 { font-size:18px; letter-spacing:-.02em; }
@@ -28,6 +28,9 @@ body.patrol-view { background:#f5f8f7; color:#173f39; }
 .p-status { grid-column:1/-1; justify-self:start; border-radius:20px; padding:6px 13px; background:#ffe3e2; color:#a92323; font-size:11px; font-weight:700; }
 .p-child-meta { grid-column:1/-1; display:flex; flex-wrap:wrap; gap:5px 14px; color:#536f69; font-size:11px; }
 .p-child-meta strong { color:#315a52; }
+.p-radio-channel { grid-column:1/-1; display:inline-flex; align-items:center; gap:7px; width:max-content; max-width:100%; padding:5px 9px; border:1px solid #d9e5ee; border-radius:9px; background:#f0f6fa; color:#49627b; font-size:11px; }
+.p-radio-channel span { color:#7188a2; font-size:9px; font-weight:750; letter-spacing:.12em; text-transform:uppercase; }
+.p-radio-channel strong { color:#244f70; }
 .p-facts { display:grid; gap:0; padding:5px 20px 10px; }
 .p-fact { display:grid; grid-template-columns:32px minmax(0,1fr); gap:12px; align-items:start; padding:13px 0; }
 .p-icon-soft { width:32px; height:32px; border-radius:9px; color:#578579; background:#edf4f1; }
@@ -60,6 +63,30 @@ body.patrol-view { background:#f5f8f7; color:#173f39; }
 .p-family-note { margin:7px 0 0; color:#536987; text-align:center; font-size:11px; }
 .p-action-message { margin:9px 1px 0; padding:9px 11px; border-radius:8px; background:#eef4f1; color:#315a52; font-size:12px; line-height:1.5; }
 .p-empty { padding:20px; border:1px solid #dce6e2; border-radius:14px; background:white; color:#4d6964; }
+.p-patrol-logs { display:none; }
+.p-log-panel { padding:18px 22px; border:1px solid #dce5ee; border-radius:17px; background:#fff; }
+.p-log-heading { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:11px; }
+.p-log-heading h3 { margin:0; color:#536984; font-size:15px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+.p-log-badge { border-radius:10px; padding:5px 10px; font-size:11px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; white-space:nowrap; }
+.p-automatic { background:#e5f4ff; color:#155779; }
+.p-patrol-entry { background:#f3e8ff; color:#7035a5; }
+.p-log-entries { display:grid; }
+.p-log-row { display:grid; grid-template-columns:72px minmax(0,1fr) minmax(110px,auto); align-items:center; gap:14px; min-height:44px; border-bottom:1px dashed #dce5ee; color:#43546b; font-size:14px; }
+.p-log-row time { color:#303f55; font-weight:750; font-variant-numeric:tabular-nums; }
+.p-log-row strong { color:#91a2b8; text-align:right; font-size:13px; }
+.p-log-note { margin:12px 0 0; color:#72839b; font-size:12px; line-height:1.45; }
+.p-search-log-intro { margin:0 0 12px; color:#72839b; font-size:14px; }
+.p-log-actions { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 13px; }
+.p-log-button { min-height:42px; padding:7px 15px; border:1px solid #dbe4ee; border-radius:24px; background:white; color:#344359; font-size:13px; font-weight:750; touch-action:manipulation; }
+.p-log-dispatched { border-color:#a51b1b; background:#a91f1f; color:white; }
+@media(min-width:720px) {
+ .patrol-view .p-alert-card { display:grid; grid-template-columns:minmax(0,1.04fr) minmax(320px,.96fr); align-items:start; gap:16px; overflow:visible; border:0; background:transparent; }
+ .patrol-view .p-alert-main { min-width:0; overflow:hidden; border:1px solid #edd3ce; border-radius:17px; background:#fff; }
+ .patrol-view .p-patrol-logs { display:grid; min-width:0; align-content:start; gap:14px; margin:0; }
+ .p-log-panel { border-radius:18px; }
+ .p-log-row { min-height:45px; font-size:15px; }
+ .p-log-button { font-size:14px; }
+}
 @media(max-width:600px) {
  .patrol-view .wrap { width:calc(100% - 24px); }
  .patrol-view .workspace { padding-top:0; }

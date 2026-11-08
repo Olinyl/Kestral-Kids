@@ -107,6 +107,7 @@
       "alternateName": "Owen Okafor-Parr",
       "age": 8,
       "group": "Group 14 · Level 3",
+      "radioChannel": "Channel 4",
       "status": "Searching",
       "source": "School desk",
       "receivedTime": "Feb 7, 2:40 PM",
@@ -120,6 +121,16 @@
       "medical": "Mild asthma · Blue inhaler kept in jacket pocket",
       "liftScan": null,
       "liftScanUnavailableReason": "Pass number is unknown and is not linked to the child.",
+      "systemLog": [
+        { "time": "2:40", "action": "Missing alert sent", "actor": "T. Ng" },
+        { "time": "2:40", "action": "Dossier opened", "actor": "R. Fournier" },
+        { "time": "2:41", "action": "Dossier opened", "actor": "J. Lee (Desk)" },
+        { "time": "2:43", "action": "Consent confirmed", "actor": "J. Lee" }
+      ],
+      "searchLog": [
+        { "time": "2:45", "action": "Dispatched (4)", "actor": "R. Fournier", "type": "dispatched" },
+        { "time": "2:51", "action": "Description broadcast", "actor": "R. Fournier", "type": "broadcast" }
+      ],
       "emergencyContacts": [
         { "name": "Melissa Parr", "relationship": "Mother · registration contact", "phone": "416-555-0142", "phoneStatus": "Available for police handoff" },
         { "name": "Daniel Okafor", "relationship": "Father · consent form contact", "phone": "604-555-187", "phoneStatus": "Incomplete number · verify before use" }
