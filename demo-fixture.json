@@ -97,6 +97,36 @@
     }
   ],
   "incidents": [],
+  "patrolAlerts": [
+    {
+      "id": "demo-alert-1042",
+      "caseNumber": "MC-1042",
+      "active": true,
+      "childId": "KKS-2026-014",
+      "childName": "Owen Parr",
+      "alternateName": "Owen Okafor-Parr",
+      "age": 8,
+      "group": "Group 14 · Level 3",
+      "status": "Searching",
+      "source": "School desk",
+      "receivedTime": "Feb 7, 2:40 PM",
+      "lastSeenTime": "Feb 7, 2:30 PM",
+      "lastSeenPlace": "Top of Pigeon chair",
+      "visibility": "Under 20 metres",
+      "clothing": "Blue jacket · White helmet",
+      "clothingConfidence": "Instructor report · unverified",
+      "equipment": "Not recorded by instructor",
+      "injuries": "Unknown",
+      "medical": "Mild asthma · Blue inhaler kept in jacket pocket",
+      "liftScan": null,
+      "liftScanUnavailableReason": "Pass number is unknown and is not linked to the child.",
+      "emergencyContacts": [
+        { "name": "Melissa Parr", "relationship": "Mother · registration contact", "phone": "416-555-0142", "phoneStatus": "Available for police handoff" },
+        { "name": "Daniel Okafor", "relationship": "Father · consent form contact", "phone": "604-555-187", "phoneStatus": "Incomplete number · verify before use" }
+      ],
+      "escalation": "If still missing at 3:30 PM (60 minutes after last seen), escalate to police. Police request search and rescue through 911 and handle family communication."
+    }
+  ],
   "guardians": [
     {
       "id": "demo-guardian-01",

@@ -1,6 +1,7 @@
 import { createDirector } from './director.js';
 import { createOperations } from './operations.js';
 import { createGuardian } from './guardian.js';
+import { createPatrol } from './patrol.js';
 
 const workspaces = {
   desk: {
@@ -29,6 +30,7 @@ let rows = [];
 let director;
 let operations;
 let guardian;
+let patrol;
 
 function visibleRows() {
   switch (role) {
@@ -95,23 +97,27 @@ function renderWorkspace() {
   const operational = ['desk', 'instructor'].includes(role);
   operations.clear();
   guardian.clear();
+  patrol.clear();
   roster.replaceChildren();
-  document.querySelector('#starter-panel').hidden = role === 'director' || operational || role === 'guardian';
+  document.querySelector('#starter-panel').hidden = role === 'director' || operational || role === 'guardian' || role === 'patrol';
   search.toggleAttribute('data-testid', !operational);
   if (!operational) search.dataset.testid = 'roster-search';
   document.querySelector('#operations').hidden = !operational;
+  document.querySelector('#patrol').hidden = role !== 'patrol';
   document.querySelector('#guardian').hidden = role !== 'guardian';
   document.querySelector('#director').hidden = role !== 'director';
   document.body.classList.toggle('director-view', role === 'director');
   document.body.classList.toggle('instructor-view', role === 'instructor');
   document.body.classList.toggle('desk-view', role === 'desk');
   document.body.classList.toggle('guardian-view', role === 'guardian');
+  document.body.classList.toggle('patrol-view', role === 'patrol');
   if (operational) { director.clear?.(); operations.render(role,tab); return; }
   if (role === 'director') {
     director.render(tab);
     return;
   }
   if (role === 'guardian') { guardian.render(tab); return; }
+  if (role === 'patrol') { patrol.render(tab); return; }
   renderRoster();
 }
 
@@ -146,6 +152,14 @@ async function start() {
       onNavigate: next => { tab = next; renderWorkspace(); },
     });
     guardian = createGuardian(document.querySelector('#guardian'), seed);
+    patrol = createPatrol(document.querySelector('#patrol'), seed, {
+      onSignOut: () => {
+        role = 'desk';
+        tab = workspaces[role].tabs[0];
+        viewAs.value = role;
+        renderWorkspace();
+      },
+    });
     document.querySelector('#lesson-date').textContent = new Intl.DateTimeFormat(
       'en-CA', { dateStyle: 'full', timeZone: 'UTC' }
     ).format(new Date(seed.lessonDate));

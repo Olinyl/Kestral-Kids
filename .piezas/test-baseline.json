@@ -366,6 +366,42 @@
       ],
       "recordedAt": "2026-11-08T04:26:43.361Z",
       "updatedAt": "2026-11-08T08:05:28.310Z"
+    },
+    "S-028": {
+      "checks": [
+        "expect(page.getByTestId('workspace-title')).toHaveText('Patrol workspace')",
+        "expect(page.getByTestId('demo-banner')).toBeVisible()",
+        "expect(page.getByTestId('patrol-alert')).toContainText('Owen Parr')",
+        "expect(page.getByTestId('patrol-alert')).toContainText('Owen Okafor-Parr')",
+        "expect(page.getByTestId('patrol-alert')).toContainText('KKS-2026-014')",
+        "expect(page.getByTestId('patrol-alert')).toContainText('Group 14 · Level 3')",
+        "expect(page.getByTestId('patrol-alert')).toContainText('Feb 7,2:30 PM')",
+        "expect(page.getByTestId('patrol-alert')).toContainText('Top of Pigeon chair')",
+        "expect(page.getByTestId('patrol-alert')).toContainText('Under 20 metres')",
+        "expect(page.getByTestId('patrol-alert')).toContainText('Injuries: Unknown')",
+        "expect(page.getByTestId('patrol-alert')).toContainText('Mild asthma')",
+        "expect(page.getByTestId('patrol-alert')).toContainText('unverified')",
+        "expect(page.getByTestId('patrol-alert')).toContainText('Not recorded by instructor')",
+        "expect(page.getByTestId('patrol-alert')).toContainText('Pass number is unknown')",
+        "expect(page.getByTestId('patrol-alert')).toContainText('Melissa Parr')",
+        "expect(page.getByTestId('patrol-alert')).toContainText('416-555-0142')",
+        "expect(page.getByTestId('patrol-alert')).toContainText('Daniel Okafor')",
+        "expect(page.getByTestId('patrol-alert')).toContainText('Incomplete number')",
+        "expect(page.getByTestId('patrol-escalation')).toContainText('3:30 PM')",
+        "expect(page.getByTestId('patrol-alert')).toContainText('Police lead family communication once engaged')",
+        "expect(page.getByTestId('patrol-action-message')).toContainText('No scan request was sent')",
+        "expect(page.getByTestId('patrol-action-message')).toContainText('This preview does not place calls')",
+        "expect(page.getByTestId('patrol-action-message')).toContainText('Police report details copied')",
+        "expect(copiedReport).toContain('Owen Okafor-Parr')",
+        "expect(copiedReport).toContain('Blue inhaler kept in jacket pocket')",
+        "expect(copiedReport).toContain('604-555-187')"
+      ],
+      "scenarioFingerprint": "36caa003a49c",
+      "files": [
+        "tests/scenarios/S-028-patrol-can-review-active-missing-child-alerts.spec.ts"
+      ],
+      "recordedAt": "2026-11-08T15:23:36.138Z",
+      "updatedAt": "2026-11-08T15:25:51.373Z"
     }
   },
   "history": []

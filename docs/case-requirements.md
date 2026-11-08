@@ -7,6 +7,7 @@ Sources supplied by the owner: the Kestrel Kids team Google Doc linked in SPEC.m
 - An instructor teaches at most six children and carries a radio. Personal phone batteries can fail in the cold; internet access cannot be assumed.
 - Show the assigned group's children, bibs, ability level and the medical/allergy information needed for that group. Do not expose all children's medical files or general family contact lists.
 - Provide a clear radio handoff for a missing child: stable child identity, last seen time and place, confirmed clothing/equipment, possible injuries and relevant medical alert.
+- For Patrol, reconcile the registration and consent names under one child ID, show uncertainty instead of presenting an instructor's incorrect clothing description as fact, and clearly mark a lift scan unavailable when the pass number is unknown. Include visibility, relevant medical detail, emergency contacts for police handoff, and the case's police/SAR escalation timing.
 - Patrol conducts searches. Police and family escalation belongs to patrol's established procedure, not an automated instructor notification.
 - Offline access is a stretch goal; the preview must not imply it works offline or that an unsent report reached patrol.
 
