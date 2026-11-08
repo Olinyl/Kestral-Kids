@@ -40,6 +40,30 @@
         <p id="message" class="message" role="status">Loading lesson day…</p>
         <ul id="roster" class="roster" aria-label="Children"></ul>
       </section>
+      <section id="instructor-view" class="instructor-view" aria-label="Instructor group" hidden>
+        <p id="offline-status" class="message offline-status"></p>
+        <div class="group-heading">
+          <h2 id="instructor-group-title"></h2>
+          <strong id="group-count"></strong>
+        </div>
+        <ol id="instructor-roster" class="instructor-roster" aria-label="Today’s group"></ol>
+        <section class="must-know" aria-labelledby="must-know-heading">
+          <h3 id="must-know-heading"></h3>
+          <div id="medical-notes"></div>
+        </section>
+        <button id="report-missing" class="primary-action" type="button">Report missing child by radio</button>
+        <form id="radio-report" class="radio-report" hidden>
+          <h3>Missing child radio report</h3>
+          <label>Child
+            <select name="childId" required></select>
+          </label>
+          <label>Last seen at
+            <input name="lastSeen" required placeholder="e.g. base of Spruce chair">
+          </label>
+          <button class="primary-action" type="submit">Send report to desk</button>
+          <p id="radio-report-status" role="status"></p>
+        </form>
+      </section>
     </div>
   </main>
   <template id="roster-item">
@@ -48,6 +72,9 @@
       <span class="bib"></span>
       <span class="status"></span>
     </li>
+  </template>
+  <template id="instructor-roster-item">
+    <li><span class="instructor-number"></span><strong></strong><span class="bib"></span></li>
   </template>
 </body>
 </html>

@@ -60,6 +60,32 @@ h2 { margin: 0; font-size: 1.1rem; }
 .group, .bib, .status, .message { color: var(--muted); font-size: .875rem; }
 .status { justify-self: end; }
 .message { margin: 0; padding: 0 16px 16px; }
+.instructor-view { display: grid; gap: 16px; }
+.offline-status {
+  margin: 0; padding: 12px 16px; border: 1px solid var(--line);
+  border-radius: 9px; background: var(--tint);
+}
+.group-heading { display: flex; justify-content: space-between; align-items: center; }
+.group-heading strong { color: #1f6c55; }
+.instructor-roster { margin: 0; padding: 0; list-style: none; }
+.instructor-roster li {
+  display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 10px;
+  align-items: center; padding: 11px 14px; border: 1px solid var(--line);
+  border-radius: 9px; background: white;
+}
+.instructor-roster li + li { margin-top: 8px; }
+.instructor-number { color: #1f6c55; text-align: center; }
+.must-know h3, .radio-report h3 { margin: 0 0 10px; font-size: .95rem; text-transform: uppercase; }
+#medical-notes { display: grid; gap: 8px; }
+.medical-note { padding: 12px 14px; border: 1px solid var(--line); border-radius: 9px; background: var(--tint); }
+.medical-note p { margin: 3px 0 0; color: var(--muted); font-size: .875rem; }
+.primary-action {
+  min-height: 46px; border: 0; border-radius: 8px; padding: 10px 16px;
+  background: #1f6c55; color: white; font-weight: 650;
+}
+.radio-report { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--line); border-radius: 9px; background: white; }
+.radio-report label { display: grid; gap: 4px; font-size: .875rem; font-weight: 600; }
+.radio-report p { margin: 0; color: var(--muted); }
 @media (max-width: 430px) {
   .roster li { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 8px; }
   .status { grid-column: 2; }

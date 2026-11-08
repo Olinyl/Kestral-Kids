@@ -17,6 +17,18 @@
       "id": "cedar-1",
       "label": "Cedar 1",
       "instructorId": "demo-instructor-02"
+    },
+    {
+      "id": "group-14",
+      "label": "Group 14",
+      "instructorId": "demo-instructor-01",
+      "instructorName": "Tyler Ng",
+      "level": "Level 3",
+      "offlineReady": true,
+      "mustKnow": [
+        { "childId": "demo-child-03", "condition": "Asthma", "instruction": "Inhaler in jacket" },
+        { "childId": "demo-child-04", "condition": "Tree nut allergy", "instruction": "EpiPen in backpack" }
+      ]
     }
   ],
   "children": [
@@ -31,7 +43,13 @@
       "displayName": "Noah Singh",
       "guardianId": "demo-guardian-02",
       "consentStatus": "incomplete"
-    }
+    },
+    { "id": "demo-child-03", "displayName": "Owen Okafor-Parr", "guardianId": "demo-guardian-03", "consentStatus": "complete" },
+    { "id": "demo-child-04", "displayName": "Ava Chen", "guardianId": "demo-guardian-04", "consentStatus": "complete" },
+    { "id": "demo-child-05", "displayName": "Jonah Reeves", "guardianId": "demo-guardian-05", "consentStatus": "complete" },
+    { "id": "demo-child-06", "displayName": "Leo Martínez", "guardianId": "demo-guardian-06", "consentStatus": "complete" },
+    { "id": "demo-child-07", "displayName": "Hannah Brooks", "guardianId": "demo-guardian-07", "consentStatus": "complete" },
+    { "id": "demo-child-08", "displayName": "Mia Park", "guardianId": "demo-guardian-08", "consentStatus": "complete" }
   ],
   "attendance": [
     {
@@ -47,7 +65,13 @@
       "bib": "225",
       "status": "expected",
       "clothing": null
-    }
+    },
+    { "childId": "demo-child-03", "groupId": "group-14", "bib": "14-01", "status": "checked_in", "clothing": "" },
+    { "childId": "demo-child-04", "groupId": "group-14", "bib": "14-02", "status": "checked_in", "clothing": "" },
+    { "childId": "demo-child-05", "groupId": "group-14", "bib": "14-03", "status": "checked_in", "clothing": "" },
+    { "childId": "demo-child-06", "groupId": "group-14", "bib": "14-04", "status": "checked_in", "clothing": "" },
+    { "childId": "demo-child-07", "groupId": "group-14", "bib": "14-05", "status": "checked_in", "clothing": "" },
+    { "childId": "demo-child-08", "groupId": "group-14", "bib": "14-06", "status": "checked_in", "clothing": "" }
   ],
   "incidents": []
 }

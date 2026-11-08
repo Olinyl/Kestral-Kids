@@ -43,6 +43,7 @@ The included fixture holds only the shared starting rows. Feature owners can ext
 | S-004 | Feature | An instructor sees alerts for their assigned group. A child outside that group is unavailable. |
 | S-005 | Feature | The desk logs a child's arrival and clothing. An adult without current authorization cannot complete release. An approved handoff records adult, staff member and time. |
 | S-006 | Feature | The desk logs a missing-child radio report. Patrol sees the active incident with last seen details, clothing and emergency contact information. |
+| S-007 | Feature | An instructor opens their assigned Group 14 roster, sees attendance count and group-only safety notes, then sends a missing-child radio report with the child's name and last-seen location. |
 
 ## Architecture and build order
 
