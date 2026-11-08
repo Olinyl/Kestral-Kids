@@ -65,13 +65,85 @@
       "bib": "225",
       "status": "expected",
       "clothing": null
-    },
-    { "childId": "demo-child-03", "groupId": "group-14", "bib": "14-01", "status": "checked_in", "clothing": "" },
-    { "childId": "demo-child-04", "groupId": "group-14", "bib": "14-02", "status": "checked_in", "clothing": "" },
-    { "childId": "demo-child-05", "groupId": "group-14", "bib": "14-03", "status": "checked_in", "clothing": "" },
-    { "childId": "demo-child-06", "groupId": "group-14", "bib": "14-04", "status": "checked_in", "clothing": "" },
-    { "childId": "demo-child-07", "groupId": "group-14", "bib": "14-05", "status": "checked_in", "clothing": "" },
-    { "childId": "demo-child-08", "groupId": "group-14", "bib": "14-06", "status": "checked_in", "clothing": "" }
+    }
   ],
-  "incidents": []
+  "incidents": [],
+  "patrolAlerts": [
+    {
+      "id": "demo-alert-1042",
+      "caseNumber": "MC-1042",
+      "active": true,
+      "childId": "KKS-2026-014",
+      "childName": "Owen Parr",
+      "alternateName": "Owen Okafor-Parr",
+      "age": 8,
+      "group": "Group 14 · Level 3",
+      "radioChannel": "Channel 4",
+      "status": "Searching",
+      "source": "School desk",
+      "receivedTime": "Feb 7, 2:40 PM",
+      "lastSeenTime": "Feb 7, 2:30 PM",
+      "lastSeenPlace": "Top of Pigeon chair",
+      "visibility": "Under 20 metres",
+      "clothing": "Blue jacket · White helmet",
+      "clothingConfidence": "Instructor report · unverified",
+      "equipment": "Not recorded by instructor",
+      "injuries": "Unknown",
+      "medical": "Mild asthma · Blue inhaler kept in jacket pocket",
+      "liftScan": null,
+      "liftScanUnavailableReason": "Pass number is unknown and is not linked to the child.",
+      "systemLog": [
+        { "time": "2:40", "action": "Missing alert sent", "actor": "T. Ng" },
+        { "time": "2:40", "action": "Dossier opened", "actor": "R. Fournier" },
+        { "time": "2:41", "action": "Dossier opened", "actor": "J. Lee (Desk)" },
+        { "time": "2:43", "action": "Consent confirmed", "actor": "J. Lee" }
+      ],
+      "searchLog": [
+        { "time": "2:45", "action": "Dispatched (4)", "actor": "R. Fournier", "type": "dispatched" },
+        { "time": "2:51", "action": "Description broadcast", "actor": "R. Fournier", "type": "broadcast" }
+      ],
+      "emergencyContacts": [
+        { "name": "Melissa Parr", "relationship": "Mother · registration contact", "phone": "416-555-0142", "phoneStatus": "Available for police handoff" },
+        { "name": "Daniel Okafor", "relationship": "Father · consent form contact", "phone": "604-555-187", "phoneStatus": "Incomplete number · verify before use" }
+      ],
+      "escalation": "If still missing at 3:30 PM (60 minutes after last seen), escalate to police. Police request search and rescue through 911 and handle family communication."
+    }
+  ],
+  "guardians": [
+    {
+      "id": "demo-guardian-01",
+      "name": "Alyssa Chen",
+      "email": "alyssa@example.test",
+      "phone": "+1 604 555 0101"
+    },
+    {
+      "id": "demo-guardian-02",
+      "name": "Priya Singh",
+      "email": "priya@example.test",
+      "phone": "+1 604 555 0102"
+    }
+  ],
+  "instructors": [
+    {
+      "id": "demo-instructor-01",
+      "name": "Alex Morgan",
+      "email": "alex@example.test",
+      "phone": "+1 604 555 0103",
+      "qualification": "CSIA Level 2"
+    },
+    {
+      "id": "demo-instructor-02",
+      "name": "Jamie Park",
+      "email": "jamie@example.test",
+      "phone": "+1 604 555 0104",
+      "qualification": "CSIA Level 1"
+    },
+    {
+      "id": "demo-instructor-03",
+      "name": "Sam Wilson",
+      "email": "sam@example.test",
+      "phone": "+1 604 555 0105",
+      "qualification": "CSIA Level 2"
+    }
+  ]
 }

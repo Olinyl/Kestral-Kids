@@ -1,0 +1,101 @@
+body.patrol-view { background:#f5f8f7; color:#173f39; }
+.patrol-view .date { display:none; }
+.patrol-view .workspace { padding-top:12px; padding-bottom:112px; }
+.patrol-view .workspace>h1 { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+.patrol-view .patrol-shell { max-width:1080px; margin:0 auto; background:#f7f9f8; border:1px solid #e0e9e6; border-radius:24px; overflow:hidden; min-height:min(78dvh,920px); }
+.p-topbar { display:flex; justify-content:space-between; align-items:center; gap:18px; padding:18px 20px 16px; background:#fff; border-bottom:1px solid #dce6e2; }
+.p-brand { margin:0 0 4px; color:#72968d; font-size:11px; font-weight:750; text-transform:uppercase; letter-spacing:.16em; }
+.p-topbar h2 { font-size:18px; letter-spacing:-.02em; }
+.p-actions { display:flex; align-items:center; gap:8px; }
+.p-icon-button,.p-signout { display:grid; place-items:center; min-height:42px; border:1px solid #d8e4e0; border-radius:14px; background:white; color:#426c63; }
+.p-icon-button { width:42px; padding:9px; }
+.p-icon-button svg { width:19px; height:19px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+.p-signout { padding:0 14px; font-size:12px; }
+.p-content { padding:20px; }
+.p-eyebrow { margin:0 0 5px; color:#e34a36; font-size:12px; font-weight:750; letter-spacing:.16em; text-transform:uppercase; }
+.p-title { margin:0; font-size:clamp(26px,5vw,31px); line-height:1.15; letter-spacing:-.045em; }
+.p-intro { margin:8px 0 22px; color:#5e7596; font-size:14px; }
+.p-alert-list { display:grid; gap:16px; }
+.p-alert-card { overflow:hidden; border:1px solid #edd3ce; border-radius:17px; background:#fff; }
+.p-alert-head { display:grid; grid-template-columns:40px minmax(0,1fr); gap:10px 12px; align-items:center; padding:18px 20px 16px; background:#fff8f6; border-bottom:1px solid #f0ddd9; }
+.p-icon { display:grid; place-items:center; width:40px; height:40px; border-radius:12px; flex:none; }
+.p-icon svg { width:19px; height:19px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+.p-alert-icon { color:#d54430; background:#fae2dd; }
+.p-child { min-width:0; }
+.p-case { color:#d54430; font-size:11px; font-weight:750; }
+.p-child h3 { margin:2px 0 0; font-size:18px; letter-spacing:-.02em; }
+.p-alias { margin:3px 0 0; color:#657a89; font-size:12px; line-height:1.4; }
+.p-status { grid-column:1/-1; justify-self:start; border-radius:20px; padding:6px 13px; background:#ffe3e2; color:#a92323; font-size:11px; font-weight:700; }
+.p-child-meta { grid-column:1/-1; display:flex; flex-wrap:wrap; gap:5px 14px; color:#536f69; font-size:11px; }
+.p-child-meta strong { color:#315a52; }
+.p-radio-channel { grid-column:1/-1; display:inline-flex; align-items:center; gap:7px; width:max-content; max-width:100%; padding:5px 9px; border:1px solid #d9e5ee; border-radius:9px; background:#f0f6fa; color:#49627b; font-size:11px; }
+.p-radio-channel span { color:#7188a2; font-size:9px; font-weight:750; letter-spacing:.12em; text-transform:uppercase; }
+.p-radio-channel strong { color:#244f70; }
+.p-facts { display:grid; gap:0; padding:5px 20px 10px; }
+.p-fact { display:grid; grid-template-columns:32px minmax(0,1fr); gap:12px; align-items:start; padding:13px 0; }
+.p-icon-soft { width:32px; height:32px; border-radius:9px; color:#578579; background:#edf4f1; }
+.p-icon-soft svg { width:17px; height:17px; }
+.p-fact h3,.p-scan h3 { margin:0 0 4px; color:#8298b7; font-size:10px; font-weight:750; letter-spacing:.14em; text-transform:uppercase; }
+.p-fact p { margin:0; color:#315a52; font-size:14px; line-height:1.5; overflow-wrap:anywhere; }
+.p-scan { padding:15px 20px; border-top:1px solid #e7eeeb; background:#f5f8f7; }
+.p-scan h3 { color:#64847c; margin-bottom:8px; }
+.p-scan p { margin:4px 0; color:#315a52; font-size:14px; }
+.p-scan strong { font-weight:700; }
+.p-unavailable { margin:0; color:#596f78; font-size:13px; line-height:1.5; }
+.p-medical,.p-search-context,.p-contacts { padding:15px 20px; border-top:1px solid #e7eeeb; }
+.p-medical { background:#fff4dc; }
+.p-medical h3,.p-search-context h3,.p-contacts h3 { margin:0 0 8px; color:#64847c; font-size:10px; font-weight:750; letter-spacing:.14em; text-transform:uppercase; }
+.p-medical p { margin:0; color:#5c421c; font-size:14px; line-height:1.5; }
+.p-search-context { background:#fff; }
+.p-search-context p { margin:4px 0; color:#315a52; font-size:13px; line-height:1.45; }
+.p-contacts { background:#fff; }
+.p-contact { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; padding:9px 0; border-top:1px solid #edf1ef; font-size:12px; }
+.p-contact>div { display:grid; align-content:start; gap:2px; min-width:0; }
+.p-contact span { color:#687f79; font-size:11px; line-height:1.4; }
+.p-contact-phone a { color:#245e50; font-weight:700; }
+.p-escalation { margin:0; padding:15px 20px; border-top:1px solid #efd4cd; background:#fff2ed; color:#713c2c; font-size:12px; line-height:1.55; }
+.p-actions-panel { padding:15px 12px 13px; border-top:1px solid #dce6e2; background:#fff; }
+.p-actions-panel>h3 { margin:0 0 7px; color:#526987; font-size:11px; font-weight:750; letter-spacing:.13em; text-transform:uppercase; }
+.p-action-buttons { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+.p-action-button { min-height:43px; padding:8px 10px; border:1px solid #d4dfec; border-radius:11px; background:white; color:#233b61; font-size:12px; line-height:1.3; font-weight:700; }
+.p-action-police { border-color:#b91c1c; background:#bf1e1e; color:#fff; }
+.p-action-copy { grid-column:1/-1; }
+.p-family-note { margin:7px 0 0; color:#536987; text-align:center; font-size:11px; }
+.p-action-message { margin:9px 1px 0; padding:9px 11px; border-radius:8px; background:#eef4f1; color:#315a52; font-size:12px; line-height:1.5; }
+.p-empty { padding:20px; border:1px solid #dce6e2; border-radius:14px; background:white; color:#4d6964; }
+.p-patrol-logs { display:none; }
+.p-log-panel { padding:18px 22px; border:1px solid #dce5ee; border-radius:17px; background:#fff; }
+.p-log-heading { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:11px; }
+.p-log-heading h3 { margin:0; color:#536984; font-size:15px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+.p-log-badge { border-radius:10px; padding:5px 10px; font-size:11px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; white-space:nowrap; }
+.p-automatic { background:#e5f4ff; color:#155779; }
+.p-patrol-entry { background:#f3e8ff; color:#7035a5; }
+.p-log-entries { display:grid; }
+.p-log-row { display:grid; grid-template-columns:72px minmax(0,1fr) minmax(110px,auto); align-items:center; gap:14px; min-height:44px; border-bottom:1px dashed #dce5ee; color:#43546b; font-size:14px; }
+.p-log-row time { color:#303f55; font-weight:750; font-variant-numeric:tabular-nums; }
+.p-log-row strong { color:#91a2b8; text-align:right; font-size:13px; }
+.p-log-note { margin:12px 0 0; color:#72839b; font-size:12px; line-height:1.45; }
+.p-search-log-intro { margin:0 0 12px; color:#72839b; font-size:14px; }
+.p-log-actions { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 13px; }
+.p-log-button { min-height:42px; padding:7px 15px; border:1px solid #dbe4ee; border-radius:24px; background:white; color:#344359; font-size:13px; font-weight:750; touch-action:manipulation; }
+.p-log-dispatched { border-color:#a51b1b; background:#a91f1f; color:white; }
+@media(min-width:720px) {
+ .patrol-view .p-alert-card { display:grid; grid-template-columns:minmax(0,1.04fr) minmax(320px,.96fr); align-items:start; gap:16px; overflow:visible; border:0; background:transparent; }
+ .patrol-view .p-alert-main { min-width:0; overflow:hidden; border:1px solid #edd3ce; border-radius:17px; background:#fff; }
+ .patrol-view .p-patrol-logs { display:grid; min-width:0; align-content:start; gap:14px; margin:0; }
+ .p-log-panel { border-radius:18px; }
+ .p-log-row { min-height:45px; font-size:15px; }
+ .p-log-button { font-size:14px; }
+}
+@media(max-width:600px) {
+ .patrol-view .wrap { width:calc(100% - 24px); }
+ .patrol-view .workspace { padding-top:0; }
+ .patrol-view .patrol-shell { border-radius:23px; min-height:calc(100dvh - 150px); }
+ .p-topbar { padding:14px 18px; }
+ .p-content { padding:18px; }
+ .p-alert-head { padding:16px 18px 14px; }
+ .p-facts { padding-inline:18px; }
+ .p-scan { padding-inline:18px; }
+ .p-medical,.p-search-context,.p-contacts,.p-escalation { padding-inline:18px; }
+ .p-actions-panel { padding-inline:12px; }
+}
