@@ -110,6 +110,7 @@ export function createOperations(root, seed, {onChange}) {
       const report = {childId:child.childId, name:child.displayName,bib:child.bib,time:value('radio-time'),place:value('radio-place'),clothing:value('radio-clothing'),equipment:value('radio-equipment'),injuries:value('radio-injuries'),staff:instructor ? '' : value('radio-staff')};
       if (instructor) {
         sendPatrolAlert(child, report, 'Instructor');
+        render(role, tab);
         show('Missing child alert', `<p class="o-alert o-alert-sent" role="status" data-testid="radio-alert-status">Alert Sent</p>${reportBody(report)}<p class="o-note">The Patrol preview will show this alert when you switch to Patrol.</p>`);
       }
       else { seed.incidents.push(report); onChange(); close(); render(role,tab); }
