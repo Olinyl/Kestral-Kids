@@ -11,6 +11,8 @@ const routes = new Map([
   ['/director.css', ['public/director.css', 'text/css; charset=utf-8']],
   ['/operations.js', ['public/operations.js', 'text/javascript; charset=utf-8']],
   ['/operations.css', ['public/operations.css', 'text/css; charset=utf-8']],
+  ['/patrol.js', ['public/patrol.js', 'text/javascript; charset=utf-8']],
+  ['/patrol.css', ['public/patrol.css', 'text/css; charset=utf-8']],
   ['/demo-fixture.json', ['demo-fixture.json', 'application/json; charset=utf-8']],
 ]);
 

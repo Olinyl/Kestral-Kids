@@ -32,6 +32,7 @@ All records are fictional and come from demo-fixture.json. There is no database 
 - Child profile details: birth date, emergency contact and phone, medical notes, pickup adults, guardian ID and guardian-provided consent status.
 - Case detail additions: second emergency contact and phone, alternate name, structured pickup adults with relationship and inclusive valid-from/valid-until dates. Empty medical notes mean information is missing; an explicit no-conditions statement counts as recorded.
 - Instructor: ID, name, email, phone and qualification.
+- Patrol alert: case number, stable child ID, registration and consent names, age, group and level, active status, issuing desk, last-seen time and place, visibility, reported clothing and its confidence, equipment, injuries, medical alert, optional lift scan, emergency contacts and escalation guidance.
 - Lesson group details: ID, label, level, meeting place and instructor ID. Attendance links children to groups for the seeded lesson day.
 
 ## Role preview expansion
@@ -47,6 +48,7 @@ All records are fictional and come from demo-fixture.json. There is no database 
 - R-019: Directors manage group membership directly in Lesson groups: add, remove or move a child, and open a child's details to edit. Membership changes are staged until the group is saved, respect the six-child limit per instructor, and show a warning for a manual placement at a different recorded ability level. (Owner clarification.)
 - R-020: Directors can preview and apply automatic assignment of unassigned children to existing groups with matching recorded ability levels. Preserve existing assignments and respect the six-child limit per instructor across groups. Explain children left unassigned for missing ability level, missing matching group or capacity. Never guess a child's level. (Owner agreed to recorded ability levels, 2026-11-07.)
 - R-021: Desktop desk check-in keeps a searchable child list on the left and selected child's details on the right. Clothing entry, consent gating and contacts remain visible in that panel. Phones use a single list with a details dialog. (Owner's desktop reference at the bottom left of Figma, visually inspected after connector rate limit.)
+- R-022: Patrol sees active missing-child alerts issued by the school desk, with stable identity across registration and consent names, age, group and level, last-seen details, visibility, reported clothing with confidence, equipment, injuries, medical alerts, emergency contacts, escalation guidance and the latest lift scan when available. Unknown or conflicting details stay labelled as unknown or unverified; unavailable scans explain that the pass number is not linked. Patrol can request a lift scan, call police after the protocol threshold, and copy a police report. In this fictional-data preview, those actions never contact external services; feedback explains the limitation, while report details can be copied locally. Police lead family communication. (Patrol.png and Pending Chaos at Kestrel Kids case.)
 
 
 ## Acceptance Scenarios
@@ -190,6 +192,12 @@ covers: R-021
 Given I open School desk on a desktop.
 When I select Noah and then Maya and save Maya's current clothing.
 Then the roster stays visible to the left of the details panel, Noah's check-in is blocked without consent, and Maya's saved clothing appears on the right.
+
+### S-028: Patrol can review active missing-child alerts
+covers: R-022
+Given I select Patrol in the fictional-data preview.
+When I review the active alerts issued by the school desk.
+Then Owen Parr's registration name and Owen Okafor-Parr consent name appear together with his stable ID, age, Group 14 Level 3, last-seen time and place, asthma alert, uncertain clothing, unknown equipment and injuries, unavailable lift scan, emergency contacts and police escalation guidance. Request lift scan and Call police explain that the demo cannot contact external services, Copy details copies the report locally, police lead family communication, and the demo label remains visible.
 
 ## Architecture and build order
 

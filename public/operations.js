@@ -21,8 +21,31 @@ export function createOperations(root, seed, {onChange}) {
   };
   const own = () => rows().filter(r => role !== 'instructor' || r.group?.instructorId === 'demo-instructor-01');
   const activeAdults = child => (child.pickupAdults ?? []).filter(a => (!a.validFrom || a.validFrom <= seed.lessonDate) && (!a.validUntil || a.validUntil >= seed.lessonDate));
+  const activePatrolAlert = row => (seed.patrolAlerts ?? []).find(alert => alert.active !== false && alert.status !== 'Found' && [row.childId, row.id].includes(alert.childId));
   const get = id => activeHost.querySelector(`[data-testid="${id}"]`);
   const value = id => get(id).value.trim();
+  function sendPatrolAlert(row, report, source) {
+    const now = new Date();
+    const age = row.birthDate ? Math.max(0, Math.floor((Date.now() - new Date(row.birthDate).getTime()) / 31557600000)) : 'Unknown';
+    const clock = now.toLocaleTimeString('en-US', {hour:'numeric',minute:'2-digit'});
+    seed.patrolAlerts ??= [];
+    const caseNumber = `MC-${String(1043 + seed.patrolAlerts.length).padStart(4, '0')}`;
+    seed.patrolAlerts.unshift({
+      id: `demo-alert-${Date.now()}`, caseNumber, active:true, childId:row.id || row.childId,
+      childName:row.displayName, alternateName:row.alternateName || row.displayName, age,
+      group:`${row.group?.label || 'Group not recorded'} · ${row.group?.level || 'Level not recorded'}`,
+      radioChannel:'Channel 4', status:'Searching', source, receivedTime:clock,
+      lastSeenTime:report.time || 'Not provided', lastSeenPlace:report.place || 'Not provided',
+      visibility:'Not recorded', clothing:report.clothing || row.clothing || 'Not recorded',
+      clothingConfidence:report.clothing ? `${source} report · unverified` : 'Not confirmed',
+      equipment:report.equipment || 'Not recorded', injuries:report.injuries || 'Unknown', medical:row.medical || '',
+      liftScan:null, liftScanUnavailableReason:'Pass number is unknown and is not linked to the child.',
+      systemLog:[{time:clock,action:'Missing alert sent',actor:source}], searchLog:[],
+      emergencyContacts:[row.emergencyName && {name:row.emergencyName,relationship:'Emergency contact',phone:row.emergencyPhone || 'Not provided',phoneStatus:'Verify before use'},row.emergencyName2 && {name:row.emergencyName2,relationship:'Emergency contact',phone:row.emergencyPhone2 || 'Not provided',phoneStatus:'Verify before use'}].filter(Boolean),
+      escalation:'Follow the school’s missing-child procedure. Verify details with the desk and patrol lead.',
+    });
+    onChange();
+  }
   const close = () => {
     if(activeHost!==dialog) {activeHost.innerHTML='<p class="o-empty">Select a child from the roster to review their details.</p>';selected=undefined;}
     if(dialog.open) dialog.close();
@@ -46,7 +69,9 @@ export function createOperations(root, seed, {onChange}) {
     selected = row.childId;
     let body = `<p class="o-record">${e(row.id)} · ${e(row.group?.label)} · <b>Bib ${e(row.bib)}</b></p>${medical(row)}<dl class="o-facts"><div><dt>Current clothing</dt><dd>${e(row.clothing || 'Not recorded')}</dd></div><div><dt>Lesson</dt><dd>${e(row.group?.level)} · ${e(row.group?.meeting)}</dd></div></dl>`;
     if (role === 'instructor') {
-      body += `<p class="o-note">Use your radio for urgent help. This preview cannot send reports or work offline.</p>${button('radio-start','Prepare radio checklist',true)}`;
+      body += activePatrolAlert(row)
+        ? `<p class="o-alert-sent" role="status" data-testid="instructor-alert-status">Alert Sent · Searching</p><p class="o-note">Patrol has not reported this child found.</p>`
+        : `<p class="o-note">Submit a missing-child alert to the Patrol preview. Demo alerts stay in this browser session.</p><button type="button" class="o-button o-danger" data-testid="radio-start">Report missing child</button>`;
     } else {
       body += `<p class="${row.consentStatus === 'complete' ? 'o-note' : 'o-warning'}">${row.consentStatus === 'complete' ? 'Guardian consent on file' : 'Consent needed'}</p><dl class="o-facts"><div><dt>Emergency contact</dt><dd>${e(row.emergencyName)}<br>${e(row.emergencyPhone)}</dd></div><div><dt>Second emergency contact</dt><dd>${e(row.emergencyName2 || 'Not provided')}<br>${e(row.emergencyPhone2)}</dd></div></dl>`;
       if (row.release) body += `<div class="o-confirmation">Released to ${e(row.release.adult)}<br>Verified by ${e(row.release.staff)}<br><time data-testid="release-time">${e(row.release.time)}</time></div>`;
@@ -77,13 +102,17 @@ export function createOperations(root, seed, {onChange}) {
   }
   function radio(row) {
     const instructor = role === 'instructor';
-    show(instructor ? 'Missing-child radio checklist' : 'Log a received radio report', `<p class="o-warning">${instructor ? 'Not sent. Read this information over your radio.' : 'Record the radio report you received. Contact patrol by radio; this log does not notify them.'}</p><form id="radio-form">${instructor ? `<p>${e(row.displayName)} · Bib ${e(row.bib)}</p>` : `<label>Child<select data-testid="radio-child" required><option value="">Choose a child</option>${rows().map(r=>`<option value="${e(r.childId)}">${e(r.displayName)} · Bib ${e(r.bib)}</option>`).join('')}</select></label>`}${field('radio-time','Last seen time','','time')}${field('radio-place','Last seen place')}${field('radio-clothing','Confirmed clothing',row?.clothing || '')}${field('radio-equipment','Skis, helmet and other equipment')}${field('radio-injuries','Injuries or concerns (write unknown if unconfirmed)')}${instructor ? '' : field('radio-staff','Receiving staff')}<button class="o-button o-primary" data-testid="radio-save">${instructor ? 'Prepare checklist' : 'Save received report'}</button></form>`);
+    show(instructor ? 'Report missing child' : 'Log a received radio report', `<p class="o-warning">${instructor ? 'This sends a demo alert to the Patrol screen in this preview.' : 'Record the report received by the desk.'}</p><form id="radio-form">${instructor ? `<p>${e(row.displayName)} · Bib ${e(row.bib)}</p>` : `<label>Child<select data-testid="radio-child" required><option value="">Choose a child</option>${rows().map(r=>`<option value="${e(r.childId)}">${e(r.displayName)} · Bib ${e(r.bib)}</option>`).join('')}</select></label>`}${field('radio-time','Last seen time','','time')}${field('radio-place','Last seen place')}${field('radio-clothing','Confirmed clothing',row?.clothing || '')}${field('radio-equipment','Skis, helmet and other equipment')}${field('radio-injuries','Injuries or concerns (write unknown if unconfirmed)')}${instructor ? '' : field('radio-staff','Receiving staff')}<button class="o-button ${instructor ? 'o-danger' : 'o-primary'}" data-testid="radio-save">${instructor ? 'Send alert now' : 'Save received report'}</button></form>`);
     dialog.querySelector('#radio-form').onsubmit = event => {
       event.preventDefault();
       const child = instructor ? row : rows().find(r=>r.childId===value('radio-child'));
       if (!child) return;
       const report = {childId:child.childId, name:child.displayName,bib:child.bib,time:value('radio-time'),place:value('radio-place'),clothing:value('radio-clothing'),equipment:value('radio-equipment'),injuries:value('radio-injuries'),staff:instructor ? '' : value('radio-staff')};
-      if (instructor) show('Ready to read over your radio', `<div data-testid="radio-checklist"><p class="o-warning"><b>Not sent.</b> Use your radio to contact the desk or patrol.</p>${reportBody(report)}${medical(child)}<p class="o-record">Child ID: ${e(child.id)}</p></div>`);
+      if (instructor) {
+        sendPatrolAlert(child, report, 'Instructor');
+        render(role, tab);
+        show('Missing child alert', `<p class="o-alert o-alert-sent" role="status" data-testid="radio-alert-status">Alert Sent</p>${reportBody(report)}<p class="o-note">The Patrol preview will show this alert when you switch to Patrol.</p>`);
+      }
       else { seed.incidents.push(report); onChange(); close(); render(role,tab); }
     };
   }
@@ -92,8 +121,16 @@ export function createOperations(root, seed, {onChange}) {
     const matches = own().filter(row=>(!groupFilter || row.groupId===groupFilter) && (statusFilter==='all' || statusFilter==='consent' && row.consentStatus!=='complete' || statusFilter==='released' && row.release || statusFilter==='checked_in' && row.status==='checked_in' && !row.release || statusFilter==='expected' && row.status==='expected' && !row.release) && [row.displayName,row.alternateName,row.bib,row.group?.label,row.id].some(v=>String(v??'').toLowerCase().includes(query.trim().toLowerCase())));
     page = Math.max(0, Math.min(page,Math.ceil(matches.length/pageSize)-1));
     const visible = role==='instructor' ? matches : matches.slice(page*pageSize,(page+1)*pageSize);
-    root.querySelector('#ops-list').innerHTML = matches.length ? visible.map((row,index)=>role==='instructor' ? `<article class="o-roster-row" data-testid="roster-row"><button class="o-instructor-child" data-testid="ops-open-${e(row.childId)}"><span class="o-row-number">${index+1}</span><strong dir="auto">${e(row.displayName)}</strong><span class="bib">Bib ${e(row.bib)}</span></button></article>` : `<article class="o-roster-row" data-testid="roster-row"><div class="o-child"><strong dir="auto">${e(row.displayName)}</strong><span>${e(row.group?.label)} · ${e(row.group?.level)}</span>${row.medicalStatus === 'alert' ? '<span class="o-alert-label">Medical alert</span>' : ''}</div><span class="bib">Bib ${e(row.bib)}</span><span class="o-status">${status(row)}${row.consentStatus !== 'complete' ? '<br><span class="o-warning-text">Consent needed</span>' : ''}</span>${button('ops-open-'+row.childId,tab === 'Pickup' ? (row.release ? 'View release' : 'Verify pickup') : 'View child')}</article>`).join('') : '<p class="o-empty">No children match that search.</p>';
-    for (const row of visible) root.querySelector(`[data-testid="ops-open-${row.childId}"]`).onclick = event=>detail(row,event.currentTarget);
+    root.querySelector('#ops-list').innerHTML = matches.length ? visible.map((row,index)=>role==='instructor' ? `<article class="o-roster-row" data-testid="roster-row"><button class="o-instructor-child" data-testid="ops-open-${e(row.childId)}"><span class="o-row-number">${index+1}</span><strong dir="auto">${e(row.displayName)}</strong>${activePatrolAlert(row) ? '<span class="o-instructor-alert" role="status" data-testid="instructor-alert-status">Alert Sent · Searching</span>' : ''}<span class="bib">Bib ${e(row.bib)}</span></button></article>` : `<article class="o-roster-row" data-testid="roster-row"><div class="o-child"><strong dir="auto">${e(row.displayName)}</strong><span>${e(row.group?.label)} · ${e(row.group?.level)}</span>${row.medicalStatus === 'alert' ? '<span class="o-alert-label">Medical alert</span>' : ''}</div><span class="bib">Bib ${e(row.bib)}</span><span class="o-status">${status(row)}${row.consentStatus !== 'complete' ? '<br><span class="o-warning-text">Consent needed</span>' : ''}</span><div class="o-row-actions">${button('ops-open-'+row.childId,tab === 'Pickup' ? (row.release ? 'View release' : 'Verify pickup') : 'View child')}${tab !== 'Pickup' ? `<button type="button" class="o-button o-danger" data-testid="desk-report-missing-${e(row.childId)}" ${activePatrolAlert(row) ? 'disabled' : ''}>Report missing child</button><span class="o-alert-sent" role="status" data-testid="desk-alert-status-${e(row.childId)}" ${activePatrolAlert(row) ? '' : 'hidden'}>Alert Sent · Searching</span>` : ''}</div></article>`).join('') : '<p class="o-empty">No children match that search.</p>';
+    for (const row of visible) {
+      root.querySelector(`[data-testid="ops-open-${row.childId}"]`).onclick = event=>detail(row,event.currentTarget);
+      root.querySelector(`[data-testid="desk-report-missing-${row.childId}"]`)?.addEventListener('click', event => {
+        sendPatrolAlert(row, {time:new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}),place:'Not provided by school desk',clothing:row.clothing || '',equipment:'Not recorded',injuries:'Unknown'}, 'School desk');
+        event.currentTarget.disabled = true;
+        const status = event.currentTarget.parentElement.querySelector(`[data-testid="desk-alert-status-${CSS.escape(row.childId)}"]`);
+        if (status) status.hidden = false;
+      });
+    }
     const pager=root.querySelector('#ops-pagination');
     if(pager) {
       pager.innerHTML=`<span role="status" data-testid="roster-page-summary">${matches.length ? number(page*pageSize+1)+'–'+number(Math.min((page+1)*pageSize,matches.length)) : '0'} of ${number(matches.length)} children</span><div><button class="o-button" data-testid="roster-prev" ${page===0?'disabled':''}>Previous</button><button class="o-button" data-testid="roster-next" ${(page+1)*pageSize>=matches.length?'disabled':''}>Next</button></div>`;
