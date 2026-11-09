@@ -73,7 +73,7 @@ export function createPatrol(root, seed, { onSignOut }) {
               <button class="p-action-button" type="button" data-testid="patrol-request-lift-scan" data-action="lift" data-alert-id="${escapeHtml(alert.id)}">Request lift scan</button>
               <button class="p-action-button p-action-police" type="button" data-testid="patrol-call-police" data-action="police" data-alert-id="${escapeHtml(alert.id)}">Call police (1 hr)</button>
               <button class="p-action-button p-action-copy" type="button" data-testid="patrol-copy-report" data-action="copy" data-alert-id="${escapeHtml(alert.id)}">Copy details for police report</button>
-              <button class="p-action-button p-action-found-mobile" type="button" data-testid="patrol-log-found-mobile" data-search-action="found" data-alert-id="${escapeHtml(alert.id)}">+ Found</button>
+              <button class="p-action-button p-action-found-mobile" type="button" data-testid="patrol-log-found-mobile" data-search-action="found" data-alert-id="${escapeHtml(alert.id)}">Found</button>
             </div>
             <p class="p-family-note">Police lead family communication once engaged.</p>
             <p class="p-action-message" role="status" aria-live="polite" data-testid="patrol-action-message" hidden></p>
