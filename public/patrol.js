@@ -22,7 +22,7 @@ function logRows(entries) {
 export function createPatrol(root, seed, { onSignOut }) {
   const localSearchLogs = new Map();
   function render() {
-    const alerts = (seed.patrolAlerts ?? []).filter(alert => alert.source === 'School desk' && alert.active !== false);
+    const alerts = (seed.patrolAlerts ?? []).filter(alert => ['School desk', 'Instructor'].includes(alert.source) && alert.active !== false);
     root.innerHTML = `<section class="patrol-shell" aria-label="Patrol workspace">
       <header class="p-topbar">
         <div><p class="p-brand">Patrol workspace</p><h2>Active alerts</h2></div>
@@ -34,8 +34,8 @@ export function createPatrol(root, seed, { onSignOut }) {
       <div class="p-content">
         <p class="p-eyebrow">Patrol response board</p>
         <h2 class="p-title">Alerted missing children</h2>
-        <p class="p-intro">Only active alerts issued by the school desk are shown.</p>
-        ${alerts.length ? `<div class="p-alert-list">${alerts.map(alert => `<article class="p-alert-card" data-testid="patrol-alert">
+        <p class="p-intro">Active alerts from the school desk and instructors are shown.</p>
+        ${alerts.length ? `<div class="p-alert-list">${alerts.map(alert => `<article class="p-alert-card" data-testid="patrol-alert" data-alert-id="${escapeHtml(alert.id)}">
           <div class="p-alert-main">
           <div class="p-alert-head">
             <span class="p-icon p-alert-icon">${icons.alert}</span>
@@ -165,6 +165,13 @@ export function createPatrol(root, seed, { onSignOut }) {
       const minute = String(nextMinuteTotal % 60).padStart(2, '0');
       entries.push({ time: `${hour}:${minute}`, action: actionLabels[button.dataset.searchAction], actor: 'R. Fournier', type: button.dataset.searchAction });
       localSearchLogs.set(selectedAlert.id, entries);
+      if (button.dataset.searchAction === 'found') {
+        selectedAlert.status = 'Found';
+        selectedAlert.active = false;
+        const alertCard = root.querySelector(`.p-alert-card[data-alert-id="${CSS.escape(selectedAlert.id)}"]`);
+        const status = alertCard?.querySelector('.p-status');
+        if (status) status.textContent = 'Found';
+      }
       const entryList = root.querySelector(`#patrol-search-log-${CSS.escape(selectedAlert.id)}`);
       if (entryList) entryList.innerHTML = logRows(entries);
     }));
