@@ -17,5 +17,6 @@ await mkdir(preview, { recursive: true });
 for (const name of ['index.html', 'workspace.js', 'live.js', 'styles.css', 'director.js', 'director.css', 'operations.js', 'operations.css', 'patrol.js', 'patrol.css', 'grouping.js']) {
   await cp(new URL('public/' + name, root), new URL(name, preview));
 }
+await cp(new URL('node_modules/@piezas/sdk/dist/report-problem/widget.js', root), new URL('report-problem-widget.js', preview));
 await cp(new URL('demo-fixture.json', root), new URL('demo-fixture.json', preview));
 console.log('Static team preview saved to build/preview');

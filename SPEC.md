@@ -125,8 +125,8 @@ Then I see bib 214, her allergy and current clothing, no Noah or guardian phone 
 ### S-016: I can prepare a clear radio handoff
 covers: R-012
 Given I am viewing Maya in Instructor.
-When I enter last seen time and place, equipment and injuries and prepare the radio checklist.
-Then the checklist contains the child identity, bib and entered details and clearly says it has not been sent.
+When I choose a child and enter the last seen place, clothing, equipment and injuries.
+Then the app records the local report time automatically, includes the child's identity and bib, and clearly says no radio message was sent.
 
 ### S-017: I can find a child and review check-in information
 covers: R-013

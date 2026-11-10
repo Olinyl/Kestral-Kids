@@ -63,6 +63,20 @@
     <header><div><p>Secure staff access</p><h2 id="staff-dialog-title">Staff sign in</h2></div><button type="button" class="o-button" data-testid="staff-close">Close</button></header>
     <form id="staff-sign-in" class="o-dialog-body"><label>Email<input name="email" type="email" autocomplete="username" required></label><label>Password<input name="password" type="password" autocomplete="current-password" required></label><button class="o-button o-primary" type="submit" data-testid="staff-submit">Sign in</button><p class="o-note" role="status" data-testid="staff-message">Use an account created for this app by the administrator.</p></form>
   </dialog>
+  <dialog id="live-report-dialog" class="o-dialog" aria-labelledby="live-report-title">
+    <header><div><p>Missing child · call Desk and Patrol by radio</p><h2 id="live-report-title">Report missing child</h2></div><button type="button" class="o-button" data-testid="live-report-close">Close</button></header>
+    <form id="live-report-form" class="o-dialog-body">
+      <label>Child<select data-testid="live-report-child-select" required></select></label>
+      <p class="o-note">Local report time · recorded automatically <strong data-testid="live-report-time"></strong></p>
+      <label>Last seen place<input data-testid="live-last-seen-place" name="lastSeenPlace" required></label>
+      <label>Confirmed clothing<input data-testid="live-clothing" name="clothing"></label>
+      <label>Skis, helmet and other equipment<input data-testid="live-equipment" name="equipment"></label>
+      <label>Injuries or concerns<input data-testid="live-injuries" name="injuries" value="Unknown" required></label>
+      <p class="o-warning">Save sends this report to Desk and Patrol. Call both by physical radio; no radio message is sent by this app.</p>
+      <p class="o-note" role="status" data-testid="live-report-status"></p>
+      <button class="o-button o-primary" type="submit" data-testid="live-report-save">Save report for Desk and Patrol</button>
+    </form>
+  </dialog>
   <script type="module" src="/live.js"></script>
 </body>
 </html>
