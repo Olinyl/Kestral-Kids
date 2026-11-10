@@ -53,11 +53,11 @@ export function createOperations(root, seed, {onChange}) {
     const age = row.birthDate ? Math.max(0, Math.floor((Date.now() - new Date(row.birthDate).getTime()) / 31557600000)) : 'Unknown';
     const clock = now.toLocaleTimeString('en-US', {hour:'numeric',minute:'2-digit'});
     seed.patrolAlerts ??= [];
-    const childId=row.id || row.childId;
-    const existing=seed.patrolAlerts.find(alert=>String(alert.childId)===String(childId)&&alert.active!==false&&String(alert.status||'').toLowerCase()!=='found');
+    const childId = row.id || row.childId;
+    const existing = seed.patrolAlerts.find(alert => String(alert.childId) === String(childId) && alert.active !== false && String(alert.status || '').toLowerCase() !== 'found');
     const caseNumber = existing?.caseNumber || `MC-${String(1043 + seed.patrolAlerts.length).padStart(4, '0')}`;
-    const alertRecord={
-      id: existing?.id || `demo-alert-${Date.now()}`, caseNumber, active:true, childId,
+    const alertRecord = {
+      id: existing?.id || `demo-alert-${Date.now()}`, caseNumber, active:true, childId, bib:row.bib || existing?.bib || '',
       childName:row.displayName, alternateName:row.alternateName || row.displayName, age,
       group:`${row.group?.label || 'Group not recorded'} · ${row.group?.level || 'Level not recorded'}`,
       radioChannel:'Channel 4', status:'Searching', source, receivedTime:clock,
@@ -72,7 +72,7 @@ export function createOperations(root, seed, {onChange}) {
       emergencyContacts:guardianContacts(row),
       escalation:'Follow the school’s missing-child procedure. Verify details with the desk and patrol lead.',
     };
-    if(existing) Object.assign(existing,alertRecord);
+    if (existing) Object.assign(existing, alertRecord);
     else seed.patrolAlerts.unshift(alertRecord);
     onChange();
   }
