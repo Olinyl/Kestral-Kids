@@ -5,9 +5,9 @@ export function createGuardian(root, seed) {
   let selected = null;
   const consentDates = {};
   const accountHolder = storeImport[0].accountHolder;
+  const children = storeImport.filter(registration=>registration.accountHolder===accountHolder).map((registration,index)=>({id:registration.orderNumber,displayName:registration.child,birthDate:registration.birthDate,guardianId:'store-demo-account',consentStatus:index===0?'incomplete':'complete',consentUpdatedAt:index===0?'':'2026-11-06',storeRegistration:registration,medical:'',emergencyName:'',emergencyPhone:'',emergencyName2:'',emergencyPhone2:''}));
   const updatedDate = child => consentDates[child.id] || (child.consentStatus === 'complete' && child.consentUpdatedAt ? new Intl.DateTimeFormat('en-CA',{timeZone:'UTC',year:'numeric',month:'short',day:'numeric'}).format(new Date(child.consentUpdatedAt+'T00:00:00Z')) : '');
   function render(tab) {
-    const children = storeImport.filter(registration=>registration.accountHolder===accountHolder).map((registration,index)=>({id:registration.orderNumber,displayName:registration.child,birthDate:registration.birthDate,guardianId:'store-demo-account',consentStatus:index===0?'incomplete':'complete',consentUpdatedAt:index===0?'':'2026-11-06',storeRegistration:registration,medical:'',emergencyName:'',emergencyPhone:'',emergencyName2:'',emergencyPhone2:''}));
     const active = children.find(child => child.id === selected) || children[0];
     const groupFor=child=>`Group ${child.storeRegistration.level}`;
     const nextLessonDate=child=>{const base=new Date(seed.lessonDate+'T00:00:00Z');const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];const target=days.findIndex(day=>child.storeRegistration.program.includes(day));const offset=(target-base.getUTCDay()+7)%7;base.setUTCDate(base.getUTCDate()+offset);return base;};
