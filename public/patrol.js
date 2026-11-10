@@ -47,7 +47,7 @@ function contactRelationship(value) {
 
 const hasKnownInjuries = value => Boolean(value && !/^unknown$/i.test(String(value).trim()));
 
-export function createPatrol(root, seed, { onSignOut }) {
+export function createPatrol(root, seed, { onSignOut, onChange = () => {} }) {
   const localSearchLogs = new Map();
   function render() {
     const alerts = (seed.patrolAlerts ?? []).filter(alert => ['School desk', 'Instructor'].includes(alert.source) && alert.active !== false);
@@ -322,6 +322,7 @@ export function createPatrol(root, seed, { onSignOut }) {
         }
         alertCard?.querySelector('[data-testid="patrol-log-found-mobile"]')?.setAttribute('disabled', '');
         alertCard?.querySelector('[data-testid="patrol-call-police"]')?.setAttribute('disabled', '');
+        onChange();
       }
       const entryList = root.querySelector(`#patrol-search-log-${CSS.escape(selectedAlert.id)}`);
       if (entryList) entryList.innerHTML = logRows(entries);
