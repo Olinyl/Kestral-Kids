@@ -214,7 +214,7 @@ body .navigation nav button[aria-current] {background:#e3f0e6;color:#205d46;}
  .desk-view .o-dialog form {gap:12px;margin-top:18px;}
 }
 @media(min-width:1024px) {
- .o-desk-layout {display:grid;grid-template-columns:minmax(300px,360px) minmax(0,1fr);gap:24px;align-items:start;}
+ .o-desk-layout {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start;}
  .o-desk-roster {min-width:0;}
  .o-desk-roster .o-list {max-height:58dvh;overflow:auto;overscroll-behavior:contain;}
  .o-desk-roster .o-search {max-width:none;}
@@ -335,16 +335,44 @@ body .o-dialog .o-detail-actions .o-report-missing { background:#b91f1f; border-
 body .o-dialog .o-detail-actions .o-report-missing:hover { background:#991b1b; border-color:#991b1b; color:#fff; }
 
 /* Use the Guardian consent modal's fixed header/footer and scrollable form area. */
-.o-dialog.o-report-dialog { display:grid; grid-template-rows:auto minmax(0,1fr) auto; overflow:hidden; }
-.o-report-dialog .o-dialog-body { min-height:0; overflow-y:auto; overscroll-behavior:contain; }
-.o-report-dialog .o-dialog-body > .o-warning { margin:0 0 14px; }
-.o-report-dialog .o-dialog-body form { gap:14px; margin-top:0; }
-.o-report-dialog .o-dialog-body form > p { margin:0; }
+.o-dialog:is(.o-report-dialog,.o-form-dialog) { display:grid; grid-template-rows:auto minmax(0,1fr) auto; overflow:hidden; }
+.o-dialog:is(.o-report-dialog,.o-form-dialog) .o-dialog-body { min-height:0; overflow-y:auto; overscroll-behavior:contain; }
+.o-dialog:is(.o-report-dialog,.o-form-dialog) .o-dialog-body > .o-warning { margin:0 0 14px; }
+.o-dialog:is(.o-report-dialog,.o-form-dialog) .o-dialog-body form { gap:14px; margin-top:0; }
+.o-dialog:is(.o-report-dialog,.o-form-dialog) .o-dialog-body form > p { margin:0; }
 .o-report-footer { display:flex; justify-content:flex-end; gap:10px; padding:16px 22px; border-top:1px solid var(--line); background:#fff; }
 .o-report-footer .o-button { min-width:100px; }
+.o-desk-child-card {position:relative;cursor:pointer;transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease;}
+.o-desk-child-card:focus-visible {outline:3px solid #397d62;outline-offset:2px;}
+.o-desk-child-card .o-card-footer {position:relative;z-index:2;}
+.o-desk-child-card .o-card-footer .o-button {cursor:pointer;}
+.o-desk-child-card:hover,.o-desk-child-card:focus-within { background:#edf5f2!important; border-color:#8fb5a6!important; box-shadow:0 3px 12px rgb(23 63 57 / 9%); }
+.desk-view #desk-detail > .o-empty { display:grid; place-items:center; width:100%; height:100%; min-height:240px; padding:24px; text-align:center; }
+@media(min-width:1024px) {
+ .desk-view #ops-list .o-desk-child-card { grid-template-columns:minmax(0,1fr) auto; padding-right:42px; }
+ .desk-view #ops-list .o-desk-child-card .o-child { grid-column:1; }
+ .desk-view #ops-list .o-desk-child-card .o-status { grid-column:2; grid-row:1; align-self:start; }
+ .desk-view #ops-list .o-desk-child-card .o-card-footer { grid-column:1/-1; }
+}
 @media(max-width:650px) {
- .o-dialog.o-report-dialog { width:min(760px,calc(100% - 32px)); max-width:760px; height:auto; max-height:calc(100dvh - 32px); margin:auto; border:1px solid #aebfba; border-radius:8px; }
- .o-report-dialog > header { position:relative; }
- .o-report-dialog .o-dialog-body { padding:18px; }
+ .desk-view #ops-list .o-desk-child-card { padding-right:40px; }
+ .desk-view #ops-list .o-desk-child-card .o-status { grid-column:1/-1; }
+ .desk-view #ops-list .o-desk-child-card .o-card-footer .o-button { min-height:42px; }
+}
+@media(max-width:650px) {
+ .o-dialog:is(.o-report-dialog,.o-form-dialog) { width:min(760px,calc(100% - 32px)); max-width:760px; height:auto; max-height:calc(100dvh - 32px); margin:auto; border:1px solid #aebfba; border-radius:8px; }
+ .o-dialog:is(.o-report-dialog,.o-form-dialog) > header { position:relative; }
+ .o-dialog:is(.o-report-dialog,.o-form-dialog) .o-dialog-body { padding:18px; }
  .o-report-footer { padding:14px 18px; }
 }
+
+/* Compact desk roster cards: identity and status share a line, action stays beside it. */
+#app-shell #ops-list .o-desk-child-card { grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:5px 10px; padding:9px 12px; }
+#app-shell #ops-list .o-roster-row.o-desk-child-card + .o-roster-row.o-desk-child-card { margin-top:7px; }
+#app-shell #ops-list .o-desk-child-card .o-child { grid-column:1; gap:2px; }
+#app-shell #ops-list .o-desk-child-card .o-child-title { display:flex; align-items:center; flex-wrap:wrap; gap:7px; min-width:0; }
+#app-shell #ops-list .o-desk-child-card .o-child-title .o-status { flex:none; padding:1px 7px; border-radius:999px; background:#edf5f2; color:#315b48; font-size:12px; line-height:1.5; white-space:nowrap; }
+#app-shell #ops-list .o-desk-child-card .profile-meta { gap:4px; margin:3px 0; }
+#app-shell #ops-list .o-desk-child-card .profile-meta-item { padding:2px 5px; line-height:1.25; }
+#app-shell #ops-list .o-desk-child-card .o-card-footer { grid-column:2; grid-row:1; align-self:center; margin:0; padding:0; border:0; display:flex; justify-content:flex-end; }
+#app-shell #ops-list .o-desk-child-card .o-card-footer .o-button { width:auto; min-width:0; min-height:36px; padding:6px 10px; white-space:nowrap; }

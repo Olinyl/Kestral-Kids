@@ -14,7 +14,7 @@ const button = (id, label, primary = false) => `<button type="button" class="o-b
 const status = row => row.release ? 'Released' : row.status === 'checked_in' ? 'Checked in' : 'Expected';
 
 export function createOperations(root, seed, {onChange}) {
-  let role = 'desk', tab = 'Roster', query = '', groupFilter = '', statusFilter = 'all', programFilter = 'all', page = 0, selected, opener;
+  let role = 'desk', tab = 'Roster', query = '', groupFilter = '', statusFilter = 'all', programFilter = 'all', page = 0, opener;
   const pageSize = 25;
   const number = value => value.toLocaleString('en-CA');
   const dialog = document.createElement('dialog');
@@ -66,7 +66,7 @@ export function createOperations(root, seed, {onChange}) {
     onChange();
   }
   const close = () => {
-    if(activeHost!==dialog) {activeHost.innerHTML='<p class="o-empty">Select a child from the roster to review their details.</p>';selected=undefined;}
+    if(activeHost!==dialog) activeHost.innerHTML='<p class="o-empty">Select a child from the roster to review their details.</p>';
     if(dialog.open) dialog.close();
     activeHost=dialog;
   };
@@ -75,10 +75,18 @@ export function createOperations(root, seed, {onChange}) {
     if (trigger) opener = trigger;
     const panel=allowInline && role==='desk' && matchMedia('(min-width:1024px)').matches ? root.querySelector('#desk-detail') : null;
     activeHost=panel||dialog;
+    const formVariant = ['report','attendance'].includes(variant) && !panel;
     dialog.classList.toggle('o-report-dialog', variant === 'report' && !panel);
-    activeHost.innerHTML = `<header><div><p>${role === 'instructor' ? 'My group' : 'School desk'} · ${e(seed.lessonDate)}</p><h2 id="ops-dialog-title">${e(title)}</h2></div>${panel ? button('ops-close','Clear') : '<button type="button" class="o-dialog-close" data-testid="ops-close" aria-label="Close form">×</button>'}</header><div class="o-dialog-body" data-testid="ops-detail">${body}</div>${variant === 'report' && !panel ? '<footer class="o-report-footer"><button type="button" class="o-button" data-testid="radio-clear">Clear</button><button type="submit" form="radio-form" class="o-button o-primary" data-testid="radio-save">Save missing-child report</button></footer>' : ''}`;
+    dialog.classList.toggle('o-form-dialog', formVariant);
+    const formFooter = variant === 'report'
+      ? '<footer class="o-report-footer"><button type="button" class="o-button" data-testid="radio-clear">Clear</button><button type="submit" form="radio-form" class="o-button o-primary" data-testid="radio-save">Save missing-child report</button></footer>'
+      : variant === 'attendance'
+        ? `<footer class="o-report-footer"><button type="button" class="o-button" data-testid="attendance-clear">Clear</button><button type="submit" form="${body.includes('id="checkin-form"') ? 'checkin-form' : 'pickup-form'}" class="o-button o-primary" data-testid="${body.includes('id="checkin-form"') ? 'checkin-save' : 'pickup-save'}">${body.includes('id="checkin-form"') ? 'Record check-in' : 'Record release'}</button></footer>`
+        : '';
+    activeHost.innerHTML = `<header><div><p>${role === 'instructor' ? 'My group' : 'School desk'} · ${e(seed.lessonDate)}</p><h2 id="ops-dialog-title">${e(title)}</h2></div>${panel ? button('ops-close','Clear') : '<button type="button" class="o-dialog-close" data-testid="ops-close" aria-label="Close form">×</button>'}</header><div class="o-dialog-body" data-testid="ops-detail">${body}</div>${panel ? '' : formFooter}`;
     get('ops-close').onclick = close;
     if (variant === 'report' && !panel) get('radio-clear').onclick = () => get('radio-form').reset();
+    if (variant === 'attendance' && !panel) get('attendance-clear').onclick = () => activeHost.querySelector('form').reset();
     if (!panel && !dialog.open) dialog.showModal();
     get('ops-close').focus();
   }
@@ -87,7 +95,6 @@ export function createOperations(root, seed, {onChange}) {
     return `<p class="${row.medicalStatus === 'alert' ? 'o-health-note' : 'o-note'}">${row.medicalStatus === 'alert' ? '<b>Health note</b><br>' : ''}${e(row.medical)}${row.medications ? '<br>Medications: '+e(row.medications) : ''}${row.allergies ? '<br>Allergies: '+e(row.allergies) : ''}</p>`;
   }
   function detail(row, trigger) {
-    selected = row.childId;
     let body = `<p class="o-record">${e(row.group?.label || 'Group not assigned')} · <b>Bib ${e(row.bib)}</b></p>${medical(row)}<dl class="o-facts"><div><dt>Current clothing</dt><dd>${e(row.clothing || 'Not recorded')}</dd></div><div><dt>Current equipment</dt><dd>${e(row.equipment || 'Not recorded')}</dd></div><div><dt>Lesson</dt><dd>${e(row.group?.level)} · ${e(row.group?.meeting)}</dd></div></dl>`;
     if (role === 'instructor') {
       body += `<form id="checkin-form" class="o-checkin-form"><h3>Update clothing and equipment</h3>${colorSelect('checkin-jacket','Jacket colour',clothingColor(row.clothing,'jacket'))}${colorSelect('checkin-helmet','Helmet colour',clothingColor(row.clothing,'helmet'))}<label class="o-clothing-notes">Other clothing details (optional)<textarea data-testid="checkin-clothing-notes" rows="2" placeholder="Patterns, logos, or other details">${e(row.clothing?.split(';').slice(1).join(';').trim()||'')}</textarea></label><label class="o-clothing-notes">Skis, poles, and other equipment (optional)<textarea data-testid="checkin-equipment" rows="2" placeholder="Describe equipment the child has today">${e(row.equipment||'')}</textarea></label><p class="o-note">Confirm the child’s clothing and equipment for today.</p><button class="o-button o-primary" data-testid="checkin-save">Save clothing and equipment</button></form>`;
@@ -98,37 +105,36 @@ export function createOperations(root, seed, {onChange}) {
       if(activePatrolAlert(row)) body += '<p class="o-alert-sent" role="status">Missing report saved for Patrol.</p>';
       body += `<p class="${row.consentStatus === 'complete' ? 'o-note' : 'o-warning'}">${row.consentStatus === 'complete' ? 'Guardian consent on file' : 'Consent needed'}</p><dl class="o-facts"><div><dt>Emergency contact</dt><dd>${e(row.emergencyName)}<br>${e(row.emergencyPhone)}</dd></div><div><dt>Second emergency contact</dt><dd>${e(row.emergencyName2 || 'Not provided')}<br>${e(row.emergencyPhone2)}</dd></div></dl>`;
       if (row.release) body += `<div class="o-confirmation">Released to ${e(row.release.adult)}<br>Verified by ${e(row.release.staff)}<br><time data-testid="release-time">${e(row.release.time)}</time></div>`;
-      else {
-        body += `<form id="checkin-form" class="o-checkin-form"><h3>${row.status === 'checked_in' ? 'Update clothing and equipment' : 'Drop-off'}</h3>${colorSelect('checkin-jacket','Jacket colour',clothingColor(row.clothing,'jacket'))}${colorSelect('checkin-helmet','Helmet colour',clothingColor(row.clothing,'helmet'))}<label class="o-clothing-notes">Other clothing details (optional)<textarea data-testid="checkin-clothing-notes" rows="2" placeholder="Patterns, logos, or other details"></textarea></label><label class="o-clothing-notes">Skis, poles, and other equipment (optional)<textarea data-testid="checkin-equipment" rows="2" placeholder="Describe equipment the child has today">${e(row.equipment || '')}</textarea></label><p class="o-note">Confirm the child’s clothing and equipment for today.</p>${row.consentStatus !== 'complete' ? '<p class="o-warning">Guardian consent is required before check-in. Ask the guardian to complete consent; staff cannot override it.</p>' : ''}<button class="o-button o-primary" data-testid="checkin-save" ${row.consentStatus !== 'complete' ? 'disabled' : ''}>${row.status === 'checked_in' ? 'Save clothing and equipment' : 'Record check-in'}</button></form>`;
-        const adults = activeAdults(row);
-        body += `<form id="pickup-form"><h3>Verify pickup</h3><p>Check the adult's identity against today's authorization before releasing the child.</p><label>Authorized adult<select data-testid="pickup-adult" required><option value="">Choose an adult</option>${adults.map((a,i)=>`<option value="${i}">${e(a.name)} — ${e(a.relationship)}</option>`).join('')}</select></label>${field('pickup-staff','Verifying staff')}<label class="o-checkbox"><input type="checkbox" data-testid="pickup-verified" required> I checked this adult's identity and authorization.</label><p class="o-note">An unlisted adult cannot collect this child. Ask the director to resolve authorization.</p><button class="o-button o-primary" data-testid="pickup-save" ${row.status !== 'checked_in' || !adults.length ? 'disabled' : ''}>Record release</button>${row.status !== 'checked_in' ? '<p class="o-warning">This child has not checked in.</p>' : ''}</form>`;
-      }
       if(!activePatrolAlert(row)) body += `<div class="o-detail-actions"><button type="button" class="o-button o-danger o-report-missing" data-testid="desk-report-missing">Report missing</button></div>`;
     }
     show(row.displayName, body, trigger, true);
     if (role === 'desk') get('desk-report-missing')?.addEventListener('click',()=>radio(row,'desk-missing'));
-    activeHost.querySelector('#checkin-form')?.addEventListener('submit', event => {
+  }
+  function attendanceAction(row, mode, trigger) {
+    const checkin = mode === 'checkin';
+    const body = checkin
+      ? `<p class="o-note"><strong>${e(row.displayName)}</strong> · ${e(row.group?.label || 'Group not recorded')}</p><form id="checkin-form" class="o-checkin-form">${colorSelect('checkin-jacket','Jacket colour',clothingColor(row.clothing,'jacket'))}${colorSelect('checkin-helmet','Helmet colour',clothingColor(row.clothing,'helmet'))}<label class="o-clothing-notes">Other clothing details (optional)<textarea data-testid="checkin-clothing-notes" rows="2" placeholder="Patterns, logos, or other details"></textarea></label><label class="o-clothing-notes">Skis, poles, and other equipment (optional)<textarea data-testid="checkin-equipment" rows="2" placeholder="Describe equipment the child has today">${e(row.equipment || '')}</textarea></label><p class="o-note">Confirm the child’s clothing and equipment for today.</p>${row.consentStatus !== 'complete' ? '<p class="o-warning">Guardian consent is required before check-in. Ask the guardian to complete consent; staff cannot override it.</p>' : ''}</form>`
+      : `<p class="o-note"><strong>${e(row.displayName)}</strong> · ${e(row.group?.label || 'Group not recorded')}</p><form id="pickup-form"><p>Check the adult's identity against today's authorization before releasing the child.</p><label>Authorized adult<select data-testid="pickup-adult" required><option value="">Choose an adult</option>${activeAdults(row).map((adult,index)=>`<option value="${index}">${e(adult.name)} — ${e(adult.relationship)}</option>`).join('')}</select></label>${field('pickup-staff','Verifying staff')}<label class="o-checkbox"><input type="checkbox" data-testid="pickup-verified" required> I checked this adult's identity and authorization.</label><p class="o-note">An unlisted adult cannot collect this child. Ask the director to resolve authorization.</p>${!activeAdults(row).length ? '<p class="o-warning">No authorized pickup adults are on file. Ask the director to resolve this before release.</p>' : ''}</form>`;
+    show(checkin ? 'Check in child' : 'Release child', body, trigger, false, 'attendance');
+    if (checkin) get('checkin-save').disabled = row.consentStatus !== 'complete';
+    else get('pickup-save').disabled = row.status !== 'checked_in' || Boolean(row.release) || !activeAdults(row).length;
+    const form = activeHost.querySelector(checkin ? '#checkin-form' : '#pickup-form');
+    form.addEventListener('submit', event => {
       event.preventDefault();
-      const child = seed.children.find(child=>child.id===selected);
-      if (role !== 'instructor' && child?.consentStatus !== 'complete') return;
-      const attendance = seed.attendance.find(a=>a.childId===selected);
-      if(!attendance)return;
-      attendance.clothing = `${value('checkin-jacket')} jacket, ${value('checkin-helmet')} helmet${value('checkin-clothing-notes') ? `; ${value('checkin-clothing-notes')}` : ''}`;
-      attendance.equipment = get('checkin-equipment').value.trim();
-      if(role!=='instructor') attendance.status = 'checked_in';
-      onChange();
-      const savedChildId=selected;
-      render(role,tab);
-      if(role==='instructor') close();
-      else detail(rows().find(r=>r.childId===savedChildId));
-    });
-    activeHost.querySelector('#pickup-form')?.addEventListener('submit', event => {
-      event.preventDefault();
-      const attendance = seed.attendance.find(a=>a.childId===selected);
-      const adult = activeAdults(rows().find(r=>r.childId===selected))[Number(value('pickup-adult'))];
-      if (!adult || attendance.release || attendance.status !== 'checked_in' || !get('pickup-verified').checked || !value('pickup-staff')) return;
-      attendance.release = {adult:adult.name, staff:value('pickup-staff'),time:new Date().toLocaleTimeString('en-GB',{hour12:false})};
-      onChange(); render(role,tab); detail(rows().find(r=>r.childId===selected));
+      const attendance = seed.attendance.find(item=>item.childId===row.childId);
+      if (!attendance) return;
+      if (checkin) {
+        const child = seed.children.find(item=>item.id===row.childId);
+        if (child?.consentStatus !== 'complete') return;
+        attendance.clothing = `${value('checkin-jacket')} jacket, ${value('checkin-helmet')} helmet${value('checkin-clothing-notes') ? `; ${value('checkin-clothing-notes')}` : ''}`;
+        attendance.status = 'checked_in';
+        attendance.equipment = get('checkin-equipment').value.trim();
+      } else {
+        const adult = activeAdults(rows().find(item=>item.childId===row.childId))[Number(value('pickup-adult'))];
+        if (!adult || attendance.release || attendance.status !== 'checked_in' || !get('pickup-verified').checked || !value('pickup-staff')) return;
+        attendance.release = {adult:adult.name, staff:value('pickup-staff'),time:new Date().toLocaleTimeString('en-GB',{hour12:false})};
+      }
+      onChange(); close(); render(role,tab);
     });
   }
   function radio(row, mode = '') {
@@ -189,11 +195,16 @@ export function createOperations(root, seed, {onChange}) {
       root.querySelector('#not-checked-list').innerHTML=instructorCards(notCheckedIn,true)||'<p class="o-empty">All assigned children are checked in.</p>';
       root.querySelector('[data-testid="instructor-not-checked-count"]').textContent=String(notCheckedIn.length);
     } else {
-      root.querySelector('#ops-list').innerHTML = matches.length ? visible.map(row=>`<article class="o-roster-row" data-testid="roster-row"><div class="o-child"><strong dir="auto">${e(row.displayName)}</strong>${metadata(row)}${row.medicalStatus === 'alert' ? '<span class="o-alert-label">Health note</span>' : ''}</div><span class="o-status">${status(row)}${row.consentStatus !== 'complete' ? '<br><span class="o-warning-text">Consent needed</span>' : ''}</span><div class="o-row-actions">${button('ops-open-'+row.childId,tab === 'Pickup' ? (row.release ? 'View release' : 'Verify pickup') : 'View details')}${tab !== 'Pickup' ? `<button type="button" class="o-button o-danger" data-testid="desk-report-missing-${e(row.childId)}" ${activePatrolAlert(row) ? 'disabled' : ''}>Report missing child</button><span class="o-alert-sent" role="status" data-testid="desk-alert-status-${e(row.childId)}" ${activePatrolAlert(row) ? '' : 'hidden'}>Alert Sent · Searching</span>` : ''}</div></article>`).join('') : '<p class="o-empty">No children match that search.</p>';
+      root.querySelector('#ops-list').innerHTML = matches.length ? visible.map(row=>`<article class="o-roster-row o-desk-child-card" data-testid="desk-child-card-${e(row.childId)}" tabindex="0" role="group" aria-label="${e(row.displayName)} child record; open details"><div class="o-child"><div class="o-child-title"><strong dir="auto">${e(row.displayName)}</strong><span class="o-status">${status(row)}</span></div>${metadata(row)}${row.consentStatus !== 'complete' ? '<span class="o-warning-text">Consent needed</span>' : ''}${row.medicalStatus === 'alert' ? '<span class="o-alert-label">Health note</span>' : ''}</div><div class="o-card-footer"><button type="button" class="o-button o-primary" data-testid="desk-action-${e(row.childId)}" ${row.release ? 'disabled' : ''}>${row.release ? 'Released' : row.status === 'checked_in' ? 'Release' : 'Check-in'}</button></div></article>`).join('') : '<p class="o-empty">No children match that search.</p>';
     }
     if(role==='desk') root.querySelectorAll('[data-testid^="desk-report-missing-"],[data-testid^="desk-alert-status-"]').forEach(element=>element.remove());
     for (const row of visible) {
-      root.querySelector(`[data-testid="ops-open-${row.childId}"]`)?.addEventListener('click',event=>detail(row,event.currentTarget));
+      if(role==='desk') {
+        const card=root.querySelector(`[data-testid="desk-child-card-${row.childId}"]`);
+        card.onclick=event=>{if(!event.target.closest('button'))detail(row,card);};
+        card.onkeydown=event=>{if((event.key==='Enter'||event.key===' ')&&!event.target.closest('button')){event.preventDefault();detail(row,card);}};
+        root.querySelector(`[data-testid="desk-action-${row.childId}"]`).onclick=event=>{event.stopPropagation();if(!row.release)attendanceAction(row,row.status==='checked_in'?'release':'checkin',event.currentTarget);};
+      } else root.querySelector(`[data-testid="ops-open-${row.childId}"]`)?.addEventListener('click',event=>detail(row,event.currentTarget));
     }
     const pager=root.querySelector('#ops-pagination');
     if(pager) {
