@@ -11,6 +11,7 @@ test('S-025: director workflow',async({page})=>{
     await page.getByTestId('child-emergency-phone').fill('+1 604 555 0100');
     if(i<7) await page.getByTestId('child-level').selectOption('Level 1');
     await page.getByTestId('child-save').click();
+  if(await page.getByTestId(/^(child|guardian|instructor|group)-profile$/).isVisible()) await page.getByTestId("dialog-close").click();
   }
   await page.getByTestId('director-nav-groups').click();
   await page.getByTestId('group-autoassign').click();
@@ -36,6 +37,7 @@ test('S-025: No matching level stays unassigned and preview does not save',async
   await page.getByTestId('child-emergency-phone').fill('+1 604 555 0100');
   await page.getByTestId('child-level').selectOption('Level 6');
   await page.getByTestId('child-save').click();
+  if(await page.getByTestId(/^(child|guardian|instructor|group)-profile$/).isVisible()) await page.getByTestId("dialog-close").click();
   await page.getByTestId('director-nav-groups').click();
   await page.getByTestId('group-autoassign').click();
   await expect(page.getByTestId('autoassign-preview')).toContainText('No matching group with an instructor');

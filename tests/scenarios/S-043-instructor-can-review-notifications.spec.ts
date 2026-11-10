@@ -1,4 +1,4 @@
-// piezas-scenario: S-043 v=1
+// piezas-scenario: S-043 v=c67b5a148c7f
 import { expect, test } from '@playwright/test';
 
 test('S-043: Staff can review alerts in a consistent style', async ({page}) => {

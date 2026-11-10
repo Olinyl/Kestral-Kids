@@ -2,15 +2,16 @@ import { createDirector } from './director.js';
 import { createOperations } from './operations.js';
 import { createGuardian } from './guardian.js';
 import { createPatrol } from './patrol.js';
+import { createAlertStore, createSharedAlerts } from './alerts.js';
 
 const workspaces = {
   desk: {
-    label: 'School desk', tabs: ['Roster', 'Alerts', 'Account'],
+    label: 'School desk', tabs: ['Roster', 'Alerts'],
   },
-  guardian: { label: 'Guardian', tabs: ['My children', 'Alerts', 'Account'] },
-  director: { label: 'Director', tabs: ['Overview', 'Children', 'Guardians', 'Instructors', 'Lesson groups', 'Alerts', 'Account'] },
-  instructor: { label: 'Instructor', tabs: ['Group roster', 'Alerts', 'Account'] },
-  patrol: { label: 'Patrol', tabs: ['Active alerts', 'Account'] },
+  guardian: { label: 'Guardian', tabs: ['My children', 'Alerts'] },
+  director: { label: 'Director', tabs: ['Overview', 'Children', 'Instructors', 'Lesson groups', 'Alerts'] },
+  instructor: { label: 'Instructor', tabs: ['Group roster', 'Alerts'] },
+  patrol: { label: 'Patrol', tabs: ['Active alerts', 'Alerts'] },
 };
 
 const accountMenu = document.querySelector('[data-testid="account-menu"]');
@@ -34,7 +35,12 @@ let director;
 let operations;
 let guardian;
 let patrol;
+let sharedAlerts;
+let sharedAlertRoot;
+let refreshAlertBadge=()=>{};
 let activeAccount;
+let saveOwnDetails=()=>{};
+let refreshOwnDetails=()=>{};
 let signedOut=false;
 const accounts=[];
 const escapeAccount=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
@@ -58,7 +64,23 @@ function signOutAccount() {
 }
 
 function openAccountMenu() {
+  refreshOwnDetails();
   accountDialog.innerHTML=`<div class="d-dialog-heading"><h2 id="account-switcher-title">Accounts</h2><button type="button" class="d-close" data-account-close aria-label="Close accounts">×</button></div><div class="d-dialog-body"><p class="account-preview-note">Demo profiles let you preview each workspace. They are not real sign-ins.</p><div class="account-choices">${accountChoices(true)}</div></div><footer class="d-dialog-footer"><div><button type="button" class="d-button" data-account-create data-testid="account-create">Create account</button><button type="button" class="d-button" data-account-login>Sign in</button></div><button type="button" class="d-button" data-account-signout data-testid="account-sign-out" ${signedOut?'disabled':''}>Sign out</button></footer>`;
+  if(activeAccount&&!signedOut){
+    const body=accountDialog.querySelector('.d-dialog-body');
+    body.insertAdjacentHTML('afterbegin',`<form class="g-form" data-testid="account-details-form"><h3>Your details</h3><label>Full name<input name="name" autocomplete="name" required maxlength="150" data-testid="account-detail-name" value="${escapeAccount(activeAccount.name)}"></label><label>Email<input name="email" type="email" autocomplete="email" required data-testid="account-detail-email" value="${escapeAccount(activeAccount.email)}"></label><label>Phone<input name="phone" type="tel" autocomplete="tel" data-testid="account-detail-phone" value="${escapeAccount(activeAccount.phone||'')}"></label><p class="d-form-error" data-testid="account-details-error" role="alert" hidden></p><p data-testid="account-details-status" role="status"></p><button class="d-button d-primary" data-testid="account-details-save">Save details</button><p class="account-preview-note">Preview changes reset on reload. Real email changes will require verification.</p></form><h3>Demo accounts</h3>`);
+    body.querySelector('form').onsubmit=event=>{
+      event.preventDefault();const form=event.currentTarget;
+      const data={name:form.elements.name.value.trim(),email:form.elements.email.value.trim().toLowerCase(),phone:form.elements.phone.value.trim()};
+      const error=form.querySelector('[role="alert"]');const fail=text=>{error.textContent=text;error.hidden=false;};
+      if(!data.name)return fail('Enter your name.');
+      if(accounts.some(account=>account!==activeAccount&&account.email.toLowerCase()===data.email))return fail('This email belongs to another preview account.');
+      if(data.phone&&!/^\+?[\d\s().-]+$/.test(data.phone)||data.phone&&(data.phone.replace(/\D/g,'').length<10||data.phone.replace(/\D/g,'').length>15))return fail('Enter a complete phone number.');
+      try{saveOwnDetails(data);}catch(problem){fail(problem.message);return;}error.hidden=true;form.querySelector('[role="status"]').textContent='Your details were saved in this preview.';
+      accountDialog.querySelector('.account-choices').innerHTML=accountChoices(true);
+      accountMenu.querySelector('.account-avatar').textContent=data.name.split(' ').map(n=>n[0]).slice(0,2).join('');
+    };
+  }
   accountDialog.showModal();
 }
 
@@ -146,14 +168,18 @@ function renderRoster() {
 }
 
 function renderWorkspace() {
+  queueMicrotask(()=>refreshAlertBadge());
+  sharedAlerts?.close();
+  if(sharedAlertRoot)sharedAlertRoot.hidden=true;
   document.body.classList.toggle('signed-out',signedOut);
   accountMenu.querySelector('[data-current-role]').textContent=signedOut?'Accounts':workspaces[role].label;
   accountMenu.querySelector('.account-avatar').textContent=signedOut?'A':activeAccount?.name.split(' ').map(n=>n[0]).slice(0,2).join('')||'A';
-  accountMenu.setAttribute('aria-label',signedOut?'Choose an account':'Switch account, '+workspaces[role].label);
+  accountMenu.setAttribute('aria-label',signedOut?'Choose an account':'Your account, '+workspaces[role].label);
   nav.parentElement.hidden=signedOut;
   window.dispatchEvent(new Event('kestrel:account-view'));
   accountWorkspace.hidden=true;
   if(signedOut) {
+    sharedAlerts?.clear();
     operations.clear();guardian.clear();patrol.clear();
     for(const id of ['director','operations','patrol','guardian','starter-panel','live-workspace']) document.querySelector('#'+id).hidden=true;
     accountWorkspace.hidden=false;title.textContent='Welcome to Kestrel Kids';renderAccountPage();return;
@@ -201,6 +227,14 @@ function renderWorkspace() {
   document.body.classList.toggle('desk-view', role === 'desk');
   document.body.classList.toggle('guardian-view', role === 'guardian');
   document.body.classList.toggle('patrol-view', role === 'patrol');
+  if(tab==='Alerts') {
+    for(const id of ['director','operations','patrol','guardian','starter-panel','live-workspace'])document.querySelector('#'+id).hidden=true;
+    sharedAlertRoot.hidden=false;
+    sharedAlerts.enter();
+    sharedAlerts.render();
+    return;
+  }
+  sharedAlerts?.clear();
   if(tab==='Account') {
     for(const id of ['director','operations','patrol','guardian','starter-panel','live-workspace']) document.querySelector('#'+id).hidden=true;
     accountWorkspace.hidden=false;renderAccountPage();return;
@@ -226,7 +260,15 @@ async function start() {
       seed = prototypeSeed(seed,mode);
       addPrototypeControls(mode);
     }
+    const alertStore=createAlertStore(seed);
+    sharedAlertRoot=document.createElement('section');sharedAlertRoot.id='shared-alerts';sharedAlertRoot.hidden=true;document.querySelector('.workspace').append(sharedAlertRoot);
+    const alertContext=()=>({id:activeAccount?.id||role,role,name:activeAccount?.name||'',guardianId:guardian?.accountId||activeAccount?.guardianId,instructorId:activeAccount?.instructorId||seed.instructors[0]?.id});
     function updateRows() {
+      for(const account of accounts){
+        if(account.sample&&account.role==='guardian'&&!account.guardianId&&seed.guardians.length){account.guardianId=seed.guardians[0].id;guardian?.setAccount(account);}
+        const record=account.role==='guardian'?seed.guardians.find(person=>person.id===account.guardianId):account.role==='instructor'?seed.instructors.find(person=>person.id===account.instructorId):null;
+        if(record)Object.assign(account,{name:record.name,email:record.email,phone:record.phone});
+      }
       const groups = new Map(seed.groups.map(group => [group.id, group]));
       const children = new Map(seed.children.map(child => [child.id, child]));
       rows = seed.attendance.map(attendance => {
@@ -239,12 +281,14 @@ async function start() {
       };
       });
       window.dispatchEvent(new Event('kestrel:preview-change'));
+      refreshAlertBadge();
     }
     updateRows();
-    operations = createOperations(document.querySelector('#operations'), seed, {onChange: updateRows});
+    operations = createOperations(document.querySelector('#operations'), seed, {onChange: updateRows,alerts:{store:alertStore}});
     director = createDirector(document.querySelector('#director'), seed, {
       onChange: updateRows,
       onNavigate: next => { tab = next; renderWorkspace(); },
+      alerts:{store:alertStore,context:()=>({id:'director',role:'director',name:accounts.find(a=>a.role==='director')?.name||'Director'}),visible:()=>role==='director'&&!signedOut},
     });
     guardian = createGuardian(document.querySelector('#guardian'), seed, {onChange:updateRows});
     patrol = createPatrol(document.querySelector('#patrol'), seed, {
@@ -253,7 +297,59 @@ async function start() {
     });
     for(const [id,name] of Object.entries({guardian:guardian.accountHolder,director:'Taylor Reed',desk:'Jordan Lee',instructor:'Alex Morgan',patrol:'Robin Fournier'})) accounts.push({id,role:id,name,email:id+'@example.test',sample:true,signedIn:true});
     Object.assign(accounts.find(account=>account.role==='guardian'),{guardianId:guardian.accountId,email:seed.guardians[0]?.email || 'guardian@example.test'});
+    const instructorAccount=accounts.find(account=>account.role==='instructor');
+    if(seed.instructors[0])Object.assign(instructorAccount,{instructorId:seed.instructors[0].id,name:seed.instructors[0].name,email:seed.instructors[0].email||instructorAccount.email,phone:seed.instructors[0].phone||''});
+    const parentAccount=accounts.find(account=>account.role==='guardian');
+    parentAccount.phone=seed.guardians.find(person=>person.id===parentAccount.guardianId)?.phone||'';
+    refreshOwnDetails=()=>{
+      const record=activeAccount?.role==='guardian'?seed.guardians.find(person=>person.id===activeAccount.guardianId):activeAccount?.role==='instructor'?seed.instructors.find(person=>person.id===activeAccount.instructorId):null;
+      if(record)Object.assign(activeAccount,{name:record.name,email:record.email,phone:record.phone});
+    };
+    saveOwnDetails=data=>{
+      const people=activeAccount.role==='guardian'?seed.guardians:activeAccount.role==='instructor'?seed.instructors:[];
+      const ownId=activeAccount.role==='guardian'?activeAccount.guardianId:activeAccount.instructorId;
+      if(people.some(person=>person.id!==ownId&&person.email?.toLowerCase()===data.email))throw new Error('This email belongs to another profile.');
+      Object.assign(activeAccount,data);
+      const record=activeAccount.role==='guardian'?seed.guardians.find(person=>person.id===activeAccount.guardianId):activeAccount.role==='instructor'?seed.instructors.find(person=>person.id===activeAccount.instructorId):null;
+      if(record)Object.assign(record,data);
+      if(activeAccount.role==='guardian')guardian.setAccount(activeAccount);
+      updateRows();
+    };
+    accountDialog.addEventListener('close',()=>{if(!signedOut)renderWorkspace();});
     activeAccount=accounts.find(account=>account.role===role);
+    refreshAlertBadge=()=>{
+      if(signedOut)return;
+      const button=[...nav.querySelectorAll('button')].find(button=>button.querySelector('.nav-label-full')?.textContent==='Alerts');
+      if(!button)return;
+      const unread=alertStore.unread(alertContext());button.setAttribute('aria-label',unread?`Alerts, ${unread} unread`:'Alerts');
+      let badge=button.querySelector('.nav-alert-count');
+      if(unread){if(!badge){badge=document.createElement('span');badge.className='nav-alert-count';badge.setAttribute('aria-hidden','true');button.append(badge);}badge.textContent=unread>9?'9+':String(unread);}else badge?.remove();
+    };
+    sharedAlerts=createSharedAlerts(sharedAlertRoot,seed,{
+      store:alertStore,getContext:alertContext,onChange:updateRows,
+      onOpen(link){
+        if(!link)return;
+        if(link.kind==='patrol'){
+          if(role!=='patrol')return;
+          tab='Active alerts';renderWorkspace();
+          document.querySelector(`.p-alert-card[data-alert-id="${CSS.escape(link.incidentId)}"]`)?.scrollIntoView({block:'nearest'});
+          return;
+        }
+        if(role==='guardian'){
+          if(!seed.children.some(child=>child.id===link.childId&&child.guardianId===guardian.accountId))return;
+          tab='My children';renderWorkspace();
+          document.querySelector(`[data-consent="${CSS.escape(link.childId)}"]`)?.click();
+        }else if(role==='director'){
+          tab='Children';renderWorkspace();director.openChild(link.childId);
+        }else if(['desk','instructor'].includes(role)){
+          tab=workspaces[role].tabs[0];renderWorkspace();operations.openChild(link.childId);
+        }
+      },
+    });
+    document.addEventListener('click',event=>{
+      if(!event.target.closest('[data-search-action="found"],[data-found-confirm]'))return;
+      queueMicrotask(()=>{if(role==='patrol'&&tab==='Active alerts'&&(seed.patrolAlerts||[]).some(record=>record.active===false&&String(record.status).toLowerCase()==='found')){updateRows();renderWorkspace();}});
+    });
     document.querySelector('#lesson-date').textContent = new Intl.DateTimeFormat(
       'en-CA', { dateStyle: 'full', timeZone: 'UTC' }
     ).format(new Date(seed.lessonDate));

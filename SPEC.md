@@ -51,7 +51,7 @@ All records are fictional and come from demo-fixture.json. There is no database 
 - R-014: Desk pickup uses adults authorized on the lesson date; staff must choose one, record verifying staff and confirm the identity check. Release records retain adult, staff and time. An unlisted adult cannot release a child.
 - R-015: Desk staff can log an instructor radio report with child identity, last seen details, clothing/equipment and injuries. The log states that patrol handoff happens by radio; it does not send notifications.
 - R-016: Desk and director lists support 200 or more children with full-roster search, visible result counts and pages of 25; desk also has group/status filters. A local-only prototype offers demo, 200, 1,000, worst-case, empty and one-child data; every instructor still has at most six children. (Owner scale concern; page size is an implementation assumption.)
-- R-017: Every role uses the same fixed bottom navigation style with safe-area padding and content clear of controls. Desk tabs are Roster and Incidents, with drop-off and verified pickup in each child's details; Director tabs are Overview, Children, Guardians, Instructors, Lesson groups, Alerts and Account. The same layout works on phones, tablets and desktops. (Owner's explicit navigation requests; Figma desk frame 2:101.)
+- R-017: Every role uses the same fixed bottom navigation style with safe-area padding and content clear of controls. Desk tabs are Roster and Alerts, with drop-off and verified pickup in each child's details; Director tabs are Overview, Children, Instructors, Lesson groups and Alerts. Account is available at the top for every role; Manage guardians is inside Children. The same layout works on phones, tablets and desktops. (Owner's explicit navigation requests; Figma desk frame 2:101.)
 - R-018: Every role keeps the owner's green palette, using Figma only for layout inspiration: compact phone rosters and visible group medical reminders. Keep readable touch controls and real data-driven identities; do not claim offline functionality. (Owner's design ideas, Figma frames 2:45 and 2:101, file CDfKgyYvSobrwn8xAfzuEr.)
 - R-019: Directors manage group membership directly in Lesson groups: add, remove or move a child. Child details are edited from Children, not from group membership. Membership changes are staged until the group is saved, respect the six-child limit per instructor, and show a warning for a manual placement at a different recorded ability level. (Owner clarification.)
 - R-020: Directors can preview and apply automatic assignment of unassigned children to existing groups with matching recorded ability levels. Preserve existing assignments and respect the six-child limit per instructor across groups. Explain children left unassigned for missing ability level, missing matching group or capacity. Never guess a child's level. (Owner agreed to recorded ability levels, 2026-11-07.)
@@ -60,6 +60,76 @@ All records are fictional and come from demo-fixture.json. There is no database 
 
 
 ## Acceptance Scenarios
+
+### S-057: I manage my account at the top and guardians inside Children
+Given I use any of the existing role screens, with the owner's approved visual baseline.
+When I open the top Account entry, update my own details, or open Manage guardians from Director Children and follow a child's guardian link.
+Then personal details validate and update the same shared profile, all account switching and sign-out remain available, Account has no duplicate bottom tab, and guardian search, edits, sibling links and a route back to the child remain available without a separate Guardians bottom tab.
+
+### S-058: I import and review store registrations from Overview or Children
+Given I use the existing Director Overview or Children screen and have a registration CSV or the fictional 300-row sample.
+When I review the file and confirm importing it, repeat the import, or choose an invalid file.
+Then both entry points use the same form, imported children and guardians appear in the original role screens, re-import creates no duplicates and preserves operational information, invalid rows cannot import partially, and new records never invent consent, pickup authorization, groups or bibs.
+
+### S-050: Shared alerts preserve every role's existing tools and top Account entry
+Given I open the original preview as Parent, Desk, Instructor, Patrol or Director.
+When I open Alerts and return to the original work area.
+Then the top Account entry, role-specific operational tabs, layouts and core actions remain available, guardian management remains inside Children, and all Alerts screens use the same notification cards and popup styling.
+
+### S-051: Instructors send group notices only to their assigned groups
+Given I compose a notice as an instructor, Director or Desk user.
+When I select a notice type and audience and send it.
+Then an instructor can target only assigned groups, Director and Desk can target selected groups or all groups, and only relevant parents and staff receive the notice.
+
+### S-052: Reading alerts never resolves an emergency or exposes a closed case
+Given a missing-child case is active and I can access its notification.
+When I mark the notification read, clear routine notifications, or the case is marked found.
+Then the active emergency remains until found, Patrol's closed-case details and old links are unavailable after resolution, and routine notices retain independent per-person read state.
+
+### S-055: Registration imports create one shared school roster
+Given I open the unified preview as Director with a fictional registration file matching Exhibit 4A.
+When I import its 300 rows and import the same file again.
+Then the school has 300 children without duplicates, Saturday and Sunday registrations remain separate, original child notes are preserved, and no consent or pickup authorization is invented from registration data.
+
+### S-056: Desk confirms an available physical bib at each daily check-in
+Given groups are assigned before arrival and a child has complete consent and care information.
+When Desk records today's clothing and confirms a group-stock bib numbered 1–400.
+Then the child is checked in with the composed group–bib label, the assigned instructor sees that same label, parents do not see it, and duplicate or wrong-group bibs cannot be issued.
+
+### S-045: Parent care details reach only staff who need them
+Given a parent has children linked from the imported registrations.
+When they submit structured consent, valid contacts, care information and pickup permissions.
+Then Desk and Director see readiness, the assigned instructor sees necessary care information without family contact lists, and unrelated instructors cannot open the child.
+
+### S-046: Missing-child reports share one case and end Patrol access when found
+Given a child is checked in and their group, bib, contacts and care information are recorded.
+When Director, Desk or the assigned instructor confirms a structured missing-child report and an authorized responder marks the child found.
+Then the same case is visible to authorized responders, the child is visibly missing until resolved, Patrol sees only active missing children, and resolving the case removes Patrol's details and old notification access.
+
+### S-047: Pickup records the authorized adult and bib return separately
+Given a checked-in child has current guardian-authorized pickup adults.
+When Desk verifies an adult from that list, records release and records whether the bib was returned.
+Then the actual adult, staff and time are retained, unlisted adults cannot release the child, and a missing bib return does not prevent an otherwise authorized pickup.
+
+### S-048: In-app alerts follow role and group permissions
+Given staff and parents share imported child and group records.
+When an incident occurs or Director sends a notice to selected groups.
+Then each person sees only authorized notifications in the same alert design, urgent incidents remain distinguished from unread routine notices, and reading a notification does not resolve an incident.
+
+### S-049: Operational actions leave history and remain clear on phones
+Given I use the unified preview on phone and desktop.
+When I import, consent, check in, report, resolve and release a child.
+Then structured operational fields validate before saving, Director can read who changed what and when without editing history, and the app clearly identifies its fictional data and simulated access controls.
+
+### S-053: I can read a profile before choosing to edit it
+Given I open a Director child, guardian, instructor or lesson group using View details.
+When I read the profile, choose Edit profile, change a value and save or cancel.
+Then details initially contain no editable fields, saving returns to the updated read-only profile, and cancelling returns without saving changes.
+
+### S-054: I can quickly review consent and health notes on my phone
+Given I open Director Overview on a phone or desktop.
+When I review the section headings and use View all health notes.
+Then the duplicate View all children button is absent, counts appear beside compact headings, section actions sit at the bottom and span the full section width on phones, and the health list contains only children with recorded health alerts on today's roster.
 
 ### S-038: I can switch between five demo accounts without the demo bar
 Given the preview has a signed-in sample account for every role.
@@ -257,20 +327,6 @@ Given I select Patrol in the fictional-data preview.
 When I review the active alerts issued by the school desk.
 Then Owen Parr's registration name and Owen Okafor-Parr consent name appear together with his stable ID, age, Group 14 Level 3, last-seen time and place, asthma alert, uncertain clothing, unknown equipment and injuries, unavailable lift scan, emergency contacts and police escalation guidance. Request lift scan and Call police explain that the demo cannot contact external services, Copy details copies the report locally, police lead family communication, and the demo label remains visible.
 
-## Architecture and build order
-
-### S-029: My live missing-child report reaches Desk and Patrol
-covers: R-023
-Given I am a signed-in instructor with an active assigned group and child.
-When I save the child's last-seen time, place, clothing, equipment and injuries.
-Then the report is stored in Piezas, Desk and Patrol can see it after refresh, and I am told to call them by physical radio because no radio message was sent.
-
-### S-030: I cannot report a child outside my assigned group
-covers: R-024
-Given I am signed in as an instructor assigned to one group.
-When I submit a report for a child outside my assigned attendance roster.
-Then the server rejects it and no active report is created.
-
 ### S-041: Patrol receives the latest Guardian update with a missing-child report
 Given I update a child's Guardian health, emergency contact and consent details.
 When the instructor reports that child missing.
@@ -291,6 +347,21 @@ Given a child has an active missing-child report and a known Instructor group.
 When Desk or Patrol marks the child found.
 Then that child’s assigned Instructor and the Director receive an alert naming the child and who marked them found.
 
+
+
+## Architecture and build order
+
+### S-029: My live missing-child report reaches Desk and Patrol
+covers: R-023
+Given I am a signed-in instructor with an active assigned group and child.
+When I save the child's last-seen time, place, clothing, equipment and injuries.
+Then the report is stored in Piezas, Desk and Patrol can see it after refresh, and I am told to call them by physical radio because no radio message was sent.
+
+### S-030: I cannot report a child outside my assigned group
+covers: R-024
+Given I am signed in as an instructor assigned to one group.
+When I submit a report for a child outside my assigned attendance roster.
+Then the server rejects it and no active report is created.
 
 Use the existing Node.js development server and plain JavaScript UI. npm run build produces both build/runtime for future server hosting and build/preview for this static milestone. Only the built public files are uploaded for the preview; no key, server source, private settings or dependencies are uploaded.
 

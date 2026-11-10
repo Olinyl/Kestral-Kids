@@ -1,4 +1,4 @@
-// piezas-scenario: S-041 v=1
+// piezas-scenario: S-041 v=5b6deae4f8b4
 import { expect, test } from '@playwright/test';
 
 test('S-041: Patrol receives the latest Guardian update with a missing-child report', async ({page}) => {

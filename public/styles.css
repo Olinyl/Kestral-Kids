@@ -275,6 +275,7 @@ body :is(.d-dialog,.o-dialog) :is(.d-primary,.o-primary,.g-button:not(.secondary
 .account-menu-button small strong { font-weight:400; }
 .account-preview-note { color:var(--muted); font-size:13px; line-height:1.5; }
 .account-choices { display:grid; gap:8px; }
+#account-switcher [data-testid="account-details-form"] { padding:0; margin:0 0 20px; }
 body .d-dialog .account-choice,#app-shell .account-choice { display:flex; align-items:center; gap:12px; width:100%; min-height:68px; padding:12px; border:1px solid var(--button-border); border-radius:8px; text-align:left; background:#fff; color:#173f39; font:inherit; font-size:14px; }
 .account-choice > span:nth-child(2) { min-width:0; flex:1; }
 .account-choice small { display:block; color:var(--muted); font-size:12px; line-height:1.5; margin-top:3px; }

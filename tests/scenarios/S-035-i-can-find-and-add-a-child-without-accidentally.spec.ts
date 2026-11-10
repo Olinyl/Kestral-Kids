@@ -6,6 +6,7 @@ test('group combobox Enter stages membership without closing or saving',async({p
   await page.getByTestId('director-nav-groups').click();
   await expect(page.locator('.d-child-link')).toHaveCount(0);
   await page.getByTestId('group-open-spruce-3').click();
+  await page.getByTestId(/^profile-edit-/).click();
   const search=page.getByTestId('group-child-search');
   await expect(search).toHaveAttribute('role','combobox');
   await search.fill('Noah');
@@ -15,6 +16,8 @@ test('group combobox Enter stages membership without closing or saving',async({p
   await expect(page.getByTestId('group-dialog')).toBeVisible();
   await expect(page.getByTestId('group-members')).toContainText('Noah Singh');
   await page.getByTestId('dialog-close').click();
+  if(await page.getByTestId(/^(child|guardian|instructor|group)-profile$/).isVisible()) await page.getByTestId("dialog-close").click();
   await page.getByTestId('group-open-spruce-3').click();
+  await page.getByTestId(/^profile-edit-/).click();
   await expect(page.getByTestId('group-members')).not.toContainText('Noah Singh');
 });

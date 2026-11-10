@@ -8,8 +8,15 @@
   "deploymentMode": "server-runtime",
   "deploy": {
     "appId": "5f6d96c7-a11c-489f-a1f8-bcc5734401b7",
-    "requiredEnv": ["PIEZAS_API_URL"],
-    "optionalEnv": ["HOST", "PIEZAS_HOOK_STATE_DIR", "KESTREL_BROWSER"],
+    "requiredEnv": [
+      "PIEZAS_API_URL"
+    ],
+    "optionalEnv": [
+      "HOST",
+      "PIEZAS_HOOK_STATE_DIR",
+      "KESTREL_BROWSER",
+      "PIEZAS_REPORT_BUTTON"
+    ],
     "dir": "build/runtime"
   },
   "notes": [
@@ -18,5 +25,7 @@
     "App identity verified from the owner's downloaded key through SDK whoami."
   ],
   "contractFetchedAt": "2026-11-07T22:39:30.346Z",
-  "rules": "short"
+  "rules": "short",
+  "reportButton": false,
+  "reportButtonUnsent": true
 }

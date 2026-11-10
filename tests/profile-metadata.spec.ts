@@ -7,9 +7,9 @@ for(const width of [390,1440]) {
   await page.getByTestId('director-nav-children').click();
   const director=page.getByTestId('director-child-row').first();
   await expect(director).toBeVisible();
-  const read=async(card)=>{
+  const read=async(card,includeBib=true)=>{
    const values=[];
-   for(const key of ['group','program','level','bib']) {
+   for(const key of includeBib?['group','program','level','bib']:['group','program','level']) {
     const item=card.getByTestId('profile-'+key);
     await expect(item).toBeVisible();
     values.push(await item.evaluate(el=>({text:el.textContent,background:getComputedStyle(el).backgroundColor,color:getComputedStyle(el).color,padding:getComputedStyle(el).padding})));
@@ -22,14 +22,16 @@ for(const width of [390,1440]) {
   expect(expected[0].background).not.toBe(expected[1].background);
   expect((await director.boundingBox())!.height).toBeLessThan(430);
   await page.screenshot({path:`.piezas/design-review/compact-director-${width}.png`});
-  await page.getByTestId('director-nav-guardians').click();
+  await page.getByTestId('director-nav-children').click();
+  await page.getByTestId('manage-guardians').click();
   const guardianChild=page.getByTestId('director-guardian-row').first().locator('.g-child-row').first();
   expect(await read(guardianChild)).toEqual(expected);
   for(const role of ['guardian','desk','instructor']) {
    await page.getByTestId('account-menu').click();
    await page.getByTestId('account-choice-'+role).click();
    const card=role==='guardian' ? page.locator('#guardian .g-child-row').first() : page.getByTestId('roster-row').first();
-   expect(await read(card)).toEqual(expected);
+   expect(await read(card,role!=='guardian')).toEqual(role==='guardian'?expected.slice(0,3):expected);
+   if(role==='guardian')await expect(card.getByTestId('profile-bib')).toHaveCount(0);
    expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
    await page.screenshot({path:`.piezas/design-review/compact-${role}-${width}.png`});
   }
@@ -49,8 +51,10 @@ test('group identity and program day determine color while level and bib stay ne
  await page.getByTestId('director-nav-groups').click();
  for(const [group,day] of [['spruce-3','Saturday'],['cedar-1','Sunday']]) {
   await page.getByTestId('group-open-'+group).click();
+  await page.getByTestId(/^profile-edit-/).click();
   await page.getByTestId('group-program').selectOption(day);
   await page.getByTestId('group-save').click();
+  if(await page.getByTestId(/^(child|guardian|instructor|group)-profile$/).isVisible()) await page.getByTestId("dialog-close").click();
  }
  await page.getByTestId('director-nav-children').click();
  const cards=page.getByTestId('director-child-row');

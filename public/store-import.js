@@ -5,15 +5,15 @@ const accountNames = ['Melissa','Alyssa','Priya','Jordan','Taylor','Morgan','Jam
 const relationships = ['Mother','Father','Guardian','Aunt','Uncle','Grandparent'];
 const notes = ['Gets cold easily.','Prefers a quick break after lunch.','Uses a left-handed ski pole grip.','Can be shy in a new group.','Please remind them to drink water.','No additional notes.',''];
 
-export const storeImport = Array.from({length:200},(_,index)=>{
+export const storeImport = Array.from({length:300},(_,index)=>{
   const n=index+1;
   const first=firstNames[index%firstNames.length];
   const last=lastNames[Math.floor(index/firstNames.length)%lastNames.length];
   const account=accountNames[index%accountNames.length];
   const accountLast=lastNames[(Math.floor(index/10)+3)%lastNames.length];
   const day=String((index%27)+1).padStart(2,'0');
-  const month=String((Math.floor(index/27)%12)+1).padStart(2,'0');
-  const year=2015+(index%8);
+  const month=String((Math.floor(index/27)%11)+1).padStart(2,'0');
+  const year=2014+(index%8);
   return {
     orderNumber:`KM-2025-${String(118204+index).padStart(6,'0')}`,
     child:`${first} ${last}`,
@@ -29,5 +29,5 @@ export const storeImport = Array.from({length:200},(_,index)=>{
 });
 
 // A paired household makes the multiple-children account visible in the Guardian demo.
-storeImport[0] = {...storeImport[0],child:'Owen Parr',accountHolder:'Melissa Parr',relationship:'Mother'};
-storeImport[1] = {...storeImport[1],child:'Maya Parr',accountHolder:'Melissa Parr',relationship:'Mother'};
+storeImport[0] = {...storeImport[0],child:'Owen Parr',birthDate:'2017-06-14',program:'Kestrel Kids, Saturday',level:'3',accountHolder:'Melissa Parr',relationship:'',phone:'416-555-0142',email:'m.parr@example.com',childNotes:'Owen gets cold easily!'};
+storeImport[1] = {...storeImport[1],child:'Maya Parr',accountHolder:'Melissa Parr',relationship:'Mother',phone:'416-555-0142',email:'m.parr@example.com'};

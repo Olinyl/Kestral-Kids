@@ -10,8 +10,10 @@ test('peer Director tabs use tabs, while dialogs use X and preserve the search',
   await page.getByTestId('director-search').fill('Maya');
   await page.screenshot({path:'.piezas/design-review/director-tabs-navigation.png'});
   await page.getByTestId('child-open-demo-child-01').click();
+  await page.getByTestId(/^profile-edit-/).click();
   await expect(page.getByTestId('dialog-close')).toHaveText('×');
   await page.getByTestId('dialog-close').click();
+  if(await page.getByTestId(/^(child|guardian|instructor|group)-profile$/).isVisible()) await page.getByTestId("dialog-close").click();
   await expect(page.getByTestId('director-search')).toHaveValue('Maya');
 });
 

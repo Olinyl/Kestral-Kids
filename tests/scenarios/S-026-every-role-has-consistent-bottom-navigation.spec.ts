@@ -9,7 +9,7 @@ test('S-026: director workflow',async({page})=>{
       await page.getByTestId('account-menu').click();
       await page.getByTestId('account-choice-'+role).click();
       const tabs=page.getByTestId('workspace-nav').getByRole('button');
-      if(role==='director') await expect(tabs).toHaveCount(6);
+      if(role==='director') await expect(tabs).toHaveCount(5);
       for(const tab of await tabs.all()) {
         await tab.click();
         await expect(tab).toHaveAttribute('aria-current','page');

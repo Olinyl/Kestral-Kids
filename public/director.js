@@ -1,5 +1,7 @@
 import { planAssignments } from './grouping.js';
 import {childMeta,profileMeta,lessonDetails} from './profile-ui.js';
+import {applyRegistrationImport,parseRegistrationCsv,registrationCsv} from './registration-import.js';
+import {storeImport} from './store-import.js';
 
 const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 const phoneValid = value => /^[+\d\s().-]+$/.test(value) && value.replace(/\D/g, '').length >= 10 && value.replace(/\D/g, '').length <= 15;
@@ -11,8 +13,9 @@ const formatPhone = value => {
 const button = (label, action, id = '', style = '') => `<button type="button" class="d-button ${style}" data-action="${action}" data-id="${escape(id)}" data-testid="${action}${id ? '-' + escape(id) : ''}">${escape(label)}</button>`;
 const state = (text, type = '') => `<span class="d-state ${type}">${escape(text)}</span>`;
 
-export function createDirector(root, seed, { onChange, onNavigate }) {
+export function createDirector(root, seed, { onChange, onNavigate, alerts }) {
   let view = 'Overview';
+  let guardianFromChild=null;
   let query = '';
   let filter = 'all';
   let notice = '';
@@ -22,7 +25,7 @@ export function createDirector(root, seed, { onChange, onNavigate }) {
   let groupCandidates = [];
   let candidateIndex = -1;
   const notifications = [];
-  const unreadCount=()=>notifications.filter(item=>!item.read).length;
+  const unreadCount=()=>alerts?alerts.store.unread(alerts.context()):notifications.filter(item=>!item.read).length;
   seed.parentAlerts ??= [];
   const updateAlertTab=()=>{
     const button=document.querySelector('#workspace-nav [data-testid="director-nav-alerts"]');
@@ -41,6 +44,7 @@ export function createDirector(root, seed, { onChange, onNavigate }) {
     panel.querySelector('[data-clear-director-alerts]').onclick=()=>{notifications.length=0;renderNotifications();};
   }
   function notify(text) {
+    if(alerts)alerts.store.activity(text);
     notifications.unshift({text,time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}),read:document.body.classList.contains('director-view')&&view==='Alerts'});
     renderNotifications();
   }
@@ -50,6 +54,7 @@ export function createDirector(root, seed, { onChange, onNavigate }) {
   const guardianSnapshot=()=>JSON.stringify([seed.children.map(child=>[child.id,child.guardianId,child.emergencyName,child.emergencyPhone,child.emergencyRelationship,child.emergencyName2,child.emergencyPhone2,child.emergencyRelationship2,child.medical,child.medications,child.allergies,child.consentUpdatedAt]),seed.guardians.map(person=>[person.id,person.name,person.phone,person.email])]);
   let priorGuardianSnapshot=guardianSnapshot();
   window.addEventListener('kestrel:preview-change',()=>{
+    if(alerts){renderNotifications();return;}
     const nextGuardianSnapshot=guardianSnapshot();
     if(nextGuardianSnapshot!==priorGuardianSnapshot)notify('Guardian or emergency contact details were updated.');
     priorGuardianSnapshot=nextGuardianSnapshot;
@@ -70,6 +75,7 @@ export function createDirector(root, seed, { onChange, onNavigate }) {
   const pageRows = records => {pageTotal=records.length;page=Math.max(0,Math.min(page,Math.ceil(records.length/pageSize)-1));return records.slice(page*pageSize,(page+1)*pageSize);};
   const pagination = () => `<div class="d-pagination"><span role="status" data-testid="director-page-summary">${pageTotal ? (page*pageSize+1).toLocaleString('en-CA')+' - '+Math.min((page+1)*pageSize,pageTotal).toLocaleString('en-CA') : '0'} of ${pageTotal.toLocaleString('en-CA')}</span><div><button class="d-button" data-action="page-prev" data-testid="director-prev" ${page===0?'disabled':''}>Previous</button> <button class="d-button" data-action="page-next" data-testid="director-next" ${(page+1)*pageSize>=pageTotal?'disabled':''}>Next</button></div></div>`;
   const dialog = document.createElement('dialog');
+  let returnToProfile = null;
   dialog.className = 'd-dialog';
   document.body.append(dialog);
   const childGroup = id => seed.groups.find(group => group.id === seed.attendance.find(row => row.childId === id)?.groupId);
@@ -88,21 +94,22 @@ export function createDirector(root, seed, { onChange, onNavigate }) {
   const profileCard = (testid,title,subtitle,body,actions) => `<article class="d-profile-card" data-testid="${testid}"><header class="d-card-heading"><h3>${escape(title)}</h3>${subtitle ? `<p>${escape(subtitle)}</p>` : ''}</header>${body}<footer class="d-card-actions">${actions}</footer></article>`;
 
   function overview() {
+    const today=seed.attendance.filter(row=>!row.lessonDate||row.lessonDate===seed.lessonDate);
     const incomplete = seed.children.filter(child => child.consentStatus !== 'complete');
-    const checked = seed.attendance.filter(row => row.status === 'checked_in' && !row.release).length;
+    const checked = today.filter(row => row.status === 'checked_in' && !row.release).length;
     const medical = seed.children.filter(child => child.medicalStatus === 'alert' && child.medical?.trim() && seed.attendance.some(row => row.childId === child.id));
-    return `<div class="d-page-heading"><div><h2>School overview</h2><p>Start with the children who need your attention.</p></div>${button('View all children', 'view-children', '', 'd-primary')}</div>
+    return `<div class="d-page-heading"><div><h2>School overview</h2><p>Start with the children who need your attention.</p></div>${button('Import registrations','registration-import')}</div>
       <dl class="d-totals" aria-label="Lesson day summary">
-        <div><dt>Children today</dt><dd data-testid="director-today-count">${seed.attendance.length}</dd></div>
-        <div><dt>Checked in</dt><dd data-testid="director-checked-count">${checked}<span> / ${seed.attendance.length}</span></dd></div>
+        <div><dt>Children today</dt><dd data-testid="director-today-count">${today.length}</dd></div>
+        <div><dt>Checked in</dt><dd data-testid="director-checked-count">${checked}<span> / ${today.length}</span></dd></div>
         <div><dt>Lesson groups</dt><dd data-testid="director-group-count">${seed.groups.length}</dd></div>
         <div><dt>Missing consent forms</dt><dd class="${incomplete.length ? 'd-amber-text' : ''}">${incomplete.length}</dd></div>
       </dl>
-      <div class="d-overview-grid"><section class="d-section" data-testid="director-missing-consent"><div class="d-section-heading"><h3>Missing consent forms <span class="d-count">${incomplete.length}</span></h3><button class="d-button" type="button" data-action="remind-all" data-testid="consent-remind-all" ${incomplete.length?'':'disabled'}>Remind all parents</button></div>
+      <div class="d-overview-grid"><section class="d-section" data-testid="director-missing-consent"><div class="d-section-heading d-overview-heading"><h3>Missing consent forms <span class="d-count">${incomplete.length}</span></h3></div>
         <div class="d-overview-scroll" tabindex="0" aria-label="Children missing consent forms">${incomplete.length ? incomplete.map(child => `<div class="d-attention-row" data-testid="director-overview-profile"><div><strong>${escape(child.displayName)}</strong>${childMeta(seed,child)}<p>Consent form required</p></div>${openChild(child)}</div>`).join('') : '<p class="d-empty">All consent forms are complete.</p>'}</div>
-        <p class="d-section-note">Consent must be completed by a guardian. <button type="button" class="d-text-button" data-action="missing-consent" data-testid="director-incomplete-link">View all missing consent forms</button></p></section>
-      <section class="d-section"><div class="d-section-heading"><h3>Health notes</h3>${state(`${medical.length} on today's roster`)}</div><div class="d-overview-scroll" data-testid="director-medical-list" tabindex="0" aria-label="All children with health notes">${medical.map(child => `<div class="d-attention-row" data-testid="director-overview-profile"><div><strong>${escape(child.displayName)}</strong>${childMeta(seed,child)}<p>${escape(child.medical)}</p></div>${openChild(child)}</div>`).join('') || '<p class="d-empty">No health notes on today’s roster.</p>'}</div></section></div>
-      <section class="d-section d-spaced"><div class="d-section-heading"><h3>Lesson groups</h3>${button('Manage groups', 'view-groups')}</div>${groupTable(seed.groups.slice(0,5))}</section>
+        <footer class="d-section-note"><span>Consent must be completed by a guardian.</span><div class="d-overview-actions"><button class="d-button" type="button" data-action="remind-all" data-testid="consent-remind-all" ${incomplete.length?'':'disabled'}>Remind all parents</button><button type="button" class="d-button" data-action="missing-consent" data-testid="director-incomplete-link">View all missing consent forms</button></div></footer></section>
+      <section class="d-section"><div class="d-section-heading d-overview-heading"><h3>Health notes <span class="d-count" aria-label="${medical.length} on today's roster">${medical.length}</span></h3></div><div class="d-overview-scroll" data-testid="director-medical-list" tabindex="0" aria-label="All children with health notes">${medical.map(child => `<div class="d-attention-row" data-testid="director-overview-profile"><div><strong>${escape(child.displayName)}</strong>${childMeta(seed,child)}<p>${escape(child.medical)}</p></div>${openChild(child)}</div>`).join('') || '<p class="d-empty">No health notes on today’s roster.</p>'}</div><footer class="d-section-note"><div class="d-overview-actions">${button('View all health notes','health-notes')}</div></footer></section></div>
+      <section class="d-section d-spaced"><div class="d-section-heading d-overview-heading"><h3>Lesson groups</h3></div>${groupTable(seed.groups.slice(0,5))}<footer class="d-section-note"><div class="d-overview-actions">${button('Manage groups', 'view-groups')}</div></footer></section>
       <div class="d-bottom-note">This is the team preview. Changes stay in this browser until you reload.</div>`;
   }
 
@@ -113,7 +120,8 @@ export function createDirector(root, seed, { onChange, onNavigate }) {
       const missing = gaps(child);
       return profileCard('director-child-row',child.displayName,'Guardian: '+(guardian(child)?.name ?? 'Not linked'),childMeta(seed,child)+facts([
         ['Profile',`${state(missing.length ? 'Needs attention' : 'Ready',missing.length ? 'd-warning' : 'd-success')}<span class="d-subline">${escape(missing.join(' · ') || (child.medicalStatus==='alert' ? 'Health note on file' : 'All required details present'))}</span>`],
-        ['Today',state(attendance?.release ? 'Released' : attendance?.status==='checked_in' ? 'Checked in' : 'Expected')]
+        ['Today',state(attendance?.release ? 'Released' : attendance?.status==='checked_in' ? 'Checked in' : 'Expected')],
+        ...(filter==='health'?[['Health notes',escape(child.medical)],['Medications',escape(child.medications||'Not recorded')],['Allergies',escape(child.allergies||'Not recorded')]]:[])
       ]),openChild(child)+button('Alert parent','parent-alert',child.id));
     }).join('')}</div>` : '<div class="d-empty" data-testid="director-empty"><strong>No children match your search.</strong><p>Try a different name or bib, or change the profile filter.</p></div>';
   }
@@ -127,7 +135,7 @@ export function createDirector(root, seed, { onChange, onNavigate }) {
   }
 
   function listContent() {
-    if (view === 'Children') return childTable(pageRows(seed.children.filter(child => matching([child.displayName, child.alternateName, child.id, childGroup(child.id)?.label, seed.attendance.find(row => row.childId === child.id)?.bib, guardian(child)?.name].join(' ')) && (filter === 'all' || (filter === 'consent' ? child.consentStatus !== 'complete' : filter === 'incomplete' ? gaps(child).length : !gaps(child).length)))));
+    if (view === 'Children') return childTable(pageRows(seed.children.filter(child => matching([child.displayName, child.alternateName, child.id, childGroup(child.id)?.label, seed.attendance.find(row => row.childId === child.id)?.bib, guardian(child)?.name].join(' ')) && (filter === 'all' || (filter === 'consent' ? child.consentStatus !== 'complete' : filter === 'health' ? child.medicalStatus === 'alert' && child.medical?.trim() && seed.attendance.some(row=>row.childId===child.id) : filter === 'incomplete' ? gaps(child).length : !gaps(child).length)))));
     if (view === 'Lesson groups') return groupTable(pageRows(seed.groups.filter(group => matching(group.label + ' ' + seed.instructors.find(person => person.id === group.instructorId)?.name))));
     if (view === 'Guardians') {
       const people = pageRows(seed.guardians.filter(person => matching(person.name + ' ' + person.email + ' ' + seed.children.filter(child => child.guardianId === person.id).map(child => child.displayName).join(' '))));
@@ -154,9 +162,40 @@ export function createDirector(root, seed, { onChange, onNavigate }) {
       return;
     }
     const subtitles = { Children: 'Review profiles, emergency contacts and lesson assignments.', Guardians: 'Keep parent and guardian contact details up to date.', Instructors: 'Manage your teaching team and the children assigned to them.', 'Lesson groups': 'Keep every child with an assigned instructor. Maximum six per instructor.' };
-    root.innerHTML = `<div class="d-feedback" role="status" data-testid="director-feedback" ${notice ? '' : 'hidden'}>${escape(notice)}</div>` + (view === 'Overview' ? overview() : `<div class="d-page-heading"><div><h2>${escape(view)}</h2><p>${subtitles[view]}</p></div>${view==='Lesson groups' ? button('Auto-assign','group-autoassign') : ''}${view === 'Guardians' ? '' : `<button type="button" class="d-button d-primary" data-action="add" data-testid="director-add">${view === 'Children' ? 'Add child' : view === 'Instructors' ? 'Add instructor' : 'Create group'}</button>`}</div>
-      <section class="d-section"><div class="d-toolbar"><label class="d-search">Search ${view.toLowerCase()}<input type="search" data-testid="director-search" placeholder="${view === 'Children' ? 'Child name, bib or group' : 'Search by name'}" value="${escape(query)}"></label>${view === 'Children' ? `<label>Profile status<select data-testid="director-filter"><option value="all" ${filter === 'all' ? 'selected' : ''}>All profiles</option><option value="consent" ${filter === 'consent' ? 'selected' : ''}>Missing consent forms</option><option value="incomplete" ${filter === 'incomplete' ? 'selected' : ''}>Needs attention</option><option value="ready" ${filter === 'ready' ? 'selected' : ''}>Ready</option></select></label>` : ''}<span class="d-toolbar-note">Fictional records · changes reset on reload</span></div><div data-testid="director-list">${listContent()}${pagination()}</div></section>`);
+    root.innerHTML = `<div class="d-feedback" role="status" data-testid="director-feedback" ${notice ? '' : 'hidden'}>${escape(notice)}</div>` + (view === 'Overview' ? overview() : `<div class="d-page-heading"><div>${view==='Guardians'?button('Back to Children','back-to-children'):''}<h2>${view==='Guardians'?'Manage guardians':escape(view)}</h2><p>${subtitles[view]}</p></div>${view==='Children'?`<div class="d-heading-actions">${button('Import registrations','registration-import')}${button('Manage guardians','manage-guardians')}</div>`:''}${view==='Lesson groups' ? button('Auto-assign','group-autoassign') : ''}${view === 'Guardians' ? '' : `<button type="button" class="d-button d-primary" data-action="add" data-testid="director-add">${view === 'Children' ? 'Add child' : view === 'Instructors' ? 'Add instructor' : 'Create group'}</button>`}</div>
+      <section class="d-section"><div class="d-toolbar"><label class="d-search">Search ${view.toLowerCase()}<input type="search" data-testid="director-search" placeholder="${view === 'Children' ? 'Child name, bib or group' : 'Search by name'}" value="${escape(query)}"></label>${view === 'Children' ? `<label>Profile status<select data-testid="director-filter"><option value="all" ${filter === 'all' ? 'selected' : ''}>All profiles</option><option value="consent" ${filter === 'consent' ? 'selected' : ''}>Missing consent forms</option><option value="health" ${filter === 'health' ? 'selected' : ''}>Health notes</option><option value="incomplete" ${filter === 'incomplete' ? 'selected' : ''}>Needs attention</option><option value="ready" ${filter === 'ready' ? 'selected' : ''}>Ready</option></select></label>` : ''}<span class="d-toolbar-note">Fictional records · changes reset on reload</span></div><div data-testid="director-list">${listContent()}${pagination()}</div></section>`);
     if(changedView) document.querySelector('#app-shell > main').scrollTop=0;
+  }
+
+  function showRegistrationImport() {
+    let reviewed=null,reading=0;
+    dialog.dataset.testid='registration-import-dialog';
+    dialog.setAttribute('aria-labelledby','director-dialog-title');
+    dialog.innerHTML=`<div class="d-dialog-heading"><h2 id="director-dialog-title">Import registrations</h2><button type="button" class="d-close" data-action="close" data-testid="dialog-close" aria-label="Close import">×</button></div><div class="d-dialog-body g-form"><p class="g-registration-note">Preview only. Imported records are shared across the demo and reset on reload. This does not connect to a live store.</p><p>Choose the store registration export. Review the file before adding records. Existing consent, group assignments and lesson-day activity are preserved.</p><label>Registration CSV file<input type="file" accept=".csv,text/csv" data-testid="registration-file"></label><div class="d-import-actions"><button type="button" class="d-button" data-testid="registration-sample">Review 300 sample registrations</button><button type="button" class="d-button" data-testid="registration-download">Download sample CSV</button></div><p class="d-help">The case export has one child per order. Repeated order numbers or changed identities require review. Signed consent, verified pickup adults and groups are supplied separately.</p><p role="alert" class="d-form-error" data-testid="registration-error" hidden></p><section data-testid="registration-review" aria-live="polite"><p>No file reviewed yet.</p></section></div><footer class="d-dialog-footer"><button type="button" class="d-button" data-action="close">Cancel</button><button type="button" class="d-button d-primary" data-testid="registration-apply" disabled>Import reviewed registrations</button></footer>`;
+    const review=dialog.querySelector('[data-testid="registration-review"]'),error=dialog.querySelector('[data-testid="registration-error"]'),apply=dialog.querySelector('[data-testid="registration-apply"]');
+    const showError=message=>{reviewed=null;apply.disabled=true;error.textContent=message;error.hidden=false;review.innerHTML='<p>No registrations have been imported.</p>';};
+    const preview=text=>{
+      try{
+        reviewed=parseRegistrationCsv(text);error.hidden=true;
+        const existing=reviewed.filter(row=>seed.children.some(child=>child.sourceOrder===row.orderNumber)).length;
+        const contactGaps=reviewed.filter(row=>row.contactNeedsReview).length;
+        review.innerHTML=`<h3>${reviewed.length} registrations ready for review</h3><p>${reviewed.length-existing} new · ${existing} already imported · ${contactGaps} phone numbers need review</p><p>${reviewed.filter(row=>row.program==='Saturday').length} Saturday · ${reviewed.filter(row=>row.program==='Sunday').length} Sunday</p><p>New children start with consent needed, no assigned bib and no verified pickup adults. Imported notes remain separate from confirmed medical information.</p><div class="d-import-preview">${reviewed.slice(0,5).map(row=>`<p><strong>${escape(row.child)}</strong> · ${escape(row.program)} · Level ${escape(row.level)}<span class="d-subline">Order ${escape(row.orderNumber)}</span></p>`).join('')}</div>${reviewed.length>5?'<p class="d-help">Showing the first five registrations.</p>':''}`;
+        apply.disabled=false;
+      }catch(problem){showError(problem.message);}
+    };
+    dialog.querySelector('[data-testid="registration-file"]').onchange=async event=>{
+      const request=++reading,file=event.target.files?.[0];reviewed=null;apply.disabled=true;
+      if(!file){review.innerHTML='<p>No file reviewed yet.</p>';return;}
+      if(file.size>5_000_000){showError('Choose a CSV file smaller than 5 MB.');return;}
+      try{const text=await file.text();if(request===reading&&dialog.open)preview(text);}catch{if(request===reading)showError('The file could not be read. Choose it again.');}
+    };
+    dialog.querySelector('[data-testid="registration-sample"]').onclick=()=>{reading++;dialog.querySelector('[data-testid="registration-file"]').value='';preview(registrationCsv(storeImport));};
+    dialog.querySelector('[data-testid="registration-download"]').onclick=()=>{const url=URL.createObjectURL(new Blob([registrationCsv(storeImport)],{type:'text/csv;charset=utf-8'}));const link=document.createElement('a');link.href=url;link.download='kestrel-kids-fictional-registrations.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+    apply.onclick=()=>{
+      if(!reviewed)return;
+      try{const result=applyRegistrationImport(seed,reviewed);notice=`Registration import: ${result.added} added, ${result.updated} updated, ${result.unchanged} unchanged. Consent and group assignments still need review for new children.`;onChange();notify(notice);dialog.close();render();}catch(problem){showError(problem.message);}
+    };
+    dialog.showModal();
   }
 
   function showAutoAssign() {
@@ -241,7 +280,37 @@ export function createDirector(root, seed, { onChange, onNavigate }) {
     return `<div class="d-pickup-row" data-pickup-row><div class="d-form-grid"><label>Name<input data-pickup-name data-testid="pickup-${index}-name" value="${escape(adult.name)}"></label><label>Relationship<input data-pickup-relationship data-testid="pickup-${index}-relationship" value="${escape(adult.relationship)}"></label><label>From (optional)<input type="date" data-pickup-from data-testid="pickup-${index}-from" value="${escape(adult.validFrom)}"></label><label>Until (optional)<input type="date" data-pickup-until data-testid="pickup-${index}-until" value="${escape(adult.validUntil)}"></label></div><div class="d-pickup-status"><span data-testid="pickup-${index}-status">${adult.name ? pickupStatus(adult) : 'Enter an adult to authorize pickup'}</span><button type="button" class="d-text-button" data-action="pickup-remove" data-testid="pickup-${index}-remove">Remove adult</button></div></div>`;
   }
 
+  function showProfile(kind, id) {
+    const record = {child:seed.children,guardian:seed.guardians,instructor:seed.instructors,group:seed.groups}[kind]?.find(item=>item.id===id);
+    if(!record) return;
+    returnToProfile=null;
+    const value = text => escape(text || 'Not recorded');
+    let entries;
+    if(kind==='child') entries=[
+      ['Child ID',value(record.id)],['Date of birth',value(record.birthDate)],
+      ['Other registration or consent name',value(record.alternateName)],['Guardian',value(guardian(record)?.name)],
+      ...(record.sourceOrder?[['Registration order',value(record.sourceOrder)],['Original registration notes',value(record.storeRegistration?.childNotes)],['Registration review',record.registrationNeedsReview?'Source notes or contact information need staff review':'No source warnings']]:[]),
+      ['Guardian contact',value([guardian(record)?.email,guardian(record)?.phone].filter(Boolean).join(' ? '))],
+      ['Guardian consent',record.consentStatus==='complete'?'Consent on file':'Consent needed — guardian action required'],
+      ['Ability level',value(record.abilityLevel)],['Lesson group',value(childGroup(id)?.label)],
+      ['Emergency contact 1',value([record.emergencyName,record.emergencyRelationship,record.emergencyPhone].filter(Boolean).join(' · '))],
+      ['Emergency contact 2',value([record.emergencyName2,record.emergencyRelationship2,record.emergencyPhone2].filter(Boolean).join(' · '))],
+      ['Health notes',value(record.medical)],['Medications and where they are kept',value(record.medications)],['Allergies',value(record.allergies)],
+      ['Pickup permissions',(record.pickupAdults||[]).map(adult=>value([adult.name,adult.relationship,pickupStatus(adult),adult.validFrom&&'From '+adult.validFrom,adult.validUntil&&'Until '+adult.validUntil].filter(Boolean).join(' · '))).join('<br>')||'No pickup adults recorded']
+    ];
+    else if(kind==='group') entries=[['Program day',value(record.program)],['Ability level',value(record.level)],['Instructor',value(seed.instructors.find(person=>person.id===record.instructorId)?.name)],['Meeting place',value(record.meeting)],['Children',value(members(record).map(child=>child.displayName).join(', '))]];
+    else entries=[['Email',value(record.email)],['Phone',value(record.phone)],...(kind==='guardian'?[['Linked children',value(seed.children.filter(child=>child.guardianId===id).map(child=>child.displayName).join(', '))]]:[['Qualification',value(record.qualification)],['Lesson groups',value(seed.groups.filter(group=>group.instructorId===id).map(group=>group.label).join(', '))]])];
+    dialog.dataset.testid=kind+'-profile';
+    dialog.setAttribute('aria-labelledby','director-dialog-title');
+    dialog.innerHTML=`<div class="d-dialog-heading"><h2 id="director-dialog-title">${value(record.displayName||record.name||record.label)}</h2><button type="button" class="d-close" data-action="close" data-testid="dialog-close" aria-label="Close profile">×</button></div><div class="d-dialog-body d-profile-details" data-testid="profile-details">${kind==='child'?childMeta(seed,record):''}${facts(entries)}${kind==='child'&&guardian(record)?button('View guardian details','linked-guardian',record.id):''}${kind==='guardian'?seed.children.filter(child=>child.guardianId===id).map(child=>button('View '+child.displayName,'linked-child',child.id)).join(''):''}</div><footer class="d-dialog-footer">${kind==='guardian'&&guardianFromChild?button('Back to child','back-to-child',guardianFromChild):'<span>Fictional preview data</span>'}${button('Edit profile','profile-edit',id,'d-primary')}</footer>`;
+    dialog.querySelector('[data-action="linked-guardian"]')?.setAttribute('data-testid','child-guardian-details');
+    dialog.querySelector('[data-action="back-to-child"]')?.setAttribute('data-testid','back-to-child');
+    dialog.querySelector('[data-action="profile-edit"]').onclick=()=>{dialog.close();returnToProfile={kind,id};showDialog(kind,id);};
+    if(!dialog.open) dialog.showModal();
+  }
+
   function showDialog(kind, id) {
+    if(!id) returnToProfile=null;
     const collection = { child: seed.children, guardian: seed.guardians, instructor: seed.instructors, group: seed.groups }[kind];
     const record = collection.find(item => item.id === id);
     let content;
@@ -282,6 +351,10 @@ export function createDirector(root, seed, { onChange, onNavigate }) {
       const summary=document.createElement('p');summary.className='g-registration-note';
       summary.textContent=`Program: ${programFor(record||{})} · Group: ${childGroup(id)?.label||'Unassigned'}. Consent is completed by the guardian.`;
       dialog.querySelector('.d-dialog-body').prepend(summary);
+      if(record) {
+        const identity=document.createElement('p');identity.className='d-record-id';identity.dataset.testid='child-record-id';identity.textContent='Child ID: '+record.id;
+        dialog.querySelector('.d-dialog-body').prepend(identity);
+      }
     }
     dialog.setAttribute('aria-labelledby', 'director-dialog-title');
     dialog.querySelector('form').addEventListener('submit', event => {
@@ -356,6 +429,7 @@ export function createDirector(root, seed, { onChange, onNavigate }) {
     onChange();
     notify(notice);
     render();
+    if(record) showProfile(kind,record.id);
   }
 
   root.addEventListener('input', event => {
@@ -372,15 +446,24 @@ export function createDirector(root, seed, { onChange, onNavigate }) {
     else if (action === 'parent-alert') showParentAlert(seed.children.filter(child=>child.id===id));
     else if (action === 'remind-all') showParentAlert(seed.children.filter(child=>child.consentStatus!=='complete'),true);
     else if (action === 'missing-consent') {filter='consent';onNavigate('Children');}
+    else if (action === 'health-notes') {filter='health';onNavigate('Children');}
     else if (action === 'incomplete') { filter = 'incomplete'; onNavigate('Children'); }
     else if (action === 'view-children') { filter = 'all'; onNavigate('Children'); }
     else if (action === 'view-groups') onNavigate('Lesson groups');
     else if (action === 'group-autoassign') showAutoAssign();
+    else if (action === 'registration-import') showRegistrationImport();
+    else if(action==='manage-guardians')render('Guardians');
+    else if(action==='back-to-children')render('Children');
     else if (action === 'add') showDialog({ Children: 'child', Instructors: 'instructor', 'Lesson groups': 'group' }[view]);
-    else if (action.endsWith('-open')) showDialog(action.replace('-open', ''), id);
+    else if (action.endsWith('-open')) {guardianFromChild=null;showProfile(action.replace('-open', ''), id);}
   });
   dialog.addEventListener('click', event => {
-    if (event.target.closest('[data-action="close"]')) dialog.close();
+    const linkedGuardian=event.target.closest('[data-action="linked-guardian"]');
+    if(linkedGuardian){const child=seed.children.find(child=>child.id===linkedGuardian.dataset.id);if(child?.guardianId){guardianFromChild=child.id;showProfile('guardian',child.guardianId);}return;}
+    const linkedChild=event.target.closest('[data-action="back-to-child"],[data-action="linked-child"]');
+    if(linkedChild){guardianFromChild=null;showProfile('child',linkedChild.dataset.id);return;}
+
+    if (event.target.closest('[data-action="close"]')) {dialog.close();if(returnToProfile) showProfile(returnToProfile.kind,returnToProfile.id);}
     if (event.target.closest('[data-action="pickup-add"]')) {
       const container = dialog.querySelector('[data-testid="pickup-fields"]');
       const index = container.querySelectorAll('[data-pickup-row]').length + ++serial;
@@ -392,6 +475,9 @@ export function createDirector(root, seed, { onChange, onNavigate }) {
     if(remove) {groupSelection.delete(remove.dataset.groupRemove);refreshGroupMembers();}
     const choice=event.target.closest('[data-combobox-child]');
     if(choice) addGroupChild(choice.dataset.comboboxChild);
+  });
+  dialog.addEventListener('cancel', event=>{
+    if(returnToProfile) {event.preventDefault();dialog.close();showProfile(returnToProfile.kind,returnToProfile.id);}
   });
   dialog.addEventListener('input',event=>{if(event.target.dataset.testid==='group-child-search') {candidateIndex=-1;refreshGroupMembers();}});
   dialog.addEventListener('focusin',event=>{if(event.target.dataset.testid==='group-child-search') refreshGroupMembers();});
@@ -411,5 +497,5 @@ export function createDirector(root, seed, { onChange, onNavigate }) {
     }
   });
   dialog.addEventListener('change',event=>{if(event.target.dataset.testid==='group-level') refreshGroupMembers();});
-  return { render };
+  return {render,openChild(id){showProfile('child',id);}};
 }

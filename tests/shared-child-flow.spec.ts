@@ -13,6 +13,7 @@ test('Director, Guardian, Desk and Instructor share one child and consent record
  await page.getByTestId('child-emergency-name').fill('Alyssa Chen');
  await page.getByTestId('child-emergency-phone').fill('6045550101');
  await page.getByTestId('child-save').click();
+  if(await page.getByTestId(/^(child|guardian|instructor|group)-profile$/).isVisible()) await page.getByTestId("dialog-close").click();
  await expect(page.getByTestId('child-dialog')).not.toBeVisible();
  await switchTo('guardian');
  await expect(page.getByTestId('workspace-title')).toHaveText('Hello, Alyssa Chen');

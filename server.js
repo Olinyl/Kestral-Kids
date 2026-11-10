@@ -3,6 +3,10 @@ import { readFile } from 'node:fs/promises';
 import { liveHandler, reportProblemRoute, initializeLive } from './lib/live-workflow.js';
 
 const routes = new Map([
+  ['/registration-csv.js', ['public/registration-csv.js', 'text/javascript; charset=utf-8']],
+  ['/registration-import.js', ['public/registration-import.js', 'text/javascript; charset=utf-8']],
+  ['/alerts.js', ['public/alerts.js', 'text/javascript; charset=utf-8']],
+  ['/alerts.css', ['public/alerts.css', 'text/css; charset=utf-8']],
   ['/', ['public/index.html', 'text/html; charset=utf-8']],
   ['/workspace.js', ['public/workspace.js', 'text/javascript; charset=utf-8']],
   ['/store-import.js', ['public/store-import.js', 'text/javascript; charset=utf-8']],

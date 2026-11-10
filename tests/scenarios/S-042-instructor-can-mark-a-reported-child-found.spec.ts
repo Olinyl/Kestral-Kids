@@ -1,4 +1,4 @@
-// piezas-scenario: S-042 v=1
+// piezas-scenario: S-042 v=225162245c11
 import { expect, test } from '@playwright/test';
 
 test('S-042: I can mark a reported child found from the instructor roster', async ({page}) => {

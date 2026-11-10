@@ -8,8 +8,9 @@ test('S-001: I can preview the Patrol workspace', async ({ page }) => {
   await page.getByTestId('account-menu').click();
       await page.getByTestId('account-choice-'+'patrol').click();
   await expect(page.getByTestId('workspace-title')).toHaveText('Patrol workspace');
-  await expect(page.getByTestId('workspace-nav').getByRole('button')).toHaveCount(2);
+  await expect(page.getByTestId('workspace-nav').getByRole('button')).toHaveCount(3);
   await expect(page.getByTestId('workspace-nav').getByRole('button',{name:'Active alerts',exact:true})).toBeVisible();
   await expect(page.getByTestId('workspace-nav').getByRole('button',{name:'Account',exact:true})).toBeVisible();
+  await expect(page.getByTestId('workspace-nav').getByRole('button',{name:'Alerts',exact:true})).toBeVisible();
   await expect(page.getByTestId('demo-banner')).toBeVisible();
 });

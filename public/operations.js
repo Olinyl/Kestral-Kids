@@ -13,13 +13,13 @@ const colorSelect = (id,label,selected) => `<label>${label}<select data-testid="
 const button = (id, label, primary = false) => `<button type="button" class="o-button ${primary ? 'o-primary' : ''}" data-testid="${id}">${label}</button>`;
 const status = row => row.release ? 'Released' : row.status === 'checked_in' ? 'Checked in' : 'Expected';
 
-export function createOperations(root, seed, {onChange}) {
+export function createOperations(root, seed, {onChange,alerts}) {
   let role = 'desk', tab = 'Roster', query = '', groupFilter = '', statusFilter = 'all', programFilter = 'all', page = 0, opener;
   const pageSize = 25;
   const number = value => value.toLocaleString('en-CA');
   const notifications=[],deskNotifications=[];
   const currentNotifications=()=>role==='desk'?deskNotifications:notifications;
-  const unreadCount=items=>items.filter(item=>!item.read).length;
+  const unreadCount=items=>alerts?alerts.store.unread({id:role,role,instructorId:role==='instructor'?seed.instructors[0]?.id:undefined}):items.filter(item=>!item.read).length;
   const updateAlertTab=()=>{
     const button=document.querySelector(`#workspace-nav [data-testid="${role==='desk'?'desk':'instructor'}-nav-alerts"]`);
     if(!button)return;
@@ -39,7 +39,7 @@ export function createOperations(root, seed, {onChange}) {
     panel.innerHTML=`<header class="i-notification-heading"><div><h2>Alerts</h2><small>${items.length?`${items.length} update${items.length===1?'':'s'} ${isDesk?'for the school':'for your group'}`:`Updates for ${isDesk?'the school':'your group'}`}</small></div><span class="i-alerts-count">${items.length}</span></header>${items.length?`<div class="i-notification-list" aria-live="polite">${items.map(item=>`<article class="i-notification-item"><span class="i-notification-indicator" aria-hidden="true"></span><span class="i-notification-copy">${e(item.text)}<small>${e(item.time)}</small></span></article>`).join('')}</div>`:`<div class="i-notification-empty"><strong>You’re all caught up</strong><small>No new school alerts.</small></div>`}<footer class="i-notification-footer"><button type="button" class="o-button" data-clear-operational-notifications ${items.length?'':'disabled'}>Clear alerts</button></footer>`;
     panel.querySelector('[data-clear-operational-notifications]').onclick=()=>{items.length=0;renderNotifications();};
   }
-  const notify=(text,audience='current')=>{const targetRole=audience==='current'?role:audience;const target=targetRole==='desk'?deskNotifications:notifications;target.unshift({text,time:new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}),read:document.body.classList.contains(targetRole==='desk'?'desk-view':'instructor-view')&&role===targetRole&&tab==='Alerts'});renderNotifications();};
+  const notify=(text,audience='current')=>{const targetRole=audience==='current'?role:audience;if(alerts&&text.startsWith('Missing-child report')&&targetRole==='instructor')alerts.store.activity(text,{role:'instructor',instructorId:seed.instructors[0]?.id});const target=targetRole==='desk'?deskNotifications:notifications;target.unshift({text,time:new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}),read:document.body.classList.contains(targetRole==='desk'?'desk-view':'instructor-view')&&role===targetRole&&tab==='Alerts'});renderNotifications();};
   const guardianSnapshot=()=>JSON.stringify([seed.children.map(child=>[child.id,child.medical,child.medications,child.allergies,child.emergencyName,child.emergencyPhone,child.emergencyRelationship,child.emergencyName2,child.emergencyPhone2,child.emergencyRelationship2,child.pickupAdults,child.consentStatus,child.consentUpdatedAt]),seed.guardians.map(person=>[person.id,person.name,person.phone,person.email,person.relationship])]);
   let priorGuardianSnapshot=guardianSnapshot();
   const knownAlertIds=new Set((seed.patrolAlerts||[]).map(alert=>String(alert.id)));
@@ -84,7 +84,7 @@ export function createOperations(root, seed, {onChange}) {
   const rows = () => {
     const children = new Map(seed.children.map(child => [child.id,child]));
     const groups = new Map(seed.groups.map(group => [group.id,group]));
-    return seed.attendance.map(att => ({...children.get(att.childId),...att,group:groups.get(att.groupId)}));
+    return seed.attendance.filter(att=>!att.lessonDate||att.lessonDate===seed.lessonDate).map(att => ({...children.get(att.childId),...att,group:groups.get(att.groupId)}));
   };
   const metadata = row => childMeta(seed,{...row,id:row.childId});
   const instructorMetadata = row => {
@@ -355,5 +355,5 @@ export function createOperations(root, seed, {onChange}) {
     }
     list();
   }
-  return {render, clear(){root.replaceChildren();query='';groupFilter='';statusFilter='all';programFilter='all';page=0;close();}};
+  return {render,openChild(id){const row=own().find(child=>child.childId===id);if(row)detail(row);},clear(){root.replaceChildren();query='';groupFilter='';statusFilter='all';programFilter='all';page=0;close();}};
 }

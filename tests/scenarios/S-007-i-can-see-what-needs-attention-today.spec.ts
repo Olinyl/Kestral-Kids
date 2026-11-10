@@ -10,5 +10,6 @@ test('S-007: I can see what needs attention today', async ({ page }) => {
   await expect(page.getByTestId('director-child-row')).toHaveCount(1);
   await expect(page.getByTestId('director-child-row')).toContainText('Noah Singh');
   await page.getByTestId('child-open-demo-child-02').click();
+  await page.getByTestId(/^profile-edit-/).click();
   await expect(page.getByTestId('child-dialog')).toContainText('Consent needed');
 });

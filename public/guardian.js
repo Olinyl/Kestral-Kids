@@ -1,4 +1,5 @@
-import {childMeta,lessonDetails,profileMeta} from './profile-ui.js';
+import {lessonDetails,profileMeta} from './profile-ui.js';
+const childMeta=(seed,child)=>{const {bib,...details}=lessonDetails(seed,child);return profileMeta(details);};
 export function createGuardian(root, seed, {onChange = () => {}} = {}) {
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   let selected = null;
