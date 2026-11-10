@@ -14,6 +14,7 @@ const routes = new Map([
   ['/report-problem-widget.js', ['node_modules/@piezas/sdk/dist/report-problem/widget.js', 'text/javascript; charset=utf-8']],
   ['/guardian.js', ['public/guardian.js', 'text/javascript; charset=utf-8']],
   ['/profile-ui.js', ['public/profile-ui.js', 'text/javascript; charset=utf-8']],
+  ['/logo-kestrelkids.png', ['public/logo-kestrelkids.png', 'image/png']],
   ['/styles.css', ['public/styles.css', 'text/css; charset=utf-8']],
   ['/director.js', ['public/director.js', 'text/javascript; charset=utf-8']],
   ['/grouping.js', ['public/grouping.js', 'text/javascript; charset=utf-8']],
