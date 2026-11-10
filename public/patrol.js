@@ -37,10 +37,8 @@ export function createPatrol(root, seed, { onSignOut }) {
           <div class="p-alert-main">
           <div class="p-alert-head">
             <span class="p-icon p-alert-icon">${icons.alert}</span>
-            <div class="p-child"><span class="p-case">${escapeHtml(alert.caseNumber)}</span><h3>${escapeHtml(alert.childName)}</h3><p class="p-alias">Consent form: ${escapeHtml(alert.alternateName)}</p></div>
-            <span class="p-status">${escapeHtml(alert.status)}</span>
-            <div class="p-child-meta"><span>Child ID <strong>${escapeHtml(alert.childId)}</strong></span><span>Age ${escapeHtml(alert.age)}</span>${profileMeta({group:alert.group,...(alert.program?{program:alert.program}:{})})}<span>Desk alert received ${escapeHtml(alert.receivedTime)}</span></div>
-            <div class="p-radio-channel" data-testid="patrol-radio-channel"><span>Radio</span><strong>${escapeHtml(alert.radioChannel || 'Not assigned')}</strong></div>
+            <div class="p-child"><div class="p-child-heading-row"><span class="p-case">${escapeHtml(alert.caseNumber)}</span><span class="p-status">${escapeHtml(alert.status)}</span>${profileMeta({group:alert.group})}</div><h3>${escapeHtml(alert.childName)}</h3><div class="p-child-quick-meta"><span>Age ${escapeHtml(alert.age)}</span><span>Desk alert received ${escapeHtml(alert.receivedTime)}</span></div></div>
+            ${alert.program ? `<div class="p-child-meta">${profileMeta({program:alert.program})}</div>` : ''}
           </div>
           <div class="p-facts">
             ${fact(icons.clock, 'Last seen time', alert.lastSeenTime)}
@@ -48,7 +46,6 @@ export function createPatrol(root, seed, { onSignOut }) {
             ${fact(icons.people, 'Clothing', alert.clothing)}
             ${fact(icons.ski, 'Equipment', alert.equipment)}
           </div>
-          ${alert.medical ? `<section class="p-medical"><h3>Medical information</h3><p>${escapeHtml(alert.medical)}</p></section>` : ''}
           <section class="p-search-context"><h3>Search details</h3>
             <p><strong>Visibility:</strong> ${escapeHtml(alert.visibility || 'Not recorded')}</p>
             <p><strong>Injuries:</strong> ${escapeHtml(alert.injuries || 'Not recorded')}</p>
@@ -61,6 +58,7 @@ export function createPatrol(root, seed, { onSignOut }) {
             <p><strong>Location:</strong> ${escapeHtml(alert.liftScan.location)}</p>
             ` : `<p class="p-unavailable">No scan available. ${escapeHtml(alert.liftScanUnavailableReason || 'Pass details have not been recorded.')}</p>`}
           </section>
+          ${alert.medical ? `<section class="p-medical"><h3>Medical information</h3><p>${escapeHtml(alert.medical)}</p></section>` : ''}
           ${alert.emergencyContacts?.length ? `<section class="p-contacts"><h3>Emergency contacts for police handoff</h3>
             ${alert.emergencyContacts.map(contact => `<div class="p-contact"><div><strong>${escapeHtml(contact.name)}</strong><span>${escapeHtml(contact.relationship)}</span></div><div class="p-contact-phone"><a href="tel:${escapeHtml(contact.phone)}">${escapeHtml(contact.phone)}</a><span>${escapeHtml(contact.phoneStatus)}</span></div></div>`).join('')}
           </section>` : ''}
