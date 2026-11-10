@@ -3,6 +3,7 @@
 .o-heading p,.o-note,.o-record,.o-footer {color:var(--muted);}
 .o-heading p {margin:5px 0 0;}
 .o-search {display:grid;gap:6px;max-width:440px;margin-bottom:22px;font-weight:600;font-size:14px;}
+.o-desk-summary { margin:-12px 0 10px; color:var(--muted); font-size:13px; }
 .o-list {border:1px solid var(--line);border-radius:8px;background:white;overflow:hidden;}
 .o-roster-row {display:grid;grid-template-columns:minmax(0,1fr) 110px 150px 130px;align-items:center;gap:24px;padding:22px;}
 .o-roster-row + .o-roster-row {border-top:1px solid var(--line);}
@@ -16,6 +17,12 @@
 .o-danger:hover,.o-danger:active {background:#991b1b;color:white;}
 .o-alert-sent {display:inline-block;color:#b91f1f;background:#fff0ef;border:1px solid #efb6b0;border-left:4px solid #b91f1f;border-radius:6px;padding:10px 14px;font-weight:750;}
 .o-row-actions {display:grid;gap:8px;}
+.o-detail-actions {display:flex;justify-content:flex-end;padding-top:14px;margin-top:16px;border-top:1px solid var(--line);}
+.o-report-missing,.desk-view .o-report-missing {width:100%;background:#b91f1f;border-color:#b91f1f;color:#fff;}
+.o-report-missing:hover,.desk-view .o-report-missing:hover {background:#991b1b;border-color:#991b1b;}
+.o-time-stepper {display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:10px;}
+.o-time-stepper .o-button {min-height:46px;}
+.o-form-error {color:#963e2c;font-size:14px;}
 .o-button:active {background:#e1ebe6;}
 .o-primary:active {background:#153e2e;}
 .o-button:disabled {opacity:.55;cursor:not-allowed;}
@@ -137,7 +144,7 @@ body.desk-view,body.instructor-view {color:#173f39;background:#f5f8f7;--line:#d8
 @media(max-width:650px) {
  .desk-view nav button {font-size:12px;padding-inline:2px;}
  .o-pagination {align-items:start;flex-wrap:wrap;}
- .o-filters {display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+ .o-filters {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
  .o-filters select {min-width:0;font-size:16px;}
  .instructor-view .wrap {width:calc(100% - 36px);}
  .instructor-view .o-group-card {padding:12px;}
@@ -319,4 +326,25 @@ body .navigation nav button[aria-current] {background:#e3f0e6;color:#205d46;}
  #live-workspace .o-group-card .o-roster-row + .o-roster-row {gap:8px;padding:10px;}
  #live-workspace .o-instructor-child {grid-template-columns:minmax(0,1fr) auto;gap:6px;}
  #live-workspace .o-instructor-view-child {min-width:84px;padding-inline:9px;}
+}
+
+/* Keep the desk's safety action visibly urgent in every button state. */
+#app-shell .o-detail-actions .o-report-missing,
+body .o-dialog .o-detail-actions .o-report-missing { background:#b91f1f; border-color:#b91f1f; color:#fff; }
+#app-shell .o-detail-actions .o-report-missing:hover,
+body .o-dialog .o-detail-actions .o-report-missing:hover { background:#991b1b; border-color:#991b1b; color:#fff; }
+
+/* Use the Guardian consent modal's fixed header/footer and scrollable form area. */
+.o-dialog.o-report-dialog { display:grid; grid-template-rows:auto minmax(0,1fr) auto; overflow:hidden; }
+.o-report-dialog .o-dialog-body { min-height:0; overflow-y:auto; overscroll-behavior:contain; }
+.o-report-dialog .o-dialog-body > .o-warning { margin:0 0 14px; }
+.o-report-dialog .o-dialog-body form { gap:14px; margin-top:0; }
+.o-report-dialog .o-dialog-body form > p { margin:0; }
+.o-report-footer { display:flex; justify-content:flex-end; gap:10px; padding:16px 22px; border-top:1px solid var(--line); background:#fff; }
+.o-report-footer .o-button { min-width:100px; }
+@media(max-width:650px) {
+ .o-dialog.o-report-dialog { width:min(760px,calc(100% - 32px)); max-width:760px; height:auto; max-height:calc(100dvh - 32px); margin:auto; border:1px solid #aebfba; border-radius:8px; }
+ .o-report-dialog > header { position:relative; }
+ .o-report-dialog .o-dialog-body { padding:18px; }
+ .o-report-footer { padding:14px 18px; }
 }

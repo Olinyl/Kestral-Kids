@@ -11,6 +11,7 @@
     {
       "id": "spruce-3",
       "label": "Spruce 3",
+      "program": "Kestrel Kids, Saturday",
       "instructorId": "demo-instructor-01",
       "level": "Level 1",
       "meeting": "Green meeting flag"
@@ -18,6 +19,7 @@
     {
       "id": "cedar-1",
       "label": "Cedar 1",
+      "program": "Kestrel Kids, Sunday",
       "instructorId": "demo-instructor-02",
       "level": "Level 3",
       "meeting": "Cedar meeting flag"

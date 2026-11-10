@@ -5,7 +5,7 @@ import { createPatrol } from './patrol.js';
 
 const workspaces = {
   desk: {
-    label: 'School desk', tabs: ['Roster', 'Incidents', 'Account'],
+    label: 'School desk', tabs: ['Roster', 'Account'],
   },
   guardian: { label: 'Guardian', tabs: ['My children', 'Alerts', 'Account'] },
   director: { label: 'Director', tabs: ['Overview', 'Children', 'Guardians', 'Instructors', 'Lesson groups', 'Account'] },
@@ -137,7 +137,6 @@ function renderRoster() {
   }));
   const emptyMessages = {
     'Active alerts': 'No active alerts for this lesson day.',
-    Incidents: 'No incidents recorded for this lesson day.',
     Pickup: 'No pickups recorded for this lesson day.',
     'Incomplete profiles': 'All profiles are complete.',
   };
@@ -162,6 +161,8 @@ function renderWorkspace() {
   const workspace = workspaces[role];
   nav.style.setProperty('--tab-count',workspace.tabs.length);
   title.textContent = role === 'guardian' ? `Hello, ${guardian?.accountHolder ?? ''}` : workspace.label + ' workspace';
+  title.hidden=role==='desk';
+  document.querySelector('#lesson-date').hidden=role==='desk';
   sectionTitle.textContent = tab === 'Today' ? 'Today’s roster' : tab;
   searchLabel.hidden = true;
   nav.replaceChildren(...workspace.tabs.map(label => {
