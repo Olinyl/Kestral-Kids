@@ -25,6 +25,7 @@
       <label for="view-as">View as
         <select id="view-as" data-testid="view-as" disabled></select>
       </label>
+      <button class="live-sign-in" type="button" data-testid="live-sign-in">Staff sign in</button>
     </div>
   </section>
   <div class="navigation">
@@ -38,6 +39,7 @@
       <div id="operations" hidden data-testid="operations"></div>
       <div id="patrol" hidden data-testid="patrol"></div>
       <div id="guardian" hidden data-testid="guardian"></div>
+      <section id="live-workspace" hidden aria-live="polite"></section>
       <section id="starter-panel" class="panel" aria-labelledby="section-title">
         <div class="panel-head">
           <h2 id="section-title"></h2>
@@ -57,5 +59,10 @@
       <span class="status"></span>
     </li>
   </template>
+  <dialog id="staff-dialog" class="o-dialog" aria-labelledby="staff-dialog-title">
+    <header><div><p>Secure staff access</p><h2 id="staff-dialog-title">Staff sign in</h2></div><button type="button" class="o-button" data-testid="staff-close">Close</button></header>
+    <form id="staff-sign-in" class="o-dialog-body"><label>Email<input name="email" type="email" autocomplete="username" required></label><label>Password<input name="password" type="password" autocomplete="current-password" required></label><button class="o-button o-primary" type="submit" data-testid="staff-submit">Sign in</button><p class="o-note" role="status" data-testid="staff-message">Use an account created for this app by the administrator.</p></form>
+  </dialog>
+  <script type="module" src="/live.js"></script>
 </body>
 </html>

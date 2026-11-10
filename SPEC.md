@@ -37,6 +37,9 @@ All records are fictional and come from demo-fixture.json. There is no database 
 
 ## Role preview expansion
 
+- R-023: Staff sign in with Piezas Users. Instructors see their assigned live group and save missing-child reports to Piezas for Desk and Patrol. Instructors call by physical radio; the app does not transmit radio. Desk and Patrol can review active reports; Patrol can mark a child found.
+- R-024: The server verifies the staff session, active role, child attendance and instructor assignment before accepting a report. Client-supplied identity or group is never trusted.
+
 - R-011: The instructor phone preview shows only Alex's assigned group, with bibs, ability level, meeting place, current clothing and relevant medical alerts. Large controls open child details without showing family contact lists.
 - R-012: An instructor can prepare a missing-child radio checklist with last seen time/place, clothing, equipment and injuries. Preparing it never claims to send a report. Desk staff can separately log a received radio report.
 - R-013: Desk staff can search by name, alternate name, bib or group, inspect both emergency contacts and medical information, and record current clothing at check-in. Missing guardian consent blocks check-in, with no staff override. (Owner decision, 2026-11-07.)
@@ -200,6 +203,18 @@ When I review the active alerts issued by the school desk.
 Then Owen Parr's registration name and Owen Okafor-Parr consent name appear together with his stable ID, age, Group 14 Level 3, last-seen time and place, asthma alert, uncertain clothing, unknown equipment and injuries, unavailable lift scan, emergency contacts and police escalation guidance. Request lift scan and Call police explain that the demo cannot contact external services, Copy details copies the report locally, police lead family communication, and the demo label remains visible.
 
 ## Architecture and build order
+
+### S-029: My live missing-child report reaches Desk and Patrol
+covers: R-023
+Given I am a signed-in instructor with an active assigned group and child.
+When I save the child's last-seen time, place, clothing, equipment and injuries.
+Then the report is stored in Piezas, Desk and Patrol can see it after refresh, and I am told to call them by physical radio because no radio message was sent.
+
+### S-030: I cannot report a child outside my assigned group
+covers: R-024
+Given I am signed in as an instructor assigned to one group.
+When I submit a report for a child outside my assigned attendance roster.
+Then the server rejects it and no active report is created.
 
 
 Use the existing Node.js development server and plain JavaScript UI. npm run build produces both build/runtime for future server hosting and build/preview for this static milestone. Only the built public files are uploaded for the preview; no key, server source, private settings or dependencies are uploaded.

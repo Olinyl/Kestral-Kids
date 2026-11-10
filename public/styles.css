@@ -132,3 +132,4 @@ h2 { margin: 0; font-size: 1.1rem; }
   .roster li { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 8px; }
   .status { grid-column: 2; }
 }
+.live-sign-in{border:1px solid #d7e2db;background:#fff;border-radius:999px;color:#315b48;padding:.55rem .85rem;font:inherit;font-size:.875rem;font-weight:700;cursor:pointer;white-space:nowrap}

@@ -5,16 +5,16 @@
   "appName": "Kestrel-Kids",
   "apiBaseUrl": "https://api.piezas.ai",
   "contractVersion": "15",
-  "deploymentMode": "static",
+  "deploymentMode": "server-runtime",
   "deploy": {
     "appId": "5f6d96c7-a11c-489f-a1f8-bcc5734401b7",
-    "requiredEnv": [],
+    "requiredEnv": ["PIEZAS_API_URL"],
     "optionalEnv": ["HOST", "PIEZAS_HOOK_STATE_DIR", "KESTREL_BROWSER"],
-    "dir": "build/preview"
+    "dir": "build/runtime"
   },
   "notes": [
-    "Milestone 0: static fictional-data preview; no public sessions or business API calls.",
-    "Backend milestone: restore server-runtime and build/runtime before adding Piezas service calls.",
+    "Production app uses Piezas Users for staff sessions and Piezas Entity Records for shared roster and incident data.",
+    "PIEZAS_API_KEY is provisioned server-side by Piezas hosting.",
     "App identity verified from the owner's downloaded key through SDK whoami."
   ],
   "contractFetchedAt": "2026-11-07T22:39:30.346Z",

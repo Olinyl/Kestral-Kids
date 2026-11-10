@@ -1,6 +1,6 @@
 # Kestrel Kids Safety Desk
 
-This is the shared starter for the hackathon. It includes the director workspace, a demo role selector, lesson-day navigation, and a small fictional roster. See [START-HERE.md](START-HERE.md) for team ownership and [SPEC.md](SPEC.md) for the current workflows.
+This app keeps the existing fictional preview and adds a live, authenticated staff workflow. See [START-HERE.md](START-HERE.md) for team ownership and [SPEC.md](SPEC.md) for the current workflows.
 
 Install Node.js 22 or later. Clone https://github.com/Olinyl/Kestral-Kids, then run:
 
@@ -10,11 +10,11 @@ npx playwright install chromium
 npm run dev
 ```
 
-Open http://127.0.0.1:3000. The preview uses fictional records and needs no credentials or Piezas account to run locally.
+Open http://127.0.0.1:3000. The fictional preview works without credentials. Staff sign-in and shared reports use the Piezas app and need a server-side `PIEZAS_API_KEY` plus live staff records.
 
-- `npm run build` creates the public mock in `build/preview` and preserves the standalone Node server in `build/runtime` for the later backend milestone.
+- `npm run build` creates the static preview in `build/preview` and the server app in `build/runtime`.
 - To run the acceptance tests, install development dependencies with `npm install`, install the browser with `npx playwright install chromium`, and run `npm test`.
-- The demo role selector changes the preview. Real sign-in and access controls belong in the Piezas integration milestone.
+- The demo role selector changes fictional preview data. **Staff sign in** opens the live role view; production roles are determined by Piezas, never by the preview selector.
 
 GitHub tracks source. Keep generated builds and private environment files out of commits.
 
@@ -26,7 +26,15 @@ GitHub tracks source. Keep generated builds and private environment files out of
 - Team workflow and ownership: [START-HERE.md](START-HERE.md).
 - Current milestone and checks: [SPEC.md](SPEC.md). Deferred features: [ROADMAP.md](ROADMAP.md).
 
-Piezas hosts the shared preview. It does not automatically sync this GitHub repository; a maintainer publishes a verified local build. The current preview is public and contains only fictional data. Real accounts, saved edits and ski-school workflows are not connected yet.
+Piezas hosts the app. It does not automatically sync this GitHub repository; a maintainer publishes a verified local build. The demo still uses fictional data. Live staff sessions, rosters and missing-child reports use Piezas services.
+
+## Live staff setup
+
+The app defines its Piezas record types at server startup. Create staff accounts with the Piezas Users service, then add an `app_member_profile` record for each staff account. Set `userId` to the Piezas user ID, `email`, `displayName`, `role` (`instructor`, `desk`, or `patrol`), and `active: true`.
+
+Add live `instructor_group` records with `label`, `level`, `meeting`, and `instructorUserId`. Add `child_profile` records with `stableId`, `displayName`, optional `alternateName`, `birthDate`, and `medical`. Link children to groups for the lesson day using `attendance` records with `childRecordId` (child record ID), `groupRecordId` (group record ID), `bib`, `clothing`, and `status`. The instructor sees only records assigned to their Piezas user ID. Do not copy the fictional fixture into the live app.
+
+An instructor report becomes a live `missing_child_report` record visible to Desk and Patrol. The instructor must call them on the physical radio; this app has no radio transmission integration. Patrol can mark a report found. The live workflow does not cache personal records for offline use.
 
 Run browser tests with `npm test`. Run the Piezas checks with `npx piezas doctor` and `npm run check`. The check script uses the published CLI with a Windows-compatible runner command. The original Node starter tests are retained under tests/scenarios/starter.test.js. Browser binaries installed in `node_modules/.cache/ms-playwright` are detected by the Playwright configuration; the normal system browser cache is also supported.
 

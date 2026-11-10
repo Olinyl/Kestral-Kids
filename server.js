@@ -1,9 +1,12 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
+import { liveHandler, reportProblemRoute, initializeLive } from './lib/live-workflow.js';
 
 const routes = new Map([
   ['/', ['public/index.html', 'text/html; charset=utf-8']],
   ['/workspace.js', ['public/workspace.js', 'text/javascript; charset=utf-8']],
+  ['/live.js', ['public/live.js', 'text/javascript; charset=utf-8']],
+  ['/report-problem-widget.js', ['node_modules/@piezas/sdk/dist/report-problem/widget.js', 'text/javascript; charset=utf-8']],
   ['/guardian.js', ['public/guardian.js', 'text/javascript; charset=utf-8']],
   ['/styles.css', ['public/styles.css', 'text/css; charset=utf-8']],
   ['/director.js', ['public/director.js', 'text/javascript; charset=utf-8']],
@@ -18,6 +21,27 @@ const routes = new Map([
 
 const server = createServer(async (request, response) => {
   const pathname = request.url.split('?')[0];
+  if (pathname.startsWith('/api/')) {
+    try {
+      const forwardedProto=String(request.headers['x-forwarded-proto']||'http').split(',')[0].trim();
+      const webRequest = new Request(new URL(request.url, `${forwardedProto}://${request.headers.host || 'localhost'}`), {
+        method: request.method,
+        headers: request.headers,
+        body: ['GET','HEAD'].includes(request.method) ? undefined : await new Promise((resolve,reject) => {
+          const chunks=[]; request.on('data',chunk=>chunks.push(chunk)); request.on('end',()=>resolve(Buffer.concat(chunks))); request.on('error',reject);
+        }),
+      });
+      let result = await liveHandler(webRequest);
+      if (!result && pathname === '/api/piezas/report') {
+        const handlers=reportProblemRoute();
+        result=request.method==='GET'?await handlers.GET(webRequest):await handlers.POST(webRequest);
+      }
+      if (!result) { response.writeHead(404).end(); return; }
+      response.writeHead(result.status,Object.fromEntries(result.headers));
+      response.end(Buffer.from(await result.arrayBuffer()));
+    } catch (error) { console.error(error.message); response.writeHead(500).end('The live workflow could not complete.'); }
+    return;
+  }
   const local = ['127.0.0.1','::1','::ffff:127.0.0.1'].includes(request.socket.remoteAddress);
   const prototypeRoutes = new Map([
     ['/prototype', ['public/index.html', 'text/html; charset=utf-8']],
@@ -42,4 +66,5 @@ const server = createServer(async (request, response) => {
 
 server.listen(Number(process.env.PORT ?? 3000), process.env.HOST ?? (process.env.PORT ? '0.0.0.0' : '127.0.0.1'), () => {
   console.log('Kestrel Kids ready on port ' + server.address().port);
+  if (process.env.PIEZAS_API_KEY) initializeLive().catch(error => console.error('Piezas startup:',error.message));
 });
