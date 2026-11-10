@@ -45,6 +45,8 @@ function contactRelationship(value) {
   return `<span class="p-contact-role">${escapeHtml(role)}</span>${detail.length ? `<span class="p-contact-detail">${escapeHtml(detail.join(' · '))}</span>` : ''}`;
 }
 
+const hasKnownInjuries = value => Boolean(value && !/^unknown$/i.test(String(value).trim()));
+
 export function createPatrol(root, seed, { onSignOut }) {
   const localSearchLogs = new Map();
   function render() {
@@ -56,7 +58,7 @@ export function createPatrol(root, seed, { onSignOut }) {
           <div class="p-alert-main">
           <div class="p-alert-head">
             <span class="p-icon p-alert-icon">${icons.alert}</span>
-            <div class="p-child"><div class="p-child-heading-row"><span class="p-case">${escapeHtml(alert.caseNumber)}</span><span class="p-status${alert.status === 'Found' ? ' p-status-found' : ''}">${escapeHtml(alert.status)}</span>${patrolGroupMeta(alert.group, patrolBib(alert, seed))}</div><h3>${escapeHtml(alert.childName)}</h3><div class="p-child-quick-meta"><span>Age ${escapeHtml(alert.age)}</span><span>Desk alert received ${escapeHtml(alert.receivedTime)}</span></div></div>
+            <div class="p-child"><div class="p-child-heading-row"><span class="p-case">${escapeHtml(alert.caseNumber)}</span><span class="p-status${alert.status === 'Found' ? ' p-status-found' : ''}">${escapeHtml(alert.status)}</span>${patrolGroupMeta(alert.group, patrolBib(alert, seed))}</div><h3>${escapeHtml(alert.childName)}</h3><div class="p-child-quick-meta"><span>Age ${escapeHtml(alert.age)}</span><span>Desk alert received ${escapeHtml(alert.receivedTime)}</span>${alert.reportedStaff ? `<span>Reported staff: ${escapeHtml(alert.reportedStaff)}</span>` : ''}</div></div>
             ${alert.program ? `<div class="p-child-meta">${profileMeta({program:alert.program})}</div>` : ''}
           </div>
           <div class="p-left-column">
@@ -66,8 +68,8 @@ export function createPatrol(root, seed, { onSignOut }) {
             ${fact(icons.people, 'Clothing', alert.clothing)}
             ${fact(icons.ski, 'Equipment', alert.equipment)}
           </div>
-          <section class="p-detail-panel" style="--p-detail-columns:${alert.medical || alert.injuries ? 2 : 1}" aria-label="Medical and lift scan details">
-            ${alert.medical || alert.injuries ? `<div class="p-detail-item p-medical-fact"><h3>Medical information / injuries</h3>${alert.medical ? `<p>${escapeHtml(alert.medical)}</p>` : ''}${alert.injuries ? `<p class="p-injury-detail"><strong>Injuries:</strong> ${escapeHtml(alert.injuries)}</p>` : ''}${alert.consentStatus || alert.guardianUpdateDate ? `<p class="p-guardian-record"><strong>Guardian record:</strong> ${escapeHtml(alert.consentStatus || 'Status not recorded')} · Updated ${escapeHtml(alert.guardianUpdateDate || 'date not recorded')}</p>` : ''}</div>` : ''}
+          <section class="p-detail-panel" style="--p-detail-columns:${(alert.reportedViaForm !== true && alert.reportedViaDeskForm !== true && alert.medical) || hasKnownInjuries(alert.injuries) ? 2 : 1}" aria-label="Medical and lift scan details">
+            ${(alert.reportedViaForm !== true && alert.reportedViaDeskForm !== true && alert.medical) || hasKnownInjuries(alert.injuries) ? `<div class="p-detail-item p-medical-fact"><h3>Medical information / injuries</h3>${alert.reportedViaForm !== true && alert.reportedViaDeskForm !== true && alert.medical ? `<p>${escapeHtml(alert.medical)}</p>` : ''}${hasKnownInjuries(alert.injuries) ? `<p class="p-injury-detail">${escapeHtml(alert.injuries)}</p>` : ''}</div>` : ''}
             <div class="p-detail-item p-scan-fact" data-testid="patrol-lift-scan"><h3>Latest lift ticket scan</h3><p data-testid="patrol-lift-scan-details" aria-live="polite">${escapeHtml(alert.liftScan ? `${alert.liftScan.pass} · ${alert.liftScan.time}` : 'Request lift scan if needed.')}</p></div>
           </section>
           </div>

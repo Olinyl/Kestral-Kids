@@ -60,7 +60,7 @@ export function createOperations(root, seed, {onChange}) {
       id: existing?.id || `demo-alert-${Date.now()}`, caseNumber, active:true, childId, bib:row.bib || existing?.bib || '',
       childName:row.displayName, alternateName:row.alternateName || row.displayName, age,
       group:`${row.group?.label || 'Group not recorded'} · ${row.group?.level || 'Level not recorded'}`,
-      radioChannel:'Channel 4', status:'Searching', source, receivedTime:clock,
+      radioChannel:'Channel 4', status:'Searching', source, receivedTime:clock, reportedStaff:source === 'School desk' ? report.staff || '' : '', reportedViaDeskForm:source === 'School desk', reportedViaForm:['School desk','Instructor'].includes(source),
       lastSeenTime:report.time || 'Not provided', lastSeenPlace:report.place || 'Not provided',
       visibility:'Not recorded', clothing:report.clothing || row.clothing || 'Not recorded',
       clothingConfidence:report.clothing ? `${source} report · unverified` : 'Not confirmed',
