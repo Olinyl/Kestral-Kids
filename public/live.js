@@ -23,6 +23,20 @@ queueReportProblemPosition();
 window.addEventListener('resize',queueReportProblemPosition,{passive:true});
 window.addEventListener('orientationchange',queueReportProblemPosition,{passive:true});
 window.visualViewport?.addEventListener('resize',queueReportProblemPosition,{passive:true});
+function styleReportProblemField() {
+  const root=document.querySelector('#piezas-report-problem')?.shadowRoot;
+  if(!root||root.querySelector('#report-problem-field-theme')) return Boolean(root);
+  const style=document.createElement('style');
+  style.id='report-problem-field-theme';
+  style.textContent='.panel{border:1px solid #1f2937;border-top-width:3px}.panel textarea,.panel .who input{border-color:#1f2937;background:#f9fafb}.panel textarea:focus-visible,.panel .who input:focus-visible{border-color:#111827;box-shadow:0 0 0 3px rgb(31 41 55 / 18%)}';
+  root.append(style);
+  return true;
+}
+const reportProblemObserver=new MutationObserver(()=>{
+  if(styleReportProblemField()){queueReportProblemPosition();reportProblemObserver.disconnect();}
+});
+reportProblemObserver.observe(document.documentElement,{childList:true,subtree:true});
+styleReportProblemField();
 window.addEventListener('kestrel:account-view',queueReportProblemPosition);
 new MutationObserver(records=>{
   if(records.some(record=>[...record.addedNodes].some(node=>node.id==='piezas-report-problem'))) queueReportProblemPosition();
@@ -33,8 +47,13 @@ const message=login.querySelector('[data-testid="staff-message"]');
 const workspace=document.querySelector('#live-workspace');
 let currentUser=null;
 const reportDialog=document.querySelector('#live-report-dialog');
-let reportClock;
+const childDialog=document.createElement('dialog');
+childDialog.className='o-dialog';
+childDialog.dataset.testid='live-child-dialog';
+childDialog.setAttribute('aria-labelledby','live-child-dialog-title');
+document.body.append(childDialog);
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const localTimeInput=()=>{const now=new Date();return `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;};
 async function api(path,body) {
   const response=await fetch(path,{method:body?'POST':'GET',headers:body?{'content-type':'application/json'}:{},body:body?JSON.stringify(body):undefined,credentials:'same-origin'});
   const data=await response.json(); if(!response.ok) throw new Error(data.error||'Request failed.'); return data;
@@ -42,41 +61,72 @@ async function api(path,body) {
 function showError(error){message.textContent=error.message||'The request could not be completed.';}
 function render(data) {
   currentUser=data.user;
+  const instructorGroup=data.groups?.[0];
   document.querySelector('#live-sign-in').textContent=`${currentUser.displayName} · Sign out`;
   document.querySelector('#view-as').disabled=true;
   document.querySelector('#demo-banner').querySelector('strong').textContent='Live staff workspace';
   document.querySelector('#starter-panel').hidden=true;
   for(const id of ['director','operations','patrol','guardian']) document.querySelector('#'+id).hidden=true;
   workspace.hidden=false;
-  workspace.innerHTML=`<div class="o-heading"><div><h2>${escape(currentUser.role==='instructor'?'My group':currentUser.role==='patrol'?'Active alerts':'Radio reports')}</h2><p>${escape(currentUser.displayName)} · Live shared records</p></div><button class="o-button" data-testid="live-refresh">Refresh</button></div>${currentUser.role==='instructor'?instructor(data):reports(data)}`;
+  workspace.innerHTML=`<div class="o-heading"><div><h2>${escape(currentUser.role==='instructor'?instructorGroup?.label||'No group assigned':currentUser.role==='patrol'?'Active alerts':'Radio reports')}</h2><p>${escape(currentUser.displayName)} · ${currentUser.role==='instructor'?`Level ${escape(instructorGroup?.level??'not recorded')} · ${escape(instructorGroup?.meeting||'Meeting place not recorded')}`:'Live shared records'}</p></div><button class="o-button" data-testid="live-refresh">Refresh</button></div>${currentUser.role==='instructor'?instructor(data):reports(data)}`;
   workspace.querySelector('[data-testid="live-refresh"]').onclick=refresh;
   workspace.querySelector('[data-testid="live-report-open"]')?.addEventListener('click',()=>report(data));
+  workspace.querySelectorAll('[data-testid^="live-child-view-"]').forEach(button=>button.addEventListener('click',()=>showLiveChild(data,button.dataset.childId)));
   workspace.querySelectorAll('[data-testid="live-found"]').forEach(button=>button.onclick=async()=>{try{await api('/api/live/reports/found',{id:button.dataset.id});await refresh();}catch(e){alert(e.message);}});
 }
 function instructor(data) {
   const group=data.groups[0];
   const kids=data.attendance.map(att=>{const child=data.children.find(c=>c.id===att.childRecordId);return child&&{...child,...att};}).filter(Boolean);
+  const checkedIn=kids.filter(child=>child.status==='checked_in'&&!child.release);
+  const notCheckedIn=kids.filter(child=>child.status!=='checked_in'||child.release);
+  const medicalAlerts=checkedIn.filter(child=>child.medical);
   const activeReports=new Set((data.reports||[]).map(report=>report.childRecordId));
   if(!group) return '<p class="o-empty">No group is assigned to your account. Ask the administrator to assign your group.</p>';
-  return `<p class="o-note">${escape(group.label)} · Level ${escape(group.level)} · ${escape(group.meeting||'Meeting place not recorded')} · ${kids.length} / 6 children</p><section class="o-medical-list" data-testid="live-medical-reminders"><h3>Must know · your group only</h3>${kids.filter(c=>c.medical).map(c=>`<div class="o-medical-item"><strong>${escape(c.displayName)}</strong><p>${escape(c.medical)}</p></div>`).join('')||'<p>No medical alerts recorded for your group.</p>'}</section><div class="o-roster-heading"><h3>Today’s group</h3><span>${kids.length} / 6</span></div><div class="o-list">${kids.map(child=>`<article class="o-roster-row live-child-row" data-testid="live-child"><div class="o-child"><strong>${escape(child.displayName)}</strong><span>${escape(child.clothing||'Clothing not recorded')}</span><span class="bib">Bib ${escape(child.bib)}</span>${activeReports.has(child.id)?'<span class="o-alert-label">Missing child report saved</span>':''}</div></article>`).join('')||'<p class="o-empty">No children are assigned to your group today.</p>'}</div><div class="instructor-report-cta"><button class="o-button o-danger" type="button" data-testid="live-report-open" ${kids.length?'':'disabled'}>Report missing child</button></div>`;
+  const cards=(children,inactive)=>children.map(child=>`<article class="o-roster-row live-child-row o-instructor-card${inactive?' is-not-checked-in-card':''}" data-testid="live-child"><div class="o-instructor-child${inactive?' is-not-checked-in':''}"><strong>${escape(child.displayName)}</strong><span class="bib">Bib ${escape(child.bib)}</span>${activeReports.has(child.id)?'<span class="o-alert-label">Alert Sent · Searching</span>':''}${inactive?`<span class="o-instructor-status">${child.release?'Released':'Not checked in'}</span>`:''}</div><button class="o-button o-instructor-view-child" type="button" data-testid="live-child-view-${escape(child.id)}" data-child-id="${escape(child.id)}">View child</button></article>`).join('');
+  return `<section class="o-medical-list" data-testid="live-medical-reminders"><header class="o-medical-header"><div><span class="o-medical-eyebrow">Safety overview</span><h3>Medical alerts</h3></div><span class="o-medical-count">${medicalAlerts.length?`${medicalAlerts.length} ${medicalAlerts.length===1?'alert':'alerts'}`:'None today'}</span></header>${medicalAlerts.map(child=>`<article class="o-medical-item"><div class="o-medical-item-heading"><span class="o-medical-mark" aria-hidden="true">!</span><strong>${escape(child.displayName)}</strong><span class="o-medical-tag">Medical alert</span></div><p>${escape(child.medical)}</p></article>`).join('')||'<p class="o-medical-clear">No medical alerts for children checked in today.</p>'}</section><section class="o-group-card" aria-label="Today’s group"><div class="o-roster-heading"><h3>Today’s group</h3><span>${checkedIn.length} checked in</span></div><div class="o-list">${cards(checkedIn,false)||'<p class="o-empty">No children are checked in yet.</p>'}</div></section><section class="o-group-card o-not-checked-card" aria-label="Not checked in"><div class="o-roster-heading"><h3>Not checked in</h3><span>${notCheckedIn.length}</span></div><div class="o-list">${cards(notCheckedIn,true)||'<p class="o-empty">All assigned children are checked in.</p>'}</div></section><div class="instructor-report-cta"><button class="o-button o-danger" type="button" data-testid="live-report-open" ${checkedIn.length?'':'disabled'}>Report missing child</button></div>`;
 }
 function reports(data) {
   const rows=data.reports||[];
-  return `<p class="o-warning">Saved reports are shared live. Call by physical radio; this app does not transmit radio.</p>${rows.length?rows.map(r=>`<article class="o-incident" data-testid="live-report"><h3>${escape(r.childName)} · Bib ${escape(r.bib)}</h3><p><b>Report time:</b> ${escape(localTime(r.reportedAt||r.lastSeenTime))} · <b>Last seen place:</b> ${escape(r.lastSeenPlace)}</p><p><b>Clothing:</b> ${escape(r.clothing||'Not recorded')} · <b>Equipment:</b> ${escape(r.equipment||'Not recorded')}</p><p><b>Injuries / concerns:</b> ${escape(r.injuries||'Unknown')}</p><p>Reported by ${escape(r.reporterName)}</p>${currentUser.role==='patrol'?`<button class="o-button" data-testid="live-found" data-id="${escape(r.id)}">Mark found</button>`:''}</article>`).join(''):'<p class="o-empty">No active missing-child reports.</p>'}`;
+  return `<p class="o-warning">Saved reports are shared live. Call by physical radio; this app does not transmit radio.</p>${rows.length?rows.map(r=>`<article class="o-incident" data-testid="live-report"><h3>${escape(r.childName)} · Bib ${escape(r.bib)}</h3><p><b>Reported:</b> ${escape(localTime(r.reportedAt||''))} · <b>Last seen:</b> ${escape(r.lastSeenTime||'N/A')} · <b>Place:</b> ${escape(r.lastSeenPlace||'N/A')}</p><p><b>Clothing:</b> ${escape(r.clothing||'N/A')} · <b>Equipment:</b> ${escape(r.equipment||'N/A')}</p><p><b>Injuries / concerns:</b> ${escape(r.injuries||'N/A')}</p><p>Reported by ${escape(r.reporterName)}</p>${currentUser.role==='patrol'?`<button class="o-button" data-testid="live-found" data-id="${escape(r.id)}">Mark found</button>`:''}</article>`).join(''):'<p class="o-empty">No active missing-child reports.</p>'}`;
 }
 function localTime(value) { const date=new Date(value||''); return Number.isNaN(date.getTime())?value||'Not recorded':date.toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'}); }
+const clothingColor=(text,item)=>new RegExp(`([a-z]+)\\s+${item}`,'i').exec(text||'')?.[1]?.toLowerCase()||'';
+const colors=['Black','Blue','Brown','Green','Grey','Navy','Orange','Peach','Pink','Purple','Red','Teal','White','Yellow'];
+const colorOptions=(testId,label,selected)=>`<label>${label}<select data-testid="${testId}" required><option value="">Choose a colour</option>${colors.map(color=>`<option value="${color.toLowerCase()}" ${selected===color.toLowerCase()?'selected':''}>${color}</option>`).join('')}</select></label>`;
+function showLiveChild(data,childId) {
+  const attendance=data.attendance.find(row=>row.childRecordId===childId);
+  const profile=data.children.find(row=>row.id===childId);
+  const group=data.groups.find(row=>row.id===attendance?.groupRecordId);
+  if(!attendance||!profile)return;
+  const child={...profile,...attendance,group};
+  childDialog.innerHTML=`<header><div><p>${escape(group?.label||'Group not assigned')} · Bib ${escape(child.bib)}</p><h2 id="live-child-dialog-title">${escape(child.displayName)}</h2></div><button type="button" class="o-dialog-close" data-testid="live-child-close" aria-label="Close form">×</button></header><div class="o-dialog-body"><p class="${child.medical?'o-alert':'o-note'}"><strong>Medical information</strong><br>${escape(child.medical||'N/A')}</p><dl class="o-facts"><div><dt>Current clothing</dt><dd>${escape(child.clothing||'N/A')}</dd></div><div><dt>Current equipment</dt><dd>${escape(child.equipment||'N/A')}</dd></div><div><dt>Lesson</dt><dd>${escape(group?.level??'Level not recorded')} · ${escape(group?.meeting||'Meeting place not recorded')}</dd></div></dl><form id="live-child-checkin-form" class="o-checkin-form"><h3>Update clothing and equipment</h3>${colorOptions('live-checkin-jacket','Jacket colour',clothingColor(child.clothing,'jacket'))}${colorOptions('live-checkin-helmet','Helmet colour',clothingColor(child.clothing,'helmet'))}<label class="o-clothing-notes">Other clothing details (optional)<textarea data-testid="live-checkin-clothing-notes" rows="2" placeholder="Patterns, logos, or other details">${escape(child.clothing?.split(';').slice(1).join(';').trim()||'')}</textarea></label><label class="o-clothing-notes">Skis, poles, and other equipment (optional)<textarea data-testid="live-checkin-equipment" rows="2" placeholder="Describe equipment the child has today">${escape(child.equipment||'')}</textarea></label><p class="o-note">Confirm the child’s clothing and equipment for today.</p><p class="o-note" role="status" data-testid="live-child-save-status"></p><button class="o-button o-primary" type="submit" data-testid="live-child-save">Save clothing and equipment</button></form></div>`;
+  childDialog.querySelector('[data-testid="live-child-close"]').onclick=()=>childDialog.close();
+  childDialog.querySelector('#live-child-checkin-form').onsubmit=async event=>{
+    event.preventDefault();
+    const form=event.currentTarget;
+    const save=form.querySelector('[data-testid="live-child-save"]');
+    const status=form.querySelector('[data-testid="live-child-save-status"]');
+    save.disabled=true;
+    const jacket=form.querySelector('[data-testid="live-checkin-jacket"]').value;
+    const helmet=form.querySelector('[data-testid="live-checkin-helmet"]').value;
+    const notes=form.querySelector('[data-testid="live-checkin-clothing-notes"]').value.trim();
+    const clothing=`${jacket} jacket, ${helmet} helmet${notes?`; ${notes}`:''}`;
+    const equipment=form.querySelector('[data-testid="live-checkin-equipment"]').value.trim();
+    try{await api('/api/live/attendance',{childRecordId,clothing,equipment});childDialog.close();await refresh();}
+    catch(error){status.textContent=error.message;save.disabled=false;}
+  };
+  childDialog.showModal();
+}
 function report(data) {
-  const kids=data.attendance.map(att=>{const child=data.children.find(c=>c.id===att.childRecordId);return child&&{...child,...att};}).filter(Boolean);
+  const kids=data.attendance.map(att=>{const child=data.children.find(c=>c.id===att.childRecordId);return child&&{...child,...att};}).filter(child=>child&&child.status==='checked_in'&&!child.release);
   const select=reportDialog.querySelector('[data-testid="live-report-child-select"]');
   select.innerHTML=`<option value="">Choose a child</option>${kids.map(child=>`<option value="${escape(child.id)}">${escape(child.displayName)} · Bib ${escape(child.bib)}</option>`).join('')}`;
-  const updateLocalTime=()=>reportDialog.querySelector('[data-testid="live-report-time"]').textContent=new Date().toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
-  updateLocalTime(); clearInterval(reportClock); reportClock=setInterval(updateLocalTime,10000);
   reportDialog.querySelector('[data-testid="live-report-status"]').textContent='';
   reportDialog.querySelector('#live-report-form').reset();
+  reportDialog.querySelector('[data-testid="live-last-seen-time"]').value=localTimeInput();
   select.onchange=()=>{
     const child=kids.find(candidate=>candidate.id===select.value);
-    const group=data.groups.find(candidate=>candidate.id===child?.groupRecordId);
-    reportDialog.querySelector('[data-testid="live-last-seen-place"]').value=group?.meeting ? `${group.meeting} (not confirmed as last seen)` : 'N/A';
+    reportDialog.querySelector('[data-testid="live-last-seen-place"]').value='';
     reportDialog.querySelector('[data-testid="live-clothing"]').value=child?.clothing||'N/A';
     reportDialog.querySelector('[data-testid="live-equipment"]').value=child?.equipment||'N/A';
     reportDialog.querySelector('[data-testid="live-injuries"]').value=child?.medical ? `Medical: ${child.medical}` : 'N/A';
@@ -91,13 +141,12 @@ if(liveSignIn) liveSignIn.onclick=async()=>{
 };
 login.querySelector('[data-testid="staff-close"]').onclick=()=>login.close();
 reportDialog.querySelector('[data-testid="live-report-close"]').onclick=()=>reportDialog.close();
-reportDialog.addEventListener('close',()=>{clearInterval(reportClock);reportClock=undefined;});
 reportDialog.querySelector('#live-report-form').onsubmit=async event=>{
   event.preventDefault(); const childRecordId=reportDialog.querySelector('[data-testid="live-report-child-select"]').value; if(!childRecordId)return;
   const values=Object.fromEntries(new FormData(event.currentTarget));
   const save=reportDialog.querySelector('[data-testid="live-report-save"]');
   const status=reportDialog.querySelector('[data-testid="live-report-status"]'); save.disabled=true;
-  try{const saved=await api('/api/live/reports',{...values,childRecordId});status.textContent=`${saved.childName} · Bib ${saved.bib} is saved for Desk and Patrol. Report time: ${new Date(saved.reportedAt).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'})}. Call both by physical radio.`;setTimeout(()=>reportDialog.close(),1400);await refresh();}
+  try{const saved=await api('/api/live/reports',{...values,childRecordId});status.textContent=`${saved.childName} · Bib ${saved.bib}: ${saved.updated?'existing report updated':'report saved'} for Desk and Patrol. Report time: ${new Date(saved.reportedAt).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'})}. Call both by physical radio.`;setTimeout(()=>reportDialog.close(),1400);await refresh();}
   catch(error){status.textContent=error.message;}
   finally{save.disabled=false;}
 };

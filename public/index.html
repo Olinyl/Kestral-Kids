@@ -64,7 +64,7 @@
     <header><div><p>Missing child · call Desk and Patrol by radio</p><h2 id="live-report-title">Report missing child</h2></div><button type="button" class="o-dialog-close" data-testid="live-report-close" aria-label="Close form">×</button></header>
     <form id="live-report-form" class="o-dialog-body">
       <label>Child<select data-testid="live-report-child-select" required></select></label>
-      <p class="o-note">Local report time · recorded automatically <strong data-testid="live-report-time"></strong></p>
+      <label>Last seen time<input type="time" step="60" data-testid="live-last-seen-time" name="lastSeenTime" required><span class="o-note">Defaults to local time; edit if the child was last seen earlier.</span></label>
       <label>Last seen place<input data-testid="live-last-seen-place" name="lastSeenPlace" required></label>
       <label>Confirmed clothing<input data-testid="live-clothing" name="clothing"></label>
       <label>Skis, helmet and other equipment<input data-testid="live-equipment" name="equipment"></label>
