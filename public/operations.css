@@ -27,6 +27,8 @@
 .o-dialog {width:min(650px,calc(100% - 32px));max-height:calc(100dvh - 32px);padding:0;border:1px solid #aebfba;border-radius:8px;color:#173f39;overflow:auto;overscroll-behavior:contain;}
 .o-dialog::backdrop {background:rgb(18 35 27 / 45%);}
 .o-dialog header {display:flex;justify-content:space-between;gap:16px;align-items:start;padding:22px;border-bottom:1px solid var(--line);}
+.o-dialog-close {display:grid;place-items:center;flex:0 0 40px;width:40px;height:40px;margin:-4px -4px 0 0;padding:0;border:0;border-radius:50%;background:transparent;color:inherit;font:400 28px/1 system-ui,sans-serif;cursor:pointer;}
+.o-dialog-close:hover {background:#edf5f2;}
 .o-dialog header p {margin:0 0 6px;font-size:13px;color:var(--muted);}
 .o-dialog header h2 {font-size:24px;overflow-wrap:anywhere;}
 .o-dialog-body {padding:22px;overflow-wrap:anywhere;}

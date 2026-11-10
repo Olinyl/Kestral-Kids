@@ -60,7 +60,7 @@ export function createOperations(root, seed, {onChange}) {
     if (trigger) opener = trigger;
     const panel=allowInline && role==='desk' && matchMedia('(min-width:1024px)').matches ? root.querySelector('#desk-detail') : null;
     activeHost=panel||dialog;
-    activeHost.innerHTML = `<header><div><p>${role === 'instructor' ? 'My group' : 'School desk'} · ${e(seed.lessonDate)}</p><h2 id="ops-dialog-title">${e(title)}</h2></div>${button('ops-close',panel?'Clear':'Back')}</header><div class="o-dialog-body" data-testid="ops-detail">${body}</div>`;
+    activeHost.innerHTML = `<header><div><p>${role === 'instructor' ? 'My group' : 'School desk'} · ${e(seed.lessonDate)}</p><h2 id="ops-dialog-title">${e(title)}</h2></div>${panel ? button('ops-close','Clear') : '<button type="button" class="o-dialog-close" data-testid="ops-close" aria-label="Close form">×</button>'}</header><div class="o-dialog-body" data-testid="ops-detail">${body}</div>`;
     get('ops-close').onclick = close;
     if (!panel && !dialog.open) dialog.showModal();
     get('ops-close').focus();

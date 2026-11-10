@@ -53,7 +53,8 @@
 .d-dialog-heading { display: flex; justify-content: space-between; gap: 20px; padding: 22px 24px; border-bottom: 1px solid var(--line); }
 .d-dialog-heading p { margin: 0 0 3px; color: var(--muted); font-size: 12px; }
 .d-dialog-heading h2 { margin: 0; font-size: 22px; }
-.d-close { align-self: start; border: 0; background: transparent; font: inherit; text-decoration: underline; padding: 8px 0 8px 8px; }
+.d-close { align-self: start; display: grid; place-items: center; flex: 0 0 40px; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: inherit; font: 400 28px/1 system-ui,sans-serif; cursor: pointer; }
+.d-close:hover { background: #edf5f2; }
 .d-dialog-body { padding: 24px; }
 .d-dialog-summary { background: #f4f7f2; border: 1px solid #d5decc; padding: 12px 16px; margin-bottom: 22px; }
 .d-dialog-summary span { display: block; color: var(--muted); font-size: 12px; margin-bottom: 3px; }
