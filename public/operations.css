@@ -118,8 +118,9 @@ body.desk-view,body.instructor-view {color:#173f39;background:#f5f8f7;--line:#d8
 .instructor-view .o-instructor-child,#live-workspace .o-instructor-child {flex:1;min-width:0;width:auto;padding:6px 0;border:0;border-radius:0;background:transparent;}
 .instructor-view .o-instructor-card.is-not-checked-in-card,#live-workspace .o-instructor-card.is-not-checked-in-card {background:#edf0ef;border-color:#d5dcda;}
 .instructor-view .o-instructor-view-child,#live-workspace .o-instructor-view-child {flex:0 0 auto;width:auto;min-width:92px;min-height:40px;margin:0;padding:8px 13px;border-color:#bdcbc5;background:#fff;white-space:nowrap;}
+.instructor-view .o-instructor-actions,#live-workspace .o-instructor-actions {display:flex;flex:0 0 auto;align-items:center;justify-content:flex-end;gap:14px;}
 .instructor-view .o-instructor-card.is-not-checked-in-card .o-instructor-view-child,#live-workspace .o-instructor-card.is-not-checked-in-card .o-instructor-view-child {background:#e2e7e5;border-color:#d0d8d5;color:#53625f;}
-.o-instructor-alert {font-size:12px;font-weight:600;color:#b91f1f;white-space:nowrap;}
+.o-instructor-alert {font-size:12px;font-weight:700;color:#b91f1f;white-space:nowrap;}
 .o-row-number {color:#205d46;font-size:12px;}
 .o-medical-list {margin-top:24px;}
 .o-medical-item {margin-top:12px;border:1px solid #d8e4e0;background:#fff4ce;border-radius:16px;padding:14px 16px;font-size:14px;overflow-wrap:anywhere;}
@@ -306,7 +307,9 @@ body .navigation nav button[aria-current] {background:#e3f0e6;color:#205d46;}
  #app-shell #operations .o-group-card .o-roster-row + .o-roster-row {gap:8px;padding:10px;}
  .instructor-view #app-shell .o-instructor-child {grid-template-columns:18px minmax(0,1fr) auto;gap:6px;}
  .instructor-view #app-shell .o-instructor-child .bib {grid-column:2;}
- .instructor-view #app-shell .o-instructor-view-child {min-width:84px;padding-inline:10px;}
+ .instructor-view #app-shell .o-instructor-view-child,#live-workspace .o-instructor-view-child {min-width:84px;padding-inline:9px;}
+ .instructor-view #app-shell .o-instructor-actions,#live-workspace .o-instructor-actions {gap:10px;}
+ .instructor-view #app-shell .o-instructor-alert,#live-workspace .o-instructor-alert {font-size:10px;}
  .instructor-view #app-shell .o-instructor-primary strong {font-size:15px;}
  .instructor-view #app-shell .o-group-card .profile-meta {gap:4px;}
  #live-workspace .o-medical-list {padding:14px;margin-bottom:14px;}
@@ -315,5 +318,5 @@ body .navigation nav button[aria-current] {background:#e3f0e6;color:#205d46;}
  #live-workspace .o-group-card .o-roster-row,
  #live-workspace .o-group-card .o-roster-row + .o-roster-row {gap:8px;padding:10px;}
  #live-workspace .o-instructor-child {grid-template-columns:minmax(0,1fr) auto;gap:6px;}
- #live-workspace .o-instructor-view-child {min-width:84px;padding-inline:10px;}
+ #live-workspace .o-instructor-view-child {min-width:84px;padding-inline:9px;}
 }
