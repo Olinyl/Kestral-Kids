@@ -10,8 +10,6 @@ const icons = {
   place: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.3"/><path d="m16 16 4 4"/></svg>',
   people: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20v-1.5A4.5 4.5 0 0 1 7.5 14h3a4.5 4.5 0 0 1 4.5 4.5V20m1-12a3 3 0 0 1 0 5.8m1 2.5a4.5 4.5 0 0 1 4 4.5V20"/></svg>',
   ski: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 4 12 16M18 4 6 20M4 9l8 3 8-3M4 15l8-3 8 3"/></svg>',
-  visibility: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg>',
-  medical: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></svg>',
   scan: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7V4h3m10 0h3v3M20 17v3h-3M7 20H4v-3M7 12h10M12 7v10"/></svg>',
   bell: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9m-8 12h4"/></svg>',
 };
@@ -33,18 +31,21 @@ function patrolGroupMeta(value, bib) {
 }
 
 function patrolBib(alert, seed) {
-  if (alert.bib) return alert.bib;
+  if (alert.bib) return /^not assigned$/i.test(String(alert.bib).trim()) ? 'N/A' : alert.bib;
   const child = (seed.children ?? []).find(record =>
     [record.id, record.stableId].includes(alert.childId) ||
     [record.displayName, record.alternateName].some(name => name && [alert.childName, alert.alternateName].includes(name))
   );
-  return (seed.attendance ?? []).find(row => row.childId === (child?.id ?? alert.childId))?.bib ?? '';
+  const bib = (seed.attendance ?? []).find(row => row.childId === (child?.id ?? alert.childId))?.bib;
+  return bib && !/^not assigned$/i.test(String(bib).trim()) ? bib : 'N/A';
 }
 
 function contactRelationship(value) {
   const [role, ...detail] = String(value ?? '').split('·').map(part => part.trim());
   return `<span class="p-contact-role">${escapeHtml(role)}</span>${detail.length ? `<span class="p-contact-detail">${escapeHtml(detail.join(' · '))}</span>` : ''}`;
 }
+
+const hasKnownInjuries = value => Boolean(value && !/^unknown$/i.test(String(value).trim()));
 
 export function createPatrol(root, seed, { onSignOut, onChange = () => {} }) {
   const localSearchLogs = new Map();
@@ -57,7 +58,7 @@ export function createPatrol(root, seed, { onSignOut, onChange = () => {} }) {
           <div class="p-alert-main">
           <div class="p-alert-head">
             <span class="p-icon p-alert-icon">${icons.alert}</span>
-            <div class="p-child"><div class="p-child-heading-row"><span class="p-case">${escapeHtml(alert.caseNumber)}</span><span class="p-status${alert.status === 'Found' ? ' p-status-found' : ''}">${escapeHtml(alert.status)}</span>${patrolGroupMeta(alert.group, patrolBib(alert, seed))}</div><h3>${escapeHtml(alert.childName)}</h3><div class="p-child-quick-meta"><span>Age ${escapeHtml(alert.age)}</span><span>Desk alert received ${escapeHtml(alert.receivedTime)}</span></div></div>
+            <div class="p-child"><div class="p-child-heading-row"><span class="p-case">${escapeHtml(alert.caseNumber)}</span><span class="p-status${alert.status === 'Found' ? ' p-status-found' : ''}">${escapeHtml(alert.status)}</span>${patrolGroupMeta(alert.group, patrolBib(alert, seed))}</div><h3>${escapeHtml(alert.childName)}</h3><div class="p-child-quick-meta"><span>Age ${escapeHtml(alert.age)}</span><span>Desk alert received ${escapeHtml(alert.receivedTime)}</span>${alert.reportedStaff ? `<span>Reported staff: ${escapeHtml(alert.reportedStaff)}</span>` : ''}</div></div>
             ${alert.program ? `<div class="p-child-meta">${profileMeta({program:alert.program})}</div>` : ''}
           </div>
           <div class="p-left-column">
@@ -66,20 +67,16 @@ export function createPatrol(root, seed, { onSignOut, onChange = () => {} }) {
             ${fact(icons.place, 'Last seen place', alert.lastSeenPlace)}
             ${fact(icons.people, 'Clothing', alert.clothing)}
             ${fact(icons.ski, 'Equipment', alert.equipment)}
-            ${fact(icons.visibility, 'Visibility', alert.visibility)}
-            ${fact(icons.medical, 'Injuries', alert.injuries)}
           </div>
-          <section class="p-detail-panel" style="--p-detail-columns:${alert.medical ? 2 : 1}" aria-label="Medical and lift scan details">
-            ${alert.medical ? `<div class="p-detail-item p-medical-fact"><h3>Medical information</h3><p>${escapeHtml(alert.medical)}</p>${alert.consentStatus || alert.guardianUpdateDate ? `<p class="p-guardian-record"><strong>Guardian record:</strong> ${escapeHtml(alert.consentStatus || 'Status not recorded')} · Updated ${escapeHtml(alert.guardianUpdateDate || 'date not recorded')}</p>` : ''}</div>` : ''}
+          <section class="p-detail-panel" style="--p-detail-columns:${(alert.reportedViaForm !== true && alert.reportedViaDeskForm !== true && alert.medical) || hasKnownInjuries(alert.injuries) ? 2 : 1}" aria-label="Medical and lift scan details">
+            ${(alert.reportedViaForm !== true && alert.reportedViaDeskForm !== true && alert.medical) || hasKnownInjuries(alert.injuries) ? `<div class="p-detail-item p-medical-fact"><h3>Medical information / injuries</h3>${alert.reportedViaForm !== true && alert.reportedViaDeskForm !== true && alert.medical ? `<p>${escapeHtml(alert.medical)}</p>` : ''}${hasKnownInjuries(alert.injuries) ? `<p class="p-injury-detail">${escapeHtml(alert.injuries)}</p>` : ''}</div>` : ''}
             <div class="p-detail-item p-scan-fact" data-testid="patrol-lift-scan"><h3>Latest lift ticket scan</h3><p data-testid="patrol-lift-scan-details" aria-live="polite">${escapeHtml(alert.liftScan ? `${alert.liftScan.pass} · ${alert.liftScan.time}` : 'Request lift scan if needed.')}</p></div>
           </section>
           </div>
           <div class="p-right-column">
           <section class="p-contacts" style="--p-contact-columns:${Math.max(1, alert.emergencyContacts?.length || 1)}"><h3>Emergency contacts for police handoff</h3>
-            ${alert.emergencyContacts?.length ? alert.emergencyContacts.map(contact => `<div class="p-contact"><div><strong>${escapeHtml(contact.name)}</strong>${contactRelationship(contact.relationship)}</div><div class="p-contact-phone">${contact.phone && contact.phone !== 'Not provided' ? `<a href="tel:${escapeHtml(contact.phone)}">${escapeHtml(contact.phone)}</a>` : '<span>Phone not provided</span>'}<span>${escapeHtml(contact.phoneStatus || 'Verify before use')}</span></div></div>`).join('') : '<p class="p-unavailable">No emergency contacts are recorded.</p>'}
+            ${alert.emergencyContacts?.length ? alert.emergencyContacts.map(contact => `<div class="p-contact"><div><strong>${escapeHtml(contact.name)}</strong>${contactRelationship(contact.relationship)}</div><div class="p-contact-phone">${contact.phone && contact.phone !== 'Not provided' ? `<a href="tel:${escapeHtml(contact.phone)}">${escapeHtml(contact.phone)}</a>` : '<span>Phone not provided</span>'}</div></div>`).join('') : '<p class="p-contact-empty">No emergency contacts are recorded.</p>'}
           </section>
-          <section class="p-contacts"><h3>Authorized pickup adults</h3>${alert.authorizedPickupAdults?.length ? alert.authorizedPickupAdults.map(adult => `<div class="p-contact"><div><strong>${escapeHtml(adult.name)}</strong>${contactRelationship(adult.relationship || 'Other')}</div></div>`).join('') : '<p class="p-unavailable">No authorized pickup adults are recorded.</p>'}</section>
-          ${alert.escalation ? `<p class="p-escalation" data-testid="patrol-escalation">${escapeHtml(alert.escalation)}</p>` : ''}
           <section class="p-actions-panel" data-testid="patrol-actions">
             <h3>Actions</h3>
             <div class="p-action-buttons">
@@ -303,7 +300,7 @@ export function createPatrol(root, seed, { onSignOut, onChange = () => {} }) {
       if (!selectedAlert) return;
       const entries = localSearchLogs.get(selectedAlert.id) || [...(selectedAlert.searchLog || [])];
       const clickedAt = new Date();
-      const time = `${clickedAt.getHours() % 12 || 12}:${String(clickedAt.getMinutes()).padStart(2, '0')}`;
+      const time = clickedAt.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
       const actionLabels = {
         dispatched: 'Dispatched (4)',
         broadcast: 'Description broadcast',

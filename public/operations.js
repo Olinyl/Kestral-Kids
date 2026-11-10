@@ -114,11 +114,12 @@ export function createOperations(root, seed, {onChange,alerts}) {
     const childId = row.id || row.childId;
     const existing = seed.patrolAlerts.find(alert => String(alert.childId) === String(childId) && alert.active !== false && String(alert.status || '').toLowerCase() !== 'found');
     const caseNumber = existing?.caseNumber || `MC-${String(1043 + seed.patrolAlerts.length).padStart(4, '0')}`;
+    const instructorName = (seed.instructors ?? []).find(person => person.id === row.group?.instructorId)?.name || 'Instructor';
     const alertRecord = {
       id: existing?.id || `demo-alert-${Date.now()}`, caseNumber, active:true, childId, bib:row.bib || existing?.bib || '',
       childName:row.displayName, alternateName:row.alternateName || row.displayName, age,
       group:`${row.group?.label || 'Group not recorded'} · ${row.group?.level || 'Level not recorded'}`,
-      radioChannel:'Channel 4', status:'Searching', source, receivedTime:clock,
+      radioChannel:'Channel 4', status:'Searching', source, receivedTime:clock, reportedStaff:source === 'School desk' ? report.staff || '' : source === 'Instructor' ? instructorName : '', reportedViaDeskForm:source === 'School desk', reportedViaForm:['School desk','Instructor'].includes(source),
       lastSeenTime:report.time || 'Not provided', lastSeenPlace:report.place || 'Not provided',
       visibility:'Not recorded', clothing:report.clothing || row.clothing || 'Not recorded',
       clothingConfidence:report.clothing ? `${source} report · unverified` : 'Not confirmed',
