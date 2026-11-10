@@ -17,12 +17,13 @@ export function createOperations(root, seed, {onChange}) {
   let role = 'desk', tab = 'Roster', query = '', groupFilter = '', statusFilter = 'all', programFilter = 'all', page = 0, opener;
   const pageSize = 25;
   const number = value => value.toLocaleString('en-CA');
-  const notifications=[];
-  const unreadCount=()=>notifications.filter(item=>!item.read).length;
+  const notifications=[],deskNotifications=[];
+  const currentNotifications=()=>role==='desk'?deskNotifications:notifications;
+  const unreadCount=items=>items.filter(item=>!item.read).length;
   const updateAlertTab=()=>{
-    const button=document.querySelector('#workspace-nav [data-testid="instructor-nav-alerts"]');
+    const button=document.querySelector(`#workspace-nav [data-testid="${role==='desk'?'desk':'instructor'}-nav-alerts"]`);
     if(!button)return;
-    const unread=unreadCount();
+    const unread=unreadCount(currentNotifications());
     button.setAttribute('aria-label',`Alerts${unread?`, ${unread} unread`:''}`);
     let badge=button.querySelector('.nav-alert-count');
     if(unread){
@@ -32,14 +33,16 @@ export function createOperations(root, seed, {onChange}) {
   };
   function renderNotifications(){
     updateAlertTab();
-    const panel=root.querySelector('[data-testid="instructor-alerts"]');
+    const isDesk=role==='desk',items=currentNotifications();
+    const panel=root.querySelector(`[data-testid="${isDesk?'desk':'instructor'}-alerts"]`);
     if(!panel)return;
-    panel.innerHTML=`<header class="i-notification-heading"><div><h2>Alerts</h2><small>${notifications.length?`${notifications.length} update${notifications.length===1?'':'s'} for your group`:'Updates for your group'}</small></div><span class="i-alerts-count">${notifications.length}</span></header>${notifications.length?`<div class="i-notification-list" aria-live="polite">${notifications.map(item=>`<article class="i-notification-item"><span class="i-notification-indicator" aria-hidden="true"></span><span class="i-notification-copy">${e(item.text)}<small>${e(item.time)}</small></span></article>`).join('')}</div>`:'<div class="i-notification-empty"><strong>You’re all caught up</strong><small>No new activity for your group.</small></div>'}<footer class="i-notification-footer"><button type="button" class="o-button" data-clear-instructor-notifications ${notifications.length?'':'disabled'}>Clear alerts</button></footer>`;
-    panel.querySelector('[data-clear-instructor-notifications]').onclick=()=>{notifications.length=0;renderNotifications();};
+    panel.innerHTML=`<header class="i-notification-heading"><div><h2>Alerts</h2><small>${items.length?`${items.length} update${items.length===1?'':'s'} ${isDesk?'for the school':'for your group'}`:`Updates for ${isDesk?'the school':'your group'}`}</small></div><span class="i-alerts-count">${items.length}</span></header>${items.length?`<div class="i-notification-list" aria-live="polite">${items.map(item=>`<article class="i-notification-item"><span class="i-notification-indicator" aria-hidden="true"></span><span class="i-notification-copy">${e(item.text)}<small>${e(item.time)}</small></span></article>`).join('')}</div>`:`<div class="i-notification-empty"><strong>You’re all caught up</strong><small>No new school alerts.</small></div>`}<footer class="i-notification-footer"><button type="button" class="o-button" data-clear-operational-notifications ${items.length?'':'disabled'}>Clear alerts</button></footer>`;
+    panel.querySelector('[data-clear-operational-notifications]').onclick=()=>{items.length=0;renderNotifications();};
   }
-  const notify=text=>{notifications.unshift({text,time:new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}),read:document.body.classList.contains('instructor-view')&&role==='instructor'&&tab==='Alerts'});renderNotifications();};
+  const notify=(text,audience='current')=>{const targetRole=audience==='current'?role:audience;const target=targetRole==='desk'?deskNotifications:notifications;target.unshift({text,time:new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}),read:document.body.classList.contains(targetRole==='desk'?'desk-view':'instructor-view')&&role===targetRole&&tab==='Alerts'});renderNotifications();};
   const guardianSnapshot=()=>JSON.stringify([seed.children.map(child=>[child.id,child.medical,child.medications,child.allergies,child.emergencyName,child.emergencyPhone,child.emergencyRelationship,child.emergencyName2,child.emergencyPhone2,child.emergencyRelationship2,child.pickupAdults,child.consentStatus,child.consentUpdatedAt]),seed.guardians.map(person=>[person.id,person.name,person.phone,person.email,person.relationship])]);
   let priorGuardianSnapshot=guardianSnapshot();
+  const knownAlertIds=new Set((seed.patrolAlerts||[]).map(alert=>String(alert.id)));
   const observedAlertStatus=new Map((seed.patrolAlerts||[]).map(alert=>[String(alert.id),String(alert.status||'active').toLowerCase()]));
   window.addEventListener('kestrel:preview-change',()=>{
     const next=guardianSnapshot();
@@ -58,10 +61,15 @@ export function createOperations(root, seed, {onChange}) {
     priorGuardianSnapshot=next;
     for(const alert of seed.patrolAlerts||[]){
       const id=String(alert.id),status=String(alert.status||'active').toLowerCase(),previous=observedAlertStatus.get(id);
+      if(!knownAlertIds.has(id)){
+        knownAlertIds.add(id);
+        if(alert.active!==false&&status!=='found'&&alert.source==='Instructor')notify(`Missing-child report for ${alert.childName||'a child'} · ${alert.lastSeenPlace||'Review alert details'}`,'desk');
+      }
       if(previous&&previous!=='found'&&status==='found'){
         const attendance=seed.attendance.find(row=>String(row.childId)===String(alert.childId));
         const group=seed.groups.find(item=>item.id===attendance?.groupId);
-        if(group?.instructorId==='demo-instructor-01')notify(`${alert.childName||'A child'} was marked found by ${alert.foundBy||'staff'}.`);
+        if(group?.instructorId==='demo-instructor-01')notify(`${alert.childName||'A child'} was marked found by ${alert.foundBy||'staff'}.`,'instructor');
+        notify(`${alert.childName||'A child'} was marked found by ${alert.foundBy||'staff'}.`,'desk');
       }
       observedAlertStatus.set(id,status);
     }
@@ -183,12 +191,13 @@ export function createOperations(root, seed, {onChange}) {
   function attendanceAction(row, mode, trigger) {
     const checkin = mode === 'checkin';
     const body = checkin
-      ? `<p class="o-note"><strong>${e(row.displayName)}</strong> · ${e(row.group?.label || 'Group not recorded')}</p><form id="checkin-form" class="o-checkin-form">${colorSelect('checkin-jacket','Jacket colour',clothingColor(row.clothing,'jacket'))}${colorSelect('checkin-helmet','Helmet colour',clothingColor(row.clothing,'helmet'))}<label class="o-clothing-notes">Other clothing details (optional)<textarea data-testid="checkin-clothing-notes" rows="2" placeholder="Patterns, logos, or other details"></textarea></label><label class="o-clothing-notes">Skis, poles, and other equipment (optional)<textarea data-testid="checkin-equipment" rows="2" placeholder="Describe equipment the child has today">${e(row.equipment || '')}</textarea></label><p class="o-note">Confirm the child’s clothing and equipment for today.</p>${row.consentStatus !== 'complete' ? '<p class="o-warning">Guardian consent is required before check-in. Ask the guardian to complete consent; staff cannot override it.</p>' : ''}</form>`
+      ? `<p class="o-note"><strong>${e(row.displayName)}</strong> · ${e(row.group?.label || 'Group not recorded')}</p><form id="checkin-form" class="o-checkin-form">${field('checkin-bib','Bib number',row.bib)}<p class="o-note">Confirm the bib assigned to this child’s group.</p>${colorSelect('checkin-jacket','Jacket colour',clothingColor(row.clothing,'jacket'))}${colorSelect('checkin-helmet','Helmet colour',clothingColor(row.clothing,'helmet'))}<label class="o-clothing-notes">Other clothing details (optional)<textarea data-testid="checkin-clothing-notes" rows="2" placeholder="Patterns, logos, or other details"></textarea></label><label class="o-clothing-notes">Skis, poles, and other equipment (optional)<textarea data-testid="checkin-equipment" rows="2" placeholder="Describe equipment the child has today">${e(row.equipment || '')}</textarea></label><p class="o-note">Confirm the child’s clothing and equipment for today.</p>${row.consentStatus !== 'complete' ? '<p class="o-warning">Guardian consent is required before check-in. Ask the guardian to complete consent; staff cannot override it.</p>' : ''}</form>`
       : `<p class="o-note"><strong>${e(row.displayName)}</strong> · ${e(row.group?.label || 'Group not recorded')}</p><form id="pickup-form"><p>Check the adult's identity against today's authorization before releasing the child.</p><label>Authorized adult<select data-testid="pickup-adult" required><option value="">Choose an adult</option>${activeAdults(row).map((adult,index)=>`<option value="${index}">${e(adult.name)} — ${e(adult.relationship)}</option>`).join('')}</select></label>${field('pickup-staff','Verifying staff')}<label class="o-checkbox"><input type="checkbox" data-testid="pickup-verified" required> I checked this adult's identity and authorization.</label><p class="o-note">An unlisted adult cannot collect this child. Ask the director to resolve authorization.</p>${!activeAdults(row).length ? '<p class="o-warning">No authorized pickup adults are on file. Ask the director to resolve this before release.</p>' : ''}</form>`;
     show(checkin ? 'Check in child' : 'Release child', body, trigger, false, 'attendance');
     if (checkin) get('checkin-save').disabled = row.consentStatus !== 'complete';
     else get('pickup-save').disabled = row.status !== 'checked_in' || Boolean(row.release) || !activeAdults(row).length;
     const form = activeHost.querySelector(checkin ? '#checkin-form' : '#pickup-form');
+    if(checkin)get('checkin-bib').addEventListener('input',event=>event.currentTarget.setCustomValidity(''));
     form.addEventListener('submit', event => {
       event.preventDefault();
       const attendance = seed.attendance.find(item=>item.childId===row.childId);
@@ -196,6 +205,12 @@ export function createOperations(root, seed, {onChange}) {
       if (checkin) {
         const child = seed.children.find(item=>item.id===row.childId);
         if (child?.consentStatus !== 'complete') return;
+        const bibInput=get('checkin-bib');
+        const bib=value('checkin-bib');
+        const duplicate=seed.attendance.some(item=>item.childId!==row.childId&&item.groupId===attendance.groupId&&String(item.bib).trim().toLowerCase()===bib.toLowerCase());
+        bibInput.setCustomValidity(duplicate?'This bib is already assigned to another child in this group.':'');
+        if(duplicate){bibInput.reportValidity();return;}
+        attendance.bib=bib;
         attendance.clothing = `${value('checkin-jacket')} jacket, ${value('checkin-helmet')} helmet${value('checkin-clothing-notes') ? `; ${value('checkin-clothing-notes')}` : ''}`;
         attendance.status = 'checked_in';
         attendance.equipment = get('checkin-equipment').value.trim();
@@ -260,12 +275,12 @@ export function createOperations(root, seed, {onChange}) {
     if(role==='instructor') {
       const checkedIn=visible.filter(row=>row.status==='checked_in'&&!row.release);
       const notCheckedIn=visible.filter(row=>row.status!=='checked_in'||row.release);
-      const instructorCards=(children,inactive)=>children.map((row,index)=>{const alert=activePatrolAlert(row);return `<article class="o-roster-row o-instructor-card${inactive?' is-not-checked-in-card':''}" data-testid="roster-row"><div class="o-instructor-child${inactive?' is-not-checked-in':''}"><div class="o-instructor-primary"><span class="o-row-number">${String(index+1).padStart(2,'0')}</span><strong dir="auto">${e(row.displayName)}</strong></div>${instructorMetadata(row)}${inactive&&row.release?'<span class="o-instructor-status">Released</span>':''}</div><div class="o-instructor-actions">${alert?'<span class="o-instructor-alert" role="status">Alert Sent · Searching</span><button type="button" class="o-button o-instructor-found" data-testid="instructor-found-'+e(row.childId)+'">Found child</button>':''}<button type="button" class="o-button o-instructor-view-child" data-testid="ops-open-${e(row.childId)}" ${inactive?'disabled aria-label="View child unavailable until checked in"':''}>View child</button></div></article>`;}).join('');
+      const instructorCards=(children,inactive)=>children.map((row,index)=>{const alert=activePatrolAlert(row);return `<article class="o-roster-row o-instructor-card${inactive?' is-not-checked-in-card':''}" data-testid="roster-row"><div class="o-instructor-child${inactive?' is-not-checked-in':''}"><div class="o-instructor-primary"><span class="o-row-number">${String(index+1).padStart(2,'0')}</span><strong dir="auto">${e(row.displayName)}</strong>${alert?'<span class="o-missing-tag">Missing</span>':''}</div>${instructorMetadata(row)}${inactive&&row.release?'<span class="o-instructor-status">Released</span>':''}</div><div class="o-instructor-actions">${alert?'<span class="o-instructor-alert" role="status">Alert Sent · Searching</span><button type="button" class="o-button o-instructor-found" data-testid="instructor-found-'+e(row.childId)+'">Found child</button>':''}<button type="button" class="o-button o-instructor-view-child" data-testid="ops-open-${e(row.childId)}" ${inactive?'disabled aria-label="View child unavailable until checked in"':''}>View child</button></div></article>`;}).join('');
       root.querySelector('#ops-list').innerHTML=instructorCards(checkedIn,false)||'<p class="o-empty">No children are checked in yet.</p>';
       root.querySelector('#not-checked-list').innerHTML=instructorCards(notCheckedIn,true)||'<p class="o-empty">All assigned children are checked in.</p>';
       root.querySelector('[data-testid="instructor-not-checked-count"]').textContent=String(notCheckedIn.length);
     } else {
-      root.querySelector('#ops-list').innerHTML = matches.length ? visible.map(row=>`<article class="o-roster-row o-desk-child-card" data-testid="desk-child-card-${e(row.childId)}" tabindex="0" role="group" aria-label="${e(row.displayName)} child record; open details"><div class="o-child"><div class="o-child-title"><strong dir="auto">${e(row.displayName)}</strong><span class="o-status">${status(row)}</span></div>${metadata(row)}${row.consentStatus !== 'complete' ? '<span class="o-warning-text">Consent needed</span>' : ''}${row.medicalStatus === 'alert' ? '<span class="o-alert-label">Health note</span>' : ''}</div><div class="o-card-footer"><button type="button" class="o-button o-primary" data-testid="desk-action-${e(row.childId)}" ${row.release ? 'disabled' : ''}>${row.release ? 'Released' : row.status === 'checked_in' ? 'Release' : 'Check-in'}</button></div></article>`).join('') : '<p class="o-empty">No children match that search.</p>';
+      root.querySelector('#ops-list').innerHTML = matches.length ? visible.map(row=>{const missing=activePatrolAlert(row);return `<article class="o-roster-row o-desk-child-card" data-testid="desk-child-card-${e(row.childId)}" tabindex="0" role="group" aria-label="${e(row.displayName)} child record; open details"><div class="o-child"><div class="o-child-title"><strong dir="auto">${e(row.displayName)}</strong><span class="o-status">${status(row)}</span>${missing?'<span class="o-missing-tag">Missing</span>':''}</div>${metadata(row)}${row.consentStatus !== 'complete' ? '<span class="o-warning-text">Consent needed</span>' : ''}${row.medicalStatus === 'alert' ? '<span class="o-alert-label">Health note</span>' : ''}</div><div class="o-card-footer"><button type="button" class="o-button o-primary" data-testid="desk-action-${e(row.childId)}" ${row.release ? 'disabled' : ''}>${row.release ? 'Released' : row.status === 'checked_in' ? 'Release' : 'Check-in'}</button></div></article>`;}).join('') : '<p class="o-empty">No children match that search.</p>';
     }
     if(role==='desk') root.querySelectorAll('[data-testid^="desk-report-missing-"],[data-testid^="desk-alert-status-"]').forEach(element=>element.remove());
     for (const row of visible) {
@@ -296,6 +311,7 @@ export function createOperations(root, seed, {onChange}) {
   function render(nextRole,nextTab) {
     role=nextRole; tab=nextTab;
     if(role==='instructor'&&tab==='Alerts') notifications.forEach(item=>{item.read=true;});
+    if(role==='desk'&&tab==='Alerts') deskNotifications.forEach(item=>{item.read=true;});
     updateAlertTab();
     root.replaceChildren();
     const assigned = own();
@@ -303,6 +319,11 @@ export function createOperations(root, seed, {onChange}) {
     const activeAssigned=assigned.filter(r=>r.status==='checked_in'&&!r.release);
     const levelLabel=[...new Set(assigned.map(r=>r.group?.level).filter(Boolean))].join(', ')||'Level not recorded';
     const medicalAlerts=activeAssigned.filter(r=>r.medicalStatus==='alert');
+    if(role==='desk'&&tab==='Alerts'){
+      root.innerHTML=`<div class="i-alerts-heading"><div><h2>Alerts</h2><p>School updates and missing-child reports.</p></div></div><section class="i-alerts-page" data-testid="desk-alerts" aria-label="School desk alerts"></section>`;
+      renderNotifications();
+      return;
+    }
     if(role==='instructor'&&tab==='Alerts'){
       root.innerHTML=`<div class="i-alerts-heading"><div><h2>Alerts</h2><p>${e(groupNames||'Your assigned group')} · Instructor updates</p></div></div><section class="i-alerts-page" data-testid="instructor-alerts" aria-label="Instructor alerts"></section>`;
       renderNotifications();

@@ -150,9 +150,9 @@ body.desk-view,body.instructor-view {color:#173f39;background:#f5f8f7;--line:#d8
 .i-notification-footer .o-button:hover {background:#edf5f0;}
 /* Instructor navigation exposes alerts as a first-class page. */
 body.instructor-view nav {grid-template-columns:repeat(3,minmax(0,1fr));max-width:520px;}
-body.live-instructor-view .navigation {position:fixed;bottom:0;inset-inline:0;z-index:10;background:#fff;border-top:1px solid #d8e4e0;border-bottom:0;padding-bottom:env(safe-area-inset-bottom,0px);}
-body.live-instructor-view .navigation nav {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;min-height:70px;padding-block:8px;width:min(calc(100% - 24px),520px);overflow:visible;}
-body.live-instructor-view .workspace {padding-bottom:112px;}
+body.live-instructor-view .navigation,body.live-desk-view .navigation {position:fixed;bottom:0;inset-inline:0;z-index:10;background:#fff;border-top:1px solid #d8e4e0;border-bottom:0;padding-bottom:env(safe-area-inset-bottom,0px);}
+body.live-instructor-view .navigation nav,body.live-desk-view .navigation nav {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;min-height:70px;padding-block:8px;width:min(calc(100% - 24px),520px);overflow:visible;}
+body.live-instructor-view .workspace,body.live-desk-view .workspace {padding-bottom:112px;}
 body.live-director-view .navigation {position:fixed;bottom:0;inset-inline:0;z-index:10;background:#fff;border-top:1px solid #d8e4e0;border-bottom:0;padding-bottom:env(safe-area-inset-bottom,0px);}
 body.live-director-view .navigation nav {display:grid;grid-template-columns:minmax(0,1fr);gap:8px;min-height:70px;padding-block:8px;width:min(calc(100% - 24px),360px);overflow:visible;}
 body.live-director-view .workspace {padding-bottom:112px;}
@@ -167,6 +167,7 @@ body.instructor-view nav button,body.live-instructor-view nav button {display:fl
 .i-alerts-page .i-notification-empty {min-height:170px;}
 .i-alerts-page .i-notification-footer {border-top:1px solid #edf1ef;}
 .o-row-number {color:#205d46;font-size:12px;}
+.o-missing-tag {display:inline-flex;align-items:center;width:max-content;padding:3px 8px;border:1px solid #f1b9b5;border-radius:999px;background:#fff0ef;color:#a12622;font-size:11px;font-weight:750;line-height:1.2;letter-spacing:.015em;}
 .o-medical-list {margin-top:24px;}
 .o-medical-item {margin-top:12px;border:1px solid #d8e4e0;background:#fff4ce;border-radius:16px;padding:14px 16px;font-size:14px;overflow-wrap:anywhere;}
 .o-medical-item p {margin:5px 0 0;line-height:1.5;}

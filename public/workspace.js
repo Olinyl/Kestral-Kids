@@ -5,7 +5,7 @@ import { createPatrol } from './patrol.js';
 
 const workspaces = {
   desk: {
-    label: 'School desk', tabs: ['Roster', 'Account'],
+    label: 'School desk', tabs: ['Roster', 'Alerts', 'Account'],
   },
   guardian: { label: 'Guardian', tabs: ['My children', 'Alerts', 'Account'] },
   director: { label: 'Director', tabs: ['Overview', 'Children', 'Guardians', 'Instructors', 'Lesson groups', 'Alerts', 'Account'] },
@@ -170,6 +170,7 @@ function renderWorkspace() {
     button.type = 'button';
     button.setAttribute('aria-label',label);
     if (role === 'instructor' && label === 'Alerts') button.dataset.testid = 'instructor-nav-alerts';
+    if (role === 'desk' && label === 'Alerts') button.dataset.testid = 'desk-nav-alerts';
     const shortLabel=label==='Instructors'?'Team':label==='Lesson groups'?'Groups':label;
     button.innerHTML=`<span class="nav-label-full">${label}</span><span class="nav-label-short">${shortLabel}</span>`;
     if (role === 'director') button.dataset.testid = 'director-nav-' + ({ 'Lesson groups': 'groups' }[label] ?? label.toLowerCase());
