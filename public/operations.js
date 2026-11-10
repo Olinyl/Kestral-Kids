@@ -1,7 +1,7 @@
 import {childMeta, lessonDetails, profileMeta} from './profile-ui.js';
 const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const e = escape;
-const field = (id, label, value = '', type = 'text') => `<label>${label}<input data-testid="${id}" name="${id}" type="${type}" ${type==='time'?'step="60"':''} value="${e(value)}" required></label>`;
+const field = (id, label, value = '', type = 'text', required = true) => `<label>${label}<input data-testid="${id}" name="${id}" type="${type}" ${type==='time'?'step="60"':''} value="${e(value)}" ${required?'required':''}></label>`;
 const formatTime12 = value => {
   const match=/^(\d{1,2}):(\d{2})$/.exec(value||'');
   if(!match)return value||'N/A';
@@ -12,6 +12,25 @@ const clothingColor = (text, item) => new RegExp(`([a-z]+)\\s+${item}`, 'i').exe
 const colorSelect = (id,label,selected) => `<label>${label}<select data-testid="${id}" required><option value="">Choose a colour</option>${['Black','Blue','Brown','Green','Grey','Navy','Orange','Peach','Pink','Purple','Red','Teal','White','Yellow'].map(color=>`<option value="${color.toLowerCase()}" ${selected===color.toLowerCase()?'selected':''}>${color}</option>`).join('')}</select></label>`;
 const button = (id, label, primary = false) => `<button type="button" class="o-button ${primary ? 'o-primary' : ''}" data-testid="${id}">${label}</button>`;
 const status = row => row.release ? 'Released' : row.status === 'checked_in' ? 'Checked in' : 'Expected';
+
+function physicalBibNumber(label) {
+  const match = /^(?:\d+-)?(\d+)$/.exec(String(label ?? '').trim());
+  const number = Number(match?.[1]);
+  return Number.isInteger(number) && number >= 1 && number <= 400 ? number : null;
+}
+
+export function previewBibAssignment(seed, attendance, input) {
+  const group = seed.groups.find(item => item.id === attendance.groupId);
+  const groupNumber = String(group?.number ?? group?.label?.match(/\b(\d+)$/)?.[1] ?? '');
+  if (!/^\d+$/.test(groupNumber)) return { error: 'Assign this child to a numbered lesson group before check-in.' };
+  const number = /^\d+$/.test(input) ? physicalBibNumber(input) : null;
+  if (number === null) return { error: 'Enter a physical bib number from 1 to 400.' };
+  const inUse = seed.attendance.some(row => row !== attendance &&
+    (row.status === 'checked_in' || row.release) && row.bibReturned !== true &&
+    (row.bibNumber ?? physicalBibNumber(row.bib)) === number);
+  if (inUse) return { error: 'That physical bib is still issued. Choose an available bib.' };
+  return { number, label: `${Number(groupNumber)}-${String(number).padStart(3, '0')}` };
+}
 
 export function createOperations(root, seed, {onChange,alerts}) {
   let role = 'desk', tab = 'Roster', query = '', groupFilter = '', statusFilter = 'all', programFilter = 'all', page = 0, opener;
@@ -165,7 +184,7 @@ export function createOperations(root, seed, {onChange,alerts}) {
     if (!row.medical?.trim()) return '<p class="o-warning">Medical information missing</p>';
     return `<p class="${row.medicalStatus === 'alert' ? 'o-health-note' : 'o-note'}">${row.medicalStatus === 'alert' ? '<b>Health note</b><br>' : ''}${e(row.medical)}${row.medications ? '<br>Medications: '+e(row.medications) : ''}${row.allergies ? '<br>Allergies: '+e(row.allergies) : ''}</p>`;
   }
-  function detail(row, trigger) {
+  function detail(row, trigger, allowInline = true) {
     let body = `<p class="o-record">${e(row.group?.label || 'Group not assigned')} · <b>Bib ${e(row.bib)}</b></p>${medical(row)}<dl class="o-facts"><div><dt>Current clothing</dt><dd>${e(row.clothing || 'Not recorded')}</dd></div><div><dt>Current equipment</dt><dd>${e(row.equipment || 'Not recorded')}</dd></div><div><dt>Lesson</dt><dd>${e(row.group?.level)} · ${e(row.group?.meeting)}</dd></div></dl>`;
     if (role === 'instructor') {
       body += `<form id="checkin-form" class="o-checkin-form"><h3>Update clothing and equipment</h3>${colorSelect('checkin-jacket','Jacket colour',clothingColor(row.clothing,'jacket'))}${colorSelect('checkin-helmet','Helmet colour',clothingColor(row.clothing,'helmet'))}<label class="o-clothing-notes">Other clothing details (optional)<textarea data-testid="checkin-clothing-notes" rows="2" placeholder="Patterns, logos, or other details">${e(row.clothing?.split(';').slice(1).join(';').trim()||'')}</textarea></label><label class="o-clothing-notes">Skis, poles, and other equipment (optional)<textarea data-testid="checkin-equipment" rows="2" placeholder="Describe equipment the child has today">${e(row.equipment||'')}</textarea></label><p class="o-note">Confirm the child’s clothing and equipment for today.</p><button class="o-button o-primary" data-testid="checkin-save">Save clothing and equipment</button></form>`;
@@ -175,11 +194,19 @@ export function createOperations(root, seed, {onChange,alerts}) {
     } else {
       if(activePatrolAlert(row)) body += '<p class="o-alert-sent" role="status">Missing report saved for Patrol.</p>';
       body += `<p class="${row.consentStatus === 'complete' ? 'o-note' : 'o-warning'}">${row.consentStatus === 'complete' ? 'Guardian consent on file' : 'Consent needed'}</p><dl class="o-facts"><div><dt>Emergency contact</dt><dd>${e(row.emergencyName)}<br>${e(row.emergencyPhone)}</dd></div><div><dt>Second emergency contact</dt><dd>${e(row.emergencyName2 || 'Not provided')}<br>${e(row.emergencyPhone2)}</dd></div></dl>`;
-      if (row.release) body += `<div class="o-confirmation">Released to ${e(row.release.adult)}<br>Verified by ${e(row.release.staff)}<br><time data-testid="release-time">${e(row.release.time)}</time></div>`;
+      if (row.release) body += `<div class="o-confirmation">Released to ${e(row.release.adult)}<br>Verified by ${e(row.release.staff)}<br><time data-testid="release-time">${e(row.release.time)}</time><p data-testid="bib-return-status">${row.bibReturned === true ? 'Bib returned' : row.bibReturned === false ? 'Bib still outstanding' : 'Bib return not recorded'}</p>${row.bibReturned === false ? button('record-bib-return','Record bib return') : ''}</div>`;
       if(!activePatrolAlert(row)) body += `<div class="o-detail-actions"><button type="button" class="o-button o-danger o-report-missing" data-testid="desk-report-missing">Report missing</button></div>`;
     }
-    show(row.displayName, body, trigger, true);
+    show(row.displayName, body, trigger, allowInline);
     if (role === 'desk') get('desk-report-missing')?.addEventListener('click',()=>radio(row,'desk-missing'));
+    if (role === 'desk') get('record-bib-return')?.addEventListener('click', () => {
+      const attendance = seed.attendance.find(item => item.childId === row.childId);
+      if (!attendance?.release || attendance.bibReturned !== false) return;
+      attendance.bibReturned = true;
+      attendance.bibReturnedAt = new Date().toISOString();
+      onChange();
+      detail({...row, bibReturned:true}, trigger, allowInline);
+    });
     if(role==='instructor') activeHost.querySelector('#checkin-form')?.addEventListener('submit',event=>{
       event.preventDefault();
       const attendance=seed.attendance.find(item=>item.childId===row.childId);
@@ -192,13 +219,23 @@ export function createOperations(root, seed, {onChange,alerts}) {
   function attendanceAction(row, mode, trigger) {
     const checkin = mode === 'checkin';
     const body = checkin
-      ? `<p class="o-note"><strong>${e(row.displayName)}</strong> · ${e(row.group?.label || 'Group not recorded')}</p><form id="checkin-form" class="o-checkin-form">${field('checkin-bib','Bib number',row.bib)}<p class="o-note">Confirm the bib assigned to this child’s group.</p>${colorSelect('checkin-jacket','Jacket colour',clothingColor(row.clothing,'jacket'))}${colorSelect('checkin-helmet','Helmet colour',clothingColor(row.clothing,'helmet'))}<label class="o-clothing-notes">Other clothing details (optional)<textarea data-testid="checkin-clothing-notes" rows="2" placeholder="Patterns, logos, or other details"></textarea></label><label class="o-clothing-notes">Skis, poles, and other equipment (optional)<textarea data-testid="checkin-equipment" rows="2" placeholder="Describe equipment the child has today">${e(row.equipment || '')}</textarea></label><p class="o-note">Confirm the child’s clothing and equipment for today.</p>${row.consentStatus !== 'complete' ? '<p class="o-warning">Guardian consent is required before check-in. Ask the guardian to complete consent; staff cannot override it.</p>' : ''}</form>`
-      : `<p class="o-note"><strong>${e(row.displayName)}</strong> · ${e(row.group?.label || 'Group not recorded')}</p><form id="pickup-form"><p>Check the adult's identity against today's authorization before releasing the child.</p><label>Authorized adult<select data-testid="pickup-adult" required><option value="">Choose an adult</option>${activeAdults(row).map((adult,index)=>`<option value="${index}">${e(adult.name)} — ${e(adult.relationship)}</option>`).join('')}</select></label>${field('pickup-staff','Verifying staff')}<label class="o-checkbox"><input type="checkbox" data-testid="pickup-verified" required> I checked this adult's identity and authorization.</label><p class="o-note">An unlisted adult cannot collect this child. Ask the director to resolve authorization.</p>${!activeAdults(row).length ? '<p class="o-warning">No authorized pickup adults are on file. Ask the director to resolve this before release.</p>' : ''}</form>`;
+      ? `<p class="o-note"><strong>${e(row.displayName)}</strong> · ${e(row.group?.label || 'Group not recorded')}</p><form id="checkin-form" class="o-checkin-form">${field('checkin-bib','Physical bib number (1?400)',physicalBibNumber(row.bib) ?? '')}<p data-testid="checkin-bib-label" aria-live="polite"></p><p class="o-form-error" role="alert" data-testid="checkin-bib-error" hidden></p><p class="o-note">Confirm the bib assigned to this child’s group.</p>${colorSelect('checkin-jacket','Jacket colour',clothingColor(row.clothing,'jacket'))}${colorSelect('checkin-helmet','Helmet colour',clothingColor(row.clothing,'helmet'))}<label class="o-clothing-notes">Other clothing details (optional)<textarea data-testid="checkin-clothing-notes" rows="2" placeholder="Patterns, logos, or other details"></textarea></label><label class="o-clothing-notes">Skis, poles, and other equipment (optional)<textarea data-testid="checkin-equipment" rows="2" placeholder="Describe equipment the child has today">${e(row.equipment || '')}</textarea></label><p class="o-note">Confirm the child’s clothing and equipment for today.</p>${row.consentStatus !== 'complete' ? '<p class="o-warning">Guardian consent is required before check-in. Ask the guardian to complete consent; staff cannot override it.</p>' : ''}</form>`
+      : `<p class="o-note"><strong>${e(row.displayName)}</strong> · ${e(row.group?.label || 'Group not recorded')}</p><form id="pickup-form"><p>Check the adult's identity against today's authorization before releasing the child.</p><label>Authorized adult<select data-testid="pickup-adult" required><option value="">Choose an adult</option>${activeAdults(row).map((adult,index)=>`<option value="${index}">${e(adult.name)} — ${e(adult.relationship)}</option>`).join('')}</select></label>${field('pickup-staff','Verifying staff')}<label>Bib return<select data-testid="pickup-bib-return" required><option value="">Choose return status</option><option value="returned">Returned</option><option value="outstanding">Not returned</option></select></label><label class="o-checkbox"><input type="checkbox" data-testid="pickup-verified" required> I checked this adult's identity and authorization.</label><p class="o-note">An unlisted adult cannot collect this child. Ask the director to resolve authorization.</p>${!activeAdults(row).length ? '<p class="o-warning">No authorized pickup adults are on file. Ask the director to resolve this before release.</p>' : ''}</form>`;
     show(checkin ? 'Check in child' : 'Release child', body, trigger, false, 'attendance');
     if (checkin) get('checkin-save').disabled = row.consentStatus !== 'complete';
     else get('pickup-save').disabled = row.status !== 'checked_in' || Boolean(row.release) || !activeAdults(row).length;
     const form = activeHost.querySelector(checkin ? '#checkin-form' : '#pickup-form');
-    if(checkin)get('checkin-bib').addEventListener('input',event=>event.currentTarget.setCustomValidity(''));
+    if (checkin) {
+      const updateBibLabel = () => {
+        const assignment = previewBibAssignment(seed, seed.attendance.find(item => item.childId === row.childId) ?? row, value('checkin-bib'));
+        get('checkin-bib-label').textContent = assignment.label ? 'Staff bib label: ' + assignment.label : '';
+        get('checkin-bib-error').hidden = true;
+      };
+      get('checkin-bib').inputMode = 'numeric';
+      get('checkin-bib').addEventListener('input', updateBibLabel);
+      get('attendance-clear').addEventListener('click', updateBibLabel);
+      updateBibLabel();
+    }
     form.addEventListener('submit', event => {
       event.preventDefault();
       const attendance = seed.attendance.find(item=>item.childId===row.childId);
@@ -206,21 +243,41 @@ export function createOperations(root, seed, {onChange,alerts}) {
       if (checkin) {
         const child = seed.children.find(item=>item.id===row.childId);
         if (child?.consentStatus !== 'complete') return;
-        const bibInput=get('checkin-bib');
-        const bib=value('checkin-bib');
-        const duplicate=seed.attendance.some(item=>item.childId!==row.childId&&item.groupId===attendance.groupId&&String(item.bib).trim().toLowerCase()===bib.toLowerCase());
-        bibInput.setCustomValidity(duplicate?'This bib is already assigned to another child in this group.':'');
-        if(duplicate){bibInput.reportValidity();return;}
-        attendance.bib=bib;
+        if (attendance.status !== 'expected' || attendance.release) return;
+        const assignment = previewBibAssignment(seed, attendance, value('checkin-bib'));
+        if (assignment.error) {
+          const feedback = get('checkin-bib-error');
+          feedback.textContent = assignment.error;
+          feedback.hidden = false;
+          get('checkin-bib').focus();
+          return;
+        }
+        attendance.bib = assignment.label;
+        attendance.bibNumber = assignment.number;
+        attendance.bibReturned = false;
+        attendance.checkedInAt = new Date().toISOString();
         attendance.clothing = `${value('checkin-jacket')} jacket, ${value('checkin-helmet')} helmet${value('checkin-clothing-notes') ? `; ${value('checkin-clothing-notes')}` : ''}`;
         attendance.status = 'checked_in';
         attendance.equipment = get('checkin-equipment').value.trim();
       } else {
-        const adult = activeAdults(rows().find(item=>item.childId===row.childId))[Number(value('pickup-adult'))];
+        const current = rows().find(item => item.childId === row.childId);
+        const selected = value('pickup-adult');
+        const adult = selected === '' ? null : activeAdults(row)[Number(selected)];
+        const returnStatus = value('pickup-bib-return');
+        if (!current || !activeAdults(current).includes(adult) || !['returned','outstanding'].includes(returnStatus)) return;
         if (!adult || attendance.release || attendance.status !== 'checked_in' || !get('pickup-verified').checked || !value('pickup-staff')) return;
-        attendance.release = {adult:adult.name, staff:value('pickup-staff'),time:new Date().toLocaleTimeString('en-GB',{hour12:false})};
+        const releasedAt = new Date();
+        attendance.release = {adult:adult.name, staff:value('pickup-staff'),time:releasedAt.toLocaleTimeString('en-GB',{hour12:false}), at:releasedAt.toISOString()};
+        attendance.bibReturned = returnStatus === 'returned';
+        attendance.bibReturnedAt = attendance.bibReturned ? releasedAt.toISOString() : null;
       }
-      onChange(); close(); render(role,tab);
+      onChange();
+      if (checkin) close();
+      render(role,tab);
+      if (!checkin) {
+        const released = rows().find(item => item.childId === row.childId);
+        if (released) detail(released, undefined, false);
+      }
     });
   }
   function radio(row, mode = '') {
@@ -240,7 +297,7 @@ export function createOperations(root, seed, {onChange,alerts}) {
     const lastSeenField=deskMissing?`<div class="o-time-stepper">${field('radio-time','Last seen time',roundedTime(),'time')}<button type="button" class="o-button" data-testid="radio-time-earlier">Earlier by 10 min</button></div>`:instructor?`${field('radio-time','Last seen time',defaultTime,'time')}<p class="o-note">Defaults to local time; tap to edit. <strong data-testid="radio-time-auto">${e(formatTime12(defaultTime))}</strong></p>`:field('radio-time','Last seen time','','time');
     const reportTitle=instructor||deskMissing?'Report missing child':'Log a received radio report';
     const reportNote=instructor?'This prepares a demo report for Patrol. Call by radio; this app does not transmit radio.':deskMissing?'Review the details, add where and when the child was last seen, then save the report for Patrol. This does not send a radio message.':'Record the report received by the desk.';
-    show(reportTitle, `<p class="o-warning">${reportNote}</p><form id="radio-form">${(instructor||deskMissing)&&row ? `<p><strong>${e(row.displayName)}</strong> · Bib ${e(row.bib)} · ${e(row.group?.label||'Group not recorded')}</p>` : `<label>Child<select data-testid="radio-child" required><option value="">Choose a child</option>${(instructor ? own().filter(r=>r.status==='checked_in'&&!r.release) : rows()).map(r=>`<option value="${e(r.childId)}">${e(r.displayName)} · Bib ${e(r.bib)}</option>`).join('')}</select></label>`}${lastSeenField}${deskMissing?'<p class="o-form-error" data-testid="radio-time-error" hidden>Last seen time cannot be in the future.</p>':''}${field('radio-place','Last seen place',initial.place)}${field('radio-clothing','Clothing',initial.clothing)}${field('radio-equipment','Skis, helmet and other equipment',initial.equipment)}${field('radio-injuries','Injuries',initial.concerns)}${instructor ? '' : field('radio-staff',deskMissing?'Reporting staff':'Receiving staff')}${deskMissing?'':`<button class="o-button o-primary" data-testid="radio-save">${instructor?'Save report for Desk and Patrol':'Save received report'}</button>`}</form>`, undefined, false, deskMissing ? 'report' : '');
+    show(reportTitle, `<p class="o-warning">${reportNote}</p><form id="radio-form">${(instructor||deskMissing)&&row ? `<p><strong>${e(row.displayName)}</strong> · Bib ${e(row.bib)} · ${e(row.group?.label||'Group not recorded')}</p>` : `<label>Child<select data-testid="radio-child" required><option value="">Choose a child</option>${(instructor ? own().filter(r=>r.status==='checked_in'&&!r.release) : rows()).map(r=>`<option value="${e(r.childId)}">${e(r.displayName)} · Bib ${e(r.bib)}</option>`).join('')}</select></label>`}${lastSeenField}${deskMissing?'<p class="o-form-error" data-testid="radio-time-error" hidden>Last seen time cannot be in the future.</p>':''}${field('radio-place','Last seen place',initial.place)}${field('radio-clothing','Clothing',initial.clothing)}${field('radio-equipment','Skis, helmet and other equipment',initial.equipment)}${field('radio-injuries','Injuries (optional)',initial.concerns,'text',false)}${instructor ? '' : field('radio-staff',deskMissing?'Reporting staff':'Receiving staff')}${deskMissing?'':`<button class="o-button o-primary" data-testid="radio-save">${instructor?'Save report for Desk and Patrol':'Save received report'}</button>`}</form>`, undefined, false, deskMissing ? 'report' : '');
     if(deskMissing){const time=get('radio-time');time.max=currentTime();time.step=600;get('radio-time-earlier').onclick=()=>{const [hours,minutes]=time.value.split(':').map(Number);const total=Math.max(0,hours*60+minutes-10);time.value=`${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`;time.dispatchEvent(new Event('input',{bubbles:true}));};}
     if(instructor)get('radio-time').addEventListener('input',event=>{get('radio-time-auto').textContent=formatTime12(event.target.value);});
     if (instructor && !row) {
