@@ -58,12 +58,10 @@ export function createPatrol(root, seed, { onSignOut }) {
             <p><strong>Injuries:</strong> ${escapeHtml(alert.injuries || 'Not recorded')}</p>
             <p><strong>Clothing confidence:</strong> ${escapeHtml(alert.clothingConfidence || 'Not recorded')}</p>
           </section>
-          <section class="p-scan"><h3>Latest lift ticket scan</h3>
-            ${alert.liftScan ? `
-            <p><strong>Pass:</strong> ${escapeHtml(alert.liftScan.pass)}</p>
-            <p><strong>Time:</strong> ${escapeHtml(alert.liftScan.time)}</p>
-            <p><strong>Location:</strong> ${escapeHtml(alert.liftScan.location)}</p>
-            ` : `<p class="p-unavailable">No scan available. ${escapeHtml(alert.liftScanUnavailableReason || 'Pass details have not been recorded.')}</p>`}
+          <section class="p-scan" data-testid="patrol-lift-scan"><h3>Latest lift ticket scan</h3>
+            <div data-testid="patrol-lift-scan-details" aria-live="polite">${alert.liftScan ? `
+            <p class="p-scan-summary">${escapeHtml(alert.liftScan.pass)} · ${escapeHtml(alert.liftScan.time)}</p>
+            ` : `<p class="p-unavailable">Request lift scan if needed.</p>`}</div>
           </section>
           </div>
           <div class="p-right-column">
@@ -74,7 +72,7 @@ export function createPatrol(root, seed, { onSignOut }) {
           <section class="p-actions-panel" data-testid="patrol-actions">
             <h3>Actions</h3>
             <div class="p-action-buttons">
-              <button class="p-action-button" type="button" data-testid="patrol-request-lift-scan" data-action="lift" data-alert-id="${escapeHtml(alert.id)}">Request lift scan</button>
+              <button class="p-action-button" type="button" data-testid="patrol-request-lift-scan" data-action="lift" data-alert-id="${escapeHtml(alert.id)}" ${alert.liftScanRequested ? 'disabled' : ''}>${alert.liftScanRequested ? 'Lift scan requested' : 'Request lift scan'}</button>
               <button class="p-action-button p-action-found" type="button" data-testid="patrol-log-found-mobile" data-search-action="found" data-alert-id="${escapeHtml(alert.id)}">Found / Resolved</button>
               <button class="p-action-button p-action-copy" type="button" data-testid="patrol-copy-report" data-action="copy" data-alert-id="${escapeHtml(alert.id)}">Copy details for police report</button>
               <button class="p-action-button p-action-police" type="button" data-testid="patrol-call-police" data-action="police" data-alert-id="${escapeHtml(alert.id)}">Call police (1 hr)</button>
@@ -87,7 +85,6 @@ export function createPatrol(root, seed, { onSignOut }) {
               </div>
               <div><button class="p-police-cancel" type="button" data-police-cancel>Cancel</button><button class="p-police-confirm" type="button" data-police-confirm>Confirm</button></div>
             </div>
-            <p class="p-family-note">Police lead family communication once engaged.</p>
             <p class="p-action-message" role="status" aria-live="polite" data-testid="patrol-action-message" hidden></p>
           </section>
           </div>
@@ -152,7 +149,21 @@ export function createPatrol(root, seed, { onSignOut }) {
       const message = card?.querySelector('[data-testid="patrol-action-message"]');
       const reveal = text => { message.textContent = text; message.hidden = false; };
       if (button.dataset.action === 'lift') {
-        reveal('Scan request was sent.');
+        if (!selectedAlert.liftScanRequested) {
+          const clickedAt = new Date();
+          const pass = `P-${Math.floor(100000 + Math.random() * 900000)}`;
+          const time = clickedAt.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
+          selectedAlert.liftScan = {pass, time};
+          selectedAlert.liftScanRequested = true;
+          const scanDetails = card?.querySelector('[data-testid="patrol-lift-scan-details"]');
+          if (scanDetails) scanDetails.innerHTML = `<p class="p-scan-summary">${escapeHtml(pass)} · ${escapeHtml(time)}</p>`;
+          button.textContent = 'Lift scan requested';
+          button.disabled = true;
+          if (message) {
+            message.textContent = '';
+            message.hidden = true;
+          }
+        }
       } else if (button.dataset.action === 'police') {
         const confirmation = card?.querySelector('[data-testid="patrol-police-confirmation"]');
         if (confirmation) {
