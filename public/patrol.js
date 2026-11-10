@@ -301,10 +301,13 @@ export function createPatrol(root, seed, { onSignOut, onChange = () => {} }) {
       const entries = localSearchLogs.get(selectedAlert.id) || [...(selectedAlert.searchLog || [])];
       const clickedAt = new Date();
       const time = clickedAt.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
+      const liftScanLog = selectedAlert.liftScan
+        ? `Lift scan completed · Pass ${selectedAlert.liftScan.pass}`
+        : 'Lift scan lookup blocked — pass number unavailable';
       const actionLabels = {
         dispatched: 'Dispatched (4)',
         broadcast: 'Description broadcast',
-        'lift-scan': 'Lift scan lookup blocked — pass number unavailable',
+        'lift-scan': liftScanLog,
         found: 'Found marker — desk confirmation pending',
       };
       entries.push({ time, action: actionLabels[button.dataset.searchAction], actor: 'R. Fournier', type: button.dataset.searchAction });
