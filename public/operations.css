@@ -279,7 +279,8 @@ body .navigation nav button[aria-current] {background:#e3f0e6;color:#205d46;}
 .desk-view .brand-mark,.director-view .brand-mark,.instructor-view .brand-mark,.guardian-view .brand-mark { display:grid; place-items:center; width:30px; height:30px; border-radius:6px; background:#173f39; color:#fff; font-size:14px; }
 .top { background:#fff!important; }
 .brand { min-height:62px!important; color:#173f39; }
-.brand-mark { display:grid!important; place-items:center; width:30px!important; height:30px!important; border-radius:6px!important; background:#173f39!important; color:#fff!important; font-size:14px!important; }
+.brand-mark { display:grid!important; place-items:center; width:30px!important; height:30px!important; flex:0 0 30px!important; border-radius:6px!important; background:#173f39!important; color:#fff!important; font-size:14px!important; }
+#app-shell .brand-mark img { width:76%; height:76%; }
 .demo-inner { min-height:0; padding-block:5px!important; gap:8px 24px; }
 .demo strong { font-size:1rem!important; padding-left:10px!important; border-left-width:4px!important; }
 .demo label { gap:8px!important; font-size:.875rem!important; }
