@@ -1,6 +1,8 @@
 const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const e = escape;
 const field = (id, label, value = '', type = 'text') => `<label>${label}<input data-testid="${id}" name="${id}" type="${type}" value="${e(value)}" required></label>`;
+const clothingColor = (text, item) => new RegExp(`([a-z]+)\\s+${item}`, 'i').exec(text || '')?.[1]?.toLowerCase() || '';
+const colorSelect = (id,label,selected) => `<label>${label}<select data-testid="${id}" required><option value="">Choose a colour</option>${['Black','Blue','Brown','Green','Grey','Navy','Orange','Peach','Pink','Purple','Red','Teal','White','Yellow'].map(color=>`<option value="${color.toLowerCase()}" ${selected===color.toLowerCase()?'selected':''}>${color}</option>`).join('')}</select></label>`;
 const button = (id, label, primary = false) => `<button type="button" class="o-button ${primary ? 'o-primary' : ''}" data-testid="${id}">${label}</button>`;
 const status = row => row.release ? 'Released' : row.status === 'checked_in' ? 'Checked in' : 'Expected';
 
@@ -76,7 +78,7 @@ export function createOperations(root, seed, {onChange}) {
       body += `<p class="${row.consentStatus === 'complete' ? 'o-note' : 'o-warning'}">${row.consentStatus === 'complete' ? 'Guardian consent on file' : 'Consent needed'}</p><dl class="o-facts"><div><dt>Emergency contact</dt><dd>${e(row.emergencyName)}<br>${e(row.emergencyPhone)}</dd></div><div><dt>Second emergency contact</dt><dd>${e(row.emergencyName2 || 'Not provided')}<br>${e(row.emergencyPhone2)}</dd></div></dl>`;
       if (row.release) body += `<div class="o-confirmation">Released to ${e(row.release.adult)}<br>Verified by ${e(row.release.staff)}<br><time data-testid="release-time">${e(row.release.time)}</time></div>`;
       else {
-        body += `<form id="checkin-form"><h3>${row.status === 'checked_in' ? 'Update clothing' : 'Drop-off'}</h3>${field('checkin-clothing','Current clothing and helmet',row.clothing || '')}<p class="o-note">Confirm what the child is wearing today.</p>${row.consentStatus !== 'complete' ? '<p class="o-warning">Guardian consent is required before check-in. Ask the guardian to complete consent; staff cannot override it.</p>' : ''}<button class="o-button o-primary" data-testid="checkin-save" ${row.consentStatus !== 'complete' ? 'disabled' : ''}>${row.status === 'checked_in' ? 'Save clothing' : 'Record check-in'}</button></form>`;
+        body += `<form id="checkin-form" class="o-checkin-form"><h3>${row.status === 'checked_in' ? 'Update clothing' : 'Drop-off'}</h3>${colorSelect('checkin-jacket','Jacket colour',clothingColor(row.clothing,'jacket'))}${colorSelect('checkin-helmet','Helmet colour',clothingColor(row.clothing,'helmet'))}<label class="o-clothing-notes">Other clothing details (optional)<textarea data-testid="checkin-clothing-notes" rows="2" placeholder="Patterns, logos, or other details"></textarea></label><p class="o-note">Confirm what the child is wearing today.</p>${row.consentStatus !== 'complete' ? '<p class="o-warning">Guardian consent is required before check-in. Ask the guardian to complete consent; staff cannot override it.</p>' : ''}<button class="o-button o-primary" data-testid="checkin-save" ${row.consentStatus !== 'complete' ? 'disabled' : ''}>${row.status === 'checked_in' ? 'Save clothing' : 'Record check-in'}</button></form>`;
         const adults = activeAdults(row);
         body += `<form id="pickup-form"><h3>Verify pickup</h3><p>Check the adult's identity against today's authorization before releasing the child.</p><label>Authorized adult<select data-testid="pickup-adult" required><option value="">Choose an adult</option>${adults.map((a,i)=>`<option value="${i}">${e(a.name)} — ${e(a.relationship)}</option>`).join('')}</select></label>${field('pickup-staff','Verifying staff')}<label class="o-checkbox"><input type="checkbox" data-testid="pickup-verified" required> I checked this adult's identity and authorization.</label><p class="o-note">An unlisted adult cannot collect this child. Ask the director to resolve authorization.</p><button class="o-button o-primary" data-testid="pickup-save" ${row.status !== 'checked_in' || !adults.length ? 'disabled' : ''}>Record release</button>${row.status !== 'checked_in' ? '<p class="o-warning">This child has not checked in.</p>' : ''}</form>`;
       }
@@ -88,7 +90,7 @@ export function createOperations(root, seed, {onChange}) {
       const child = seed.children.find(child=>child.id===selected);
       if (child?.consentStatus !== 'complete') return;
       const attendance = seed.attendance.find(a=>a.childId===selected);
-      attendance.clothing = value('checkin-clothing'); attendance.status = 'checked_in';
+      attendance.clothing = `${value('checkin-jacket')} jacket, ${value('checkin-helmet')} helmet${value('checkin-clothing-notes') ? `; ${value('checkin-clothing-notes')}` : ''}`; attendance.status = 'checked_in';
       onChange(); render(role,tab); detail(rows().find(r=>r.childId===selected));
     });
     activeHost.querySelector('#pickup-form')?.addEventListener('submit', event => {

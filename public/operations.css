@@ -32,6 +32,10 @@
 .o-dialog-body {padding:22px;overflow-wrap:anywhere;}
 .o-dialog-body>p:first-child {margin-top:0;}
 .o-dialog form {display:grid;gap:18px;margin-top:24px;}
+.o-dialog .o-checkin-form { grid-template-columns:1fr 1fr; }
+.o-dialog .o-checkin-form h3,.o-dialog .o-checkin-form p,.o-dialog .o-checkin-form button { grid-column:1/-1; }
+.o-dialog .o-checkin-form .o-clothing-notes { grid-column:1/-1; }
+.o-dialog .o-checkin-form textarea { width:100%; min-width:0; padding:10px; border:1px solid #aebfba; border-radius:5px; font:inherit; resize:vertical; }
 .o-dialog form h3,.o-dialog form p {margin:0;}
 .o-dialog label {display:grid;gap:6px;font-size:14px;font-weight:600;}
 .o-dialog input,.o-dialog select {width:100%;min-width:0;font-size:16px;}
