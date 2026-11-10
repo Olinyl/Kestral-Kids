@@ -3,6 +3,7 @@
 .o-heading p,.o-note,.o-record,.o-footer {color:var(--muted);}
 .o-heading p {margin:5px 0 0;}
 .o-search {display:grid;gap:6px;max-width:440px;margin-bottom:22px;font-weight:600;font-size:14px;}
+.o-desk-summary { margin:-12px 0 10px; color:var(--muted); font-size:13px; }
 .o-list {border:1px solid var(--line);border-radius:8px;background:white;overflow:hidden;}
 .o-roster-row {display:grid;grid-template-columns:minmax(0,1fr) 110px 150px 130px;align-items:center;gap:24px;padding:22px;}
 .o-roster-row + .o-roster-row {border-top:1px solid var(--line);}
@@ -16,6 +17,12 @@
 .o-danger:hover,.o-danger:active {background:#991b1b;color:white;}
 .o-alert-sent {display:inline-block;color:#b91f1f;background:#fff0ef;border:1px solid #efb6b0;border-left:4px solid #b91f1f;border-radius:6px;padding:10px 14px;font-weight:750;}
 .o-row-actions {display:grid;gap:8px;}
+.o-detail-actions {display:flex;justify-content:flex-end;padding-top:14px;margin-top:16px;border-top:1px solid var(--line);}
+.o-report-missing,.desk-view .o-report-missing {width:100%;background:#b91f1f;border-color:#b91f1f;color:#fff;}
+.o-report-missing:hover,.desk-view .o-report-missing:hover {background:#991b1b;border-color:#991b1b;}
+.o-time-stepper {display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:10px;}
+.o-time-stepper .o-button {min-height:46px;}
+.o-form-error {color:#963e2c;font-size:14px;}
 .o-button:active {background:#e1ebe6;}
 .o-primary:active {background:#153e2e;}
 .o-button:disabled {opacity:.55;cursor:not-allowed;}
@@ -41,6 +48,7 @@
 .o-dialog form h3,.o-dialog form p {margin:0;}
 .o-dialog label {display:grid;gap:6px;font-size:14px;font-weight:600;}
 .o-dialog input,.o-dialog select {width:100%;min-width:0;font-size:16px;}
+.o-dialog input[type="time"] {min-height:52px;padding:10px 12px;font-size:18px;appearance:auto;-webkit-appearance:auto;color-scheme:light;cursor:pointer;touch-action:manipulation;}
 .o-dialog .o-checkbox {display:flex;align-items:start;gap:12px;}
 .o-checkbox input {width:22px;height:22px;min-height:22px;flex-shrink:0;}
 .o-facts {margin:20px 0;}
@@ -65,6 +73,7 @@ button,a {touch-action:manipulation;}
  .o-dialog {max-height:calc(100dvh - 24px);}
  .o-dialog-body {padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px));}
  input,select,textarea {font-size:16px;}
+ .o-dialog input[type="time"] {min-height:56px;font-size:18px;}
 }
 
 /* Operational screens follow the owner's Figma ideas (2:45 and 2:101). */
@@ -95,10 +104,30 @@ body.desk-view,body.instructor-view {color:#173f39;background:#f5f8f7;--line:#d8
 .o-roster-heading h3,.o-medical-list h3 {font-size:13px;margin:0;}
 .instructor-view .o-list {border:0;background:transparent;overflow:visible;}
 .instructor-view .o-roster-row {display:block;padding:0;border:0;margin-bottom:8px;}
+.instructor-view .o-group-card {margin-top:16px;padding:16px;border:1px solid #d8e4e0;border-radius:12px;background:#fff;}
+.instructor-view .o-group-card .o-roster-heading {margin:0 0 12px;}
+.instructor-view .o-group-card .o-list {display:grid;gap:10px;}
+.instructor-view .o-group-card .o-roster-row {margin:0;}
+#live-workspace .o-list {border:0;background:transparent;overflow:visible;}
+#live-workspace .live-child-row {display:block;padding:0;border:0;margin-bottom:8px;}
+#live-workspace .o-instructor-child {grid-template-columns:minmax(0,1fr) auto;}
 .o-instructor-child {display:grid;grid-template-columns:18px minmax(0,1fr) auto auto;gap:8px;align-items:center;text-align:start;width:100%;padding:16px 14px;border:1px solid #d8e4e0;border-radius:16px;background:white;min-height:56px;}
 .o-instructor-child strong {font-size:15px;overflow-wrap:anywhere;font-weight:600;}
 .instructor-view .o-instructor-child .bib {font-size:12px;color:#4d6964;font-weight:500;white-space:nowrap;}
-.o-instructor-alert {font-size:12px;font-weight:600;color:#b91f1f;white-space:nowrap;}
+.o-instructor-child.is-not-checked-in {background:#edf0ef;border-color:#d5dcda;color:#697774;}
+.o-instructor-child.is-not-checked-in strong {color:#53625f;}
+.o-instructor-status {grid-column:1/-1;color:#667672;font-size:12px;font-weight:600;}
+.o-instructor-view-child {width:100%;min-height:42px;margin-top:6px;}
+.o-instructor-category {margin-top:18px;}
+.o-instructor-category-heading {display:flex;justify-content:space-between;align-items:center;margin:0 2px 10px;color:#4d6964;font-size:13px;}
+.o-instructor-category-heading h4 {margin:0;font-size:14px;}
+.instructor-view .o-instructor-card,#live-workspace .o-instructor-card {display:flex;flex-direction:row;flex-wrap:nowrap;justify-content:space-between;align-items:center;gap:16px;margin-bottom:8px;padding:16px 20px;border:1px solid #d8e4e0;border-radius:8px;background:#fff;}
+.instructor-view .o-instructor-child,#live-workspace .o-instructor-child {flex:1;min-width:0;width:auto;padding:6px 0;border:0;border-radius:0;background:transparent;}
+.instructor-view .o-instructor-card.is-not-checked-in-card,#live-workspace .o-instructor-card.is-not-checked-in-card {background:#edf0ef;border-color:#d5dcda;}
+.instructor-view .o-instructor-view-child,#live-workspace .o-instructor-view-child {flex:0 0 auto;width:auto;min-width:92px;min-height:40px;margin:0;padding:8px 13px;border-color:#bdcbc5;background:#fff;white-space:nowrap;}
+.instructor-view .o-instructor-actions,#live-workspace .o-instructor-actions {display:flex;flex:0 0 auto;align-items:center;justify-content:flex-end;gap:14px;}
+.instructor-view .o-instructor-card.is-not-checked-in-card .o-instructor-view-child,#live-workspace .o-instructor-card.is-not-checked-in-card .o-instructor-view-child {background:#e2e7e5;border-color:#d0d8d5;color:#53625f;}
+.o-instructor-alert {font-size:12px;font-weight:700;color:#b91f1f;white-space:nowrap;}
 .o-row-number {color:#205d46;font-size:12px;}
 .o-medical-list {margin-top:24px;}
 .o-medical-item {margin-top:12px;border:1px solid #d8e4e0;background:#fff4ce;border-radius:16px;padding:14px 16px;font-size:14px;overflow-wrap:anywhere;}
@@ -115,9 +144,12 @@ body.desk-view,body.instructor-view {color:#173f39;background:#f5f8f7;--line:#d8
 @media(max-width:650px) {
  .desk-view nav button {font-size:12px;padding-inline:2px;}
  .o-pagination {align-items:start;flex-wrap:wrap;}
- .o-filters {display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+ .o-filters {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
  .o-filters select {min-width:0;font-size:16px;}
  .instructor-view .wrap {width:calc(100% - 36px);}
+ .instructor-view .o-group-card {padding:12px;}
+ .instructor-view .o-group-card .o-list {gap:8px;}
+ .instructor-view .o-instructor-card,#live-workspace .o-instructor-card {gap:10px;padding:12px;}
  .o-dialog header {padding:18px;}
  .o-heading h2 {font-size:24px;}
  .o-search {max-width:none;}
@@ -138,6 +170,7 @@ body .navigation nav button[aria-current] {background:#e3f0e6;color:#205d46;}
 .o-primary:active {background:#164632;}
 .o-dialog {color:#173f39;background:#f5f8f7;}
 .o-dialog input,.o-dialog select,.desk-view input,.desk-view select {border-color:#aebfba;}
+#live-workspace .o-instructor-status {grid-column:1/-1;}
 .o-instructor-child {border-color:#d8e4e0;border-radius:10px;}
 .o-row-number {color:#397d62;}
 .instructor-view .o-instructor-child .bib {color:#4d6964;}
@@ -181,7 +214,7 @@ body .navigation nav button[aria-current] {background:#e3f0e6;color:#205d46;}
  .desk-view .o-dialog form {gap:12px;margin-top:18px;}
 }
 @media(min-width:1024px) {
- .o-desk-layout {display:grid;grid-template-columns:minmax(300px,360px) minmax(0,1fr);gap:24px;align-items:start;}
+ .o-desk-layout {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start;}
  .o-desk-roster {min-width:0;}
  .o-desk-roster .o-list {max-height:58dvh;overflow:auto;overscroll-behavior:contain;}
  .o-desk-roster .o-search {max-width:none;}
@@ -230,3 +263,116 @@ body .navigation nav button[aria-current] {background:#e3f0e6;color:#205d46;}
 .instructor-report-cta .o-danger:disabled,.desk-view .o-danger:disabled { background:#b91f1f; border-color:#b91f1f; box-shadow:none; transform:none; }
 .desk-view .workspace,.director-view .workspace,.instructor-view .workspace,.guardian-view .workspace { padding-top:28px; }
 .desk-view .workspace>h1,.director-view .workspace>h1,.instructor-view .workspace>h1,.guardian-view .workspace>h1 { margin:2px 0 18px; font-size:clamp(1.65rem,4vw,2rem); line-height:1.2; }
+
+/* Instructor roster polish within the shared green workspace guide. */
+.instructor-view #app-shell .o-heading {padding:18px 20px;margin-bottom:18px;border-left:3px solid #397d62;}
+.instructor-view #app-shell .o-heading h2 {line-height:1.2;letter-spacing:-.025em;}
+.instructor-view #app-shell .o-medical-list {margin:0 0 16px;padding:16px 18px;border:1px solid #e4d79b;border-radius:12px;background:#fff8df;}
+.instructor-view #app-shell .o-medical-list h3 {font-size:14px;letter-spacing:.01em;}
+.instructor-view #app-shell .o-medical-header,#live-workspace .o-medical-header {display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.instructor-view #app-shell .o-medical-eyebrow,#live-workspace .o-medical-eyebrow {display:block;margin-bottom:3px;color:#6b6550;font-size:10px;font-weight:750;letter-spacing:.08em;text-transform:uppercase;}
+.instructor-view #app-shell .o-medical-list h3,#live-workspace .o-medical-list h3 {font-size:16px;letter-spacing:-.01em;}
+.instructor-view #app-shell .o-medical-count,#live-workspace .o-medical-count {flex:none;padding:5px 9px;border:1px solid #e6d697;border-radius:999px;background:#fffdf4;color:#735b19;font-size:12px;font-weight:700;}
+.instructor-view #app-shell .o-medical-clear,#live-workspace .o-medical-clear {margin:12px 0 0;color:#5a625c;font-size:14px;}
+.instructor-view #app-shell .o-medical-item,#live-workspace .o-medical-item {margin-top:12px;border:1px solid #eadca7;border-left:3px solid #bd9634;border-radius:10px;padding:12px 14px;background:#fffefa;}
+.instructor-view #app-shell .o-medical-item-heading,#live-workspace .o-medical-item-heading {display:flex;align-items:center;flex-wrap:wrap;gap:8px;}
+.instructor-view #app-shell .o-medical-mark,#live-workspace .o-medical-mark {display:grid;place-items:center;width:22px;height:22px;flex:none;border-radius:50%;background:#f3e4af;color:#6c5314;font-size:13px;font-weight:800;}
+.instructor-view #app-shell .o-medical-item-heading strong,#live-workspace .o-medical-item-heading strong {font-size:14px;}
+.instructor-view #app-shell .o-medical-tag,#live-workspace .o-medical-tag {margin-left:auto;padding:3px 7px;border-radius:999px;background:#f7efcf;color:#695415;font-size:10px;font-weight:750;letter-spacing:.03em;text-transform:uppercase;}
+.instructor-view #app-shell .o-medical-item p,#live-workspace .o-medical-item p {margin:7px 0 0 30px;color:#46544f;font-size:14px;line-height:1.45;}
+.instructor-view #app-shell .o-group-card {margin:0 0 14px;padding:16px;overflow:visible;border-radius:12px;}
+.instructor-view #app-shell .o-group-card .o-roster-heading {padding:0;margin:0 0 12px;}
+.instructor-view #app-shell .o-group-card .o-roster-heading h3 {font-size:14px;}
+.instructor-view #app-shell .o-group-card .o-roster-heading span {color:#4d6964;font-size:13px;font-variant-numeric:tabular-nums;}
+.instructor-view #app-shell .o-group-card .o-list {display:grid;gap:10px;padding:0;border:0;overflow:visible;}
+#app-shell #operations .o-group-card .o-roster-row,
+#app-shell #operations .o-group-card .o-roster-row + .o-roster-row {margin:0;padding:12px 14px;border:1px solid #d8e4e0;border-radius:10px;background:#fff;}
+.instructor-view #app-shell .o-group-card .o-instructor-child {padding:0;border:0;background:transparent;}
+.instructor-view #app-shell .o-group-card .o-instructor-child {display:flex;flex:1;flex-direction:column;align-items:stretch;gap:4px;min-width:0;width:auto;}
+.instructor-view #app-shell .o-instructor-primary {display:flex;align-items:center;gap:9px;min-width:0;}
+.instructor-view #app-shell .o-instructor-primary strong {min-width:0;overflow-wrap:anywhere;font-size:16px;line-height:1.3;}
+.instructor-view #app-shell .o-group-card .profile-meta {margin:4px 0 0;gap:6px;}
+.instructor-view #app-shell .o-group-card .profile-meta-item {padding:3px 7px;font-size:12px;}
+.instructor-view #app-shell .o-group-card .o-instructor-card.is-not-checked-in-card {background:#f0f2f1;border-color:#d9dfdd;}
+.instructor-view #app-shell .o-instructor-view-child {min-height:42px;border-radius:7px;font-size:14px;}
+.instructor-view #app-shell .instructor-report-cta {margin-top:18px;}
+#live-workspace .o-medical-list {margin:0 0 16px;padding:16px 18px;border:1px solid #e4d79b;border-radius:12px;background:#fff8df;}
+#live-workspace .o-group-card {margin:0 0 14px;padding:16px;overflow:visible;border:1px solid #d8e4e0;border-radius:12px;background:#fff;}
+#live-workspace .o-group-card .o-roster-heading {padding:0;margin:0 0 12px;}
+#live-workspace .o-group-card .o-list {display:grid;gap:10px;padding:0;border:0;overflow:visible;}
+#live-workspace .o-group-card .o-roster-row,
+#live-workspace .o-group-card .o-roster-row + .o-roster-row {margin:0;padding:12px 14px;border:1px solid #d8e4e0;border-radius:10px;background:#fff;}
+#live-workspace .o-group-card .o-instructor-child {padding:0;border:0;background:transparent;}
+#live-workspace .o-group-card .o-instructor-card.is-not-checked-in-card {background:#f0f2f1;border-color:#d9dfdd;}
+#live-workspace .o-instructor-view-child {min-height:42px;border-radius:7px;font-size:14px;}
+@media(max-width:650px) {
+ .instructor-view #app-shell .o-heading {padding:15px 16px;margin-bottom:14px;}
+ .instructor-view #app-shell .o-medical-list {padding:14px;margin-bottom:14px;}
+ .instructor-view #app-shell .o-group-card {padding:12px;margin-bottom:12px;}
+ .instructor-view #app-shell .o-group-card .o-list {gap:8px;}
+ #app-shell #operations .o-group-card .o-roster-row,
+ #app-shell #operations .o-group-card .o-roster-row + .o-roster-row {gap:8px;padding:10px;}
+ .instructor-view #app-shell .o-instructor-child {grid-template-columns:18px minmax(0,1fr) auto;gap:6px;}
+ .instructor-view #app-shell .o-instructor-child .bib {grid-column:2;}
+ .instructor-view #app-shell .o-instructor-view-child,#live-workspace .o-instructor-view-child {min-width:84px;padding-inline:9px;}
+ .instructor-view #app-shell .o-instructor-actions,#live-workspace .o-instructor-actions {gap:10px;}
+ .instructor-view #app-shell .o-instructor-alert,#live-workspace .o-instructor-alert {font-size:10px;}
+ .instructor-view #app-shell .o-instructor-primary strong {font-size:15px;}
+ .instructor-view #app-shell .o-group-card .profile-meta {gap:4px;}
+ #live-workspace .o-medical-list {padding:14px;margin-bottom:14px;}
+ #live-workspace .o-group-card {padding:12px;margin-bottom:12px;}
+ #live-workspace .o-group-card .o-list {gap:8px;}
+ #live-workspace .o-group-card .o-roster-row,
+ #live-workspace .o-group-card .o-roster-row + .o-roster-row {gap:8px;padding:10px;}
+ #live-workspace .o-instructor-child {grid-template-columns:minmax(0,1fr) auto;gap:6px;}
+ #live-workspace .o-instructor-view-child {min-width:84px;padding-inline:9px;}
+}
+
+/* Keep the desk's safety action visibly urgent in every button state. */
+#app-shell .o-detail-actions .o-report-missing,
+body .o-dialog .o-detail-actions .o-report-missing { background:#b91f1f; border-color:#b91f1f; color:#fff; }
+#app-shell .o-detail-actions .o-report-missing:hover,
+body .o-dialog .o-detail-actions .o-report-missing:hover { background:#991b1b; border-color:#991b1b; color:#fff; }
+
+/* Use the Guardian consent modal's fixed header/footer and scrollable form area. */
+.o-dialog:is(.o-report-dialog,.o-form-dialog) { display:grid; grid-template-rows:auto minmax(0,1fr) auto; overflow:hidden; }
+.o-dialog:is(.o-report-dialog,.o-form-dialog) .o-dialog-body { min-height:0; overflow-y:auto; overscroll-behavior:contain; }
+.o-dialog:is(.o-report-dialog,.o-form-dialog) .o-dialog-body > .o-warning { margin:0 0 14px; }
+.o-dialog:is(.o-report-dialog,.o-form-dialog) .o-dialog-body form { gap:14px; margin-top:0; }
+.o-dialog:is(.o-report-dialog,.o-form-dialog) .o-dialog-body form > p { margin:0; }
+.o-report-footer { display:flex; justify-content:flex-end; gap:10px; padding:16px 22px; border-top:1px solid var(--line); background:#fff; }
+.o-report-footer .o-button { min-width:100px; }
+.o-desk-child-card {position:relative;cursor:pointer;transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease;}
+.o-desk-child-card:focus-visible {outline:3px solid #397d62;outline-offset:2px;}
+.o-desk-child-card .o-card-footer {position:relative;z-index:2;}
+.o-desk-child-card .o-card-footer .o-button {cursor:pointer;}
+.o-desk-child-card:hover,.o-desk-child-card:focus-within { background:#edf5f2!important; border-color:#8fb5a6!important; box-shadow:0 3px 12px rgb(23 63 57 / 9%); }
+.desk-view #desk-detail > .o-empty { display:grid; place-items:center; width:100%; height:100%; min-height:240px; padding:24px; text-align:center; }
+@media(min-width:1024px) {
+ .desk-view #ops-list .o-desk-child-card { grid-template-columns:minmax(0,1fr) auto; padding-right:42px; }
+ .desk-view #ops-list .o-desk-child-card .o-child { grid-column:1; }
+ .desk-view #ops-list .o-desk-child-card .o-status { grid-column:2; grid-row:1; align-self:start; }
+ .desk-view #ops-list .o-desk-child-card .o-card-footer { grid-column:1/-1; }
+}
+@media(max-width:650px) {
+ .desk-view #ops-list .o-desk-child-card { padding-right:40px; }
+ .desk-view #ops-list .o-desk-child-card .o-status { grid-column:1/-1; }
+ .desk-view #ops-list .o-desk-child-card .o-card-footer .o-button { min-height:42px; }
+}
+@media(max-width:650px) {
+ .o-dialog:is(.o-report-dialog,.o-form-dialog) { width:min(760px,calc(100% - 32px)); max-width:760px; height:auto; max-height:calc(100dvh - 32px); margin:auto; border:1px solid #aebfba; border-radius:8px; }
+ .o-dialog:is(.o-report-dialog,.o-form-dialog) > header { position:relative; }
+ .o-dialog:is(.o-report-dialog,.o-form-dialog) .o-dialog-body { padding:18px; }
+ .o-report-footer { padding:14px 18px; }
+}
+
+/* Compact desk roster cards: identity and status share a line, action stays beside it. */
+#app-shell #ops-list .o-desk-child-card { grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:5px 10px; padding:9px 12px; }
+#app-shell #ops-list .o-roster-row.o-desk-child-card + .o-roster-row.o-desk-child-card { margin-top:7px; }
+#app-shell #ops-list .o-desk-child-card .o-child { grid-column:1; gap:2px; }
+#app-shell #ops-list .o-desk-child-card .o-child-title { display:flex; align-items:center; flex-wrap:wrap; gap:7px; min-width:0; }
+#app-shell #ops-list .o-desk-child-card .o-child-title .o-status { flex:none; padding:1px 7px; border-radius:999px; background:#edf5f2; color:#315b48; font-size:12px; line-height:1.5; white-space:nowrap; }
+#app-shell #ops-list .o-desk-child-card .profile-meta { gap:4px; margin:3px 0; }
+#app-shell #ops-list .o-desk-child-card .profile-meta-item { padding:2px 5px; line-height:1.25; }
+#app-shell #ops-list .o-desk-child-card .o-card-footer { grid-column:2; grid-row:1; align-self:center; margin:0; padding:0; border:0; display:flex; justify-content:flex-end; }
+#app-shell #ops-list .o-desk-child-card .o-card-footer .o-button { width:auto; min-width:0; min-height:36px; padding:6px 10px; white-space:nowrap; }

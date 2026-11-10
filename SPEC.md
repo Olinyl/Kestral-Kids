@@ -41,9 +41,9 @@ All records are fictional and come from demo-fixture.json. There is no database 
 - R-023: Staff sign in with Piezas Users. Instructors see their assigned live group and save missing-child reports to Piezas for Desk and Patrol. Instructors call by physical radio; the app does not transmit radio. Desk and Patrol can review active reports; Patrol can mark a child found.
 - R-024: The server verifies the staff session, active role, child attendance and instructor assignment before accepting a report. Client-supplied identity or group is never trusted.
 
-- R-011: The instructor phone preview shows only Alex's assigned group, with bibs, ability level, meeting place, current clothing and relevant medical alerts. Large controls open child details without showing family contact lists.
-- R-012: An instructor can prepare a missing-child radio checklist with last seen time/place, clothing, equipment and injuries. Preparing it never claims to send a report. Desk staff can separately log a received radio report.
-- R-013: Desk staff can search by name, alternate name, bib or group, inspect both emergency contacts and medical information, and record current clothing at check-in. Missing guardian consent blocks check-in, with no staff override. (Owner decision, 2026-11-07.)
+- R-011: The instructor view shows the group number, level, meeting place and assigned children. Checked-in children and children not checked in appear in separate categories; the latter cards are grey, and medical alerts only include children checked in today. Each card has a View child button that opens details without family contact lists and allows clothing and equipment updates.
+- R-012: An instructor can prepare a missing-child radio report with an editable last-seen time defaulted to local time, an initially blank place, clothing, equipment and concerns. Clothing, equipment and medical concerns prefill from the selected child's record; missing values show N/A. Patrol receives the last-seen time in AM/PM format. The app saves the report but does not transmit radio.
+- R-013: Desk staff can search by name, alternate name, bib or group, inspect both emergency contacts and medical information, and record current clothing and equipment at check-in. Missing guardian consent blocks check-in, with no staff override. (Owner decision, 2026-11-07.)
 - R-014: Desk pickup uses adults authorized on the lesson date; staff must choose one, record verifying staff and confirm the identity check. Release records retain adult, staff and time. An unlisted adult cannot release a child.
 - R-015: Desk staff can log an instructor radio report with child identity, last seen details, clothing/equipment and injuries. The log states that patrol handoff happens by radio; it does not send notifications.
 - R-016: Desk and director lists support 200 or more children with full-roster search, visible result counts and pages of 25; desk also has group/status filters. A local-only prototype offers demo, 200, 1,000, worst-case, empty and one-child data; every instructor still has at most six children. (Owner scale concern; page size is an implementation assumption.)
@@ -170,14 +170,14 @@ Then the pickup adult is labelled expired for that lesson day and the group disp
 ### S-015: I can see my own group on my phone
 covers: R-011
 Given I open Instructor on a 390-pixel-wide screen.
-When I open Maya's details and return to the roster.
-Then I see bib 214, her allergy and current clothing, no Noah or guardian phone list, and no horizontal overflow.
+When I open Maya with View child, update her clothing and equipment, and return to the roster.
+Then checked-in children appear separately from greyed-out children who are not checked in, medical alerts only include checked-in children, and child details contain the editable clothing and equipment section without family phone lists.
 
 ### S-016: I can prepare a clear radio handoff
 covers: R-012
 Given I am viewing Maya in Instructor.
-When I choose a child and enter the last seen place, clothing, equipment and injuries.
-Then the app records the local report time automatically, includes the child's identity and bib, and clearly says no radio message was sent.
+When I choose a child and edit the local-time default, last-seen place, clothing, equipment and concerns.
+Then missing details start as N/A, the last-seen place starts blank, Patrol receives the selected time in AM/PM format, and the app says no radio message was sent.
 
 ### S-017: I can find a child and review check-in information
 covers: R-013
@@ -221,7 +221,7 @@ Then the selected screen appears, every tab remains reachable at the viewport bo
 covers: R-018
 Given the local prototype has 200 children assigned across instructors.
 When I select Instructor and open a child.
-Then only my six assigned children appear, group medical reminders are visible, child details open, and there is no claim that offline access is available.
+Then checked-in and not-checked-in children appear in separate categories, unchecked cards are grey, medical alerts exclude unchecked children, each card has View child, and the heading shows group number and level.
 
 ### S-024: I can manage children from Lesson groups
 covers: R-019
