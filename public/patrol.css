@@ -109,7 +109,10 @@ body.patrol-view { background:#f5f8f7; color:#173f39; }
  .patrol-view .p-alert-main { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-column:1/-1; min-width:0; overflow:hidden; border:1px solid #edd3ce; border-radius:17px; background:#fff; }
  .patrol-view .p-alert-head { grid-column:1/-1; }
  .patrol-view .p-left-column,.patrol-view .p-right-column { min-width:0; align-self:stretch; }
- .patrol-view .p-facts { align-content:start; }
+ .patrol-view .p-facts { grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:16px; align-content:start; padding:8px 16px 10px; }
+ .patrol-view .p-fact { grid-template-columns:28px minmax(0,1fr); gap:8px; padding:9px 0; }
+ .patrol-view .p-fact h3 { font-size:9px; letter-spacing:.1em; }
+ .patrol-view .p-fact p { font-size:13px; }
  .patrol-view .p-right-column > section { min-width:0; }
  .patrol-view .p-right-column .p-contact { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
  .patrol-view .p-patrol-logs { display:contents; }
