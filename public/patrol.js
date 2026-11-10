@@ -71,7 +71,6 @@ export function createPatrol(root, seed, { onSignOut }) {
           ${alert.emergencyContacts?.length ? `<section class="p-contacts"><h3>Emergency contacts for police handoff</h3>
             ${alert.emergencyContacts.map(contact => `<div class="p-contact"><div><strong>${escapeHtml(contact.name)}</strong><span>${escapeHtml(contact.relationship)}</span></div><div class="p-contact-phone"><a href="tel:${escapeHtml(contact.phone)}">${escapeHtml(contact.phone)}</a><span>${escapeHtml(contact.phoneStatus)}</span></div></div>`).join('')}
           </section>` : ''}
-          ${alert.escalation ? `<p class="p-escalation" data-testid="patrol-escalation">${escapeHtml(alert.escalation)}</p>` : ''}
           <section class="p-actions-panel" data-testid="patrol-actions">
             <h3>Actions</h3>
             <div class="p-action-buttons">
@@ -81,7 +80,11 @@ export function createPatrol(root, seed, { onSignOut }) {
               <button class="p-action-button p-action-police" type="button" data-testid="patrol-call-police" data-action="police" data-alert-id="${escapeHtml(alert.id)}">Call police (1 hr)</button>
             </div>
             <div class="p-police-confirmation" data-testid="patrol-police-confirmation" data-alert-id="${escapeHtml(alert.id)}" role="group" aria-labelledby="patrol-police-confirm-title-${escapeHtml(alert.id)}" hidden>
-              <p id="patrol-police-confirm-title-${escapeHtml(alert.id)}">Are you sure you want to call police now? Confirm this action before continuing.</p>
+              <div class="p-police-confirm-copy" id="patrol-police-confirm-title-${escapeHtml(alert.id)}">
+                <strong>Are you sure you want to call police now?</strong>
+                <span>Police will coordinate with Search and Rescue and handle family communications.</span>
+                <span class="p-preview-only">* This is a preview only. No call will be placed.</span>
+              </div>
               <div><button class="p-police-cancel" type="button" data-police-cancel>Cancel</button><button class="p-police-confirm" type="button" data-police-confirm>Confirm</button></div>
             </div>
             <p class="p-family-note">Police lead family communication once engaged.</p>

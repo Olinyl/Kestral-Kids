@@ -66,8 +66,10 @@ body.patrol-view { background:#f5f8f7; color:#173f39; }
 .p-action-police { border-color:#b91c1c; background:#bf1e1e; color:#fff; }
 .p-police-confirmation { display:grid; gap:9px; margin-top:10px; padding:12px; border:1px solid #e7b2aa; border-radius:10px; background:#fff4f1; color:#68352b; }
 .p-police-confirmation[hidden] { display:none; }
-.p-police-confirmation p { margin:0; font-size:12px; line-height:1.5; }
-.p-police-confirmation>div { display:flex; justify-content:flex-end; gap:8px; }
+.p-police-confirm-copy { display:grid; gap:4px; font-size:12px; line-height:1.5; }
+.p-police-confirm-copy strong { font-size:13px; }
+.p-preview-only { color:#788795; }
+.p-police-confirmation>div:last-child { display:flex; justify-content:flex-end; gap:8px; }
 .p-police-confirmation button { min-height:36px; padding:6px 12px; border:1px solid #d5dfeb; border-radius:8px; background:#fff; color:#344359; font:inherit; font-size:12px; font-weight:700; }
 .p-police-confirmation .p-police-confirm { border-color:#b91f1f; background:#b91f1f; color:#fff; }
 .p-action-copy { grid-column:auto; }
