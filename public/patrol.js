@@ -117,8 +117,45 @@ export function createPatrol(root, seed, { onSignOut }) {
             <div class="p-carousel-dots">${alerts.map((alert,index) => `<button type="button" class="p-carousel-dot" data-testid="patrol-alert-dot-${index + 1}" data-alert-index="${index}" aria-label="Show alert ${index + 1} of ${alerts.length}" aria-current="${index === 0 ? 'true' : 'false'}"></button>`).join('')}</div>
           </div>` : ''}
         </div>` : '<p class="p-empty" data-testid="patrol-empty">No active alerts from the school desk.</p>'}
+        ${alerts.length ? `<button type="button" class="p-logs-fab" data-testid="patrol-open-logs" aria-label="Open search and system logs" aria-controls="patrol-logs-modal" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg><span>Logs</span></button>
+        <div class="p-logs-modal" id="patrol-logs-modal" data-testid="patrol-logs-modal" role="presentation" hidden><section class="p-logs-dialog" role="dialog" aria-modal="true" aria-labelledby="patrol-logs-title"><div class="p-logs-modal-heading"><h2 id="patrol-logs-title">Search &amp; system logs</h2><button type="button" class="p-logs-close" data-testid="patrol-close-logs" aria-label="Close logs">×</button></div><div class="p-logs-modal-content"></div></section></div>` : ''}
       </div>
     </section>`;
+    const logsFab = root.querySelector('[data-testid="patrol-open-logs"]');
+    const logsModal = root.querySelector('[data-testid="patrol-logs-modal"]');
+    const modalContent = logsModal?.querySelector('.p-logs-modal-content');
+    let movedLogs = null;
+    let logsPlaceholder = null;
+    const closeLogs = () => {
+      if (movedLogs && logsPlaceholder?.parentNode) logsPlaceholder.replaceWith(movedLogs);
+      movedLogs = null;
+      logsPlaceholder = null;
+      if (logsModal) logsModal.hidden = true;
+      logsFab?.setAttribute('aria-expanded', 'false');
+      logsFab?.focus();
+    };
+    if (logsFab && logsModal && modalContent) {
+      logsFab.addEventListener('click', () => {
+        const track = root.querySelector('[data-testid="patrol-alert-list"]');
+        const step = (track?.clientWidth || 0) + (track ? parseFloat(getComputedStyle(track).columnGap) || 0 : 0);
+        const activeIndex = step ? Math.round(track.scrollLeft / step) : 0;
+        const activeCard = track?.querySelectorAll('.p-alert-card')[activeIndex] || track?.querySelector('.p-alert-card');
+        const logs = activeCard?.querySelector('.p-patrol-logs');
+        if (!logs) return;
+        logsPlaceholder = document.createComment('patrol logs position');
+        logs.before(logsPlaceholder);
+        movedLogs = logs;
+        modalContent.append(logs);
+        logsModal.hidden = false;
+        logsFab.setAttribute('aria-expanded', 'true');
+        logsModal.querySelector('[data-testid="patrol-close-logs"]')?.focus();
+      });
+      logsModal.querySelector('[data-testid="patrol-close-logs"]')?.addEventListener('click', closeLogs);
+      logsModal.addEventListener('click', event => { if (event.target === logsModal) closeLogs(); });
+      logsModal.querySelector('[role="dialog"]')?.addEventListener('keydown', event => {
+        if (event.key === 'Escape') closeLogs();
+      });
+    }
     const alertTrack = root.querySelector('[data-testid="patrol-alert-list"]');
     if (alertTrack && alerts.length > 1) {
       const position = root.querySelector('[data-testid="patrol-alert-position"]');

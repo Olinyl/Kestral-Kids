@@ -88,6 +88,20 @@ body.patrol-view { background:#f5f8f7; color:#173f39; }
 .p-action-message { margin:9px 1px 0; padding:9px 11px; border-radius:8px; background:#eef4f1; color:#315a52; font-size:12px; line-height:1.5; }
 .p-empty { padding:20px; border:1px solid #dce6e2; border-radius:14px; background:white; color:#4d6964; }
 .p-patrol-logs { display:none; }
+.p-logs-fab { display:none; }
+.p-logs-modal { position:fixed; inset:0; z-index:1000; display:grid; place-items:center; padding:14px; background:rgba(20,39,36,.55); }
+.p-logs-modal[hidden] { display:none; }
+.p-logs-dialog { display:flex; flex-direction:column; width:min(100%,620px); max-height:88dvh; overflow-y:auto; padding:14px; border-radius:18px; background:#f7f9f8; box-shadow:0 18px 48px rgba(18,40,36,.28); }
+.p-logs-modal-heading { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px; }
+.p-logs-modal-heading h2 { margin:0; color:#173f39; font-size:18px; }
+.p-logs-close { display:grid; place-items:center; width:36px; height:36px; border:1px solid #d8e4e0; border-radius:50%; background:#fff; color:#426c63; font-size:24px; line-height:1; }
+.p-logs-modal .p-patrol-logs { display:grid; gap:12px; }
+.p-logs-modal .p-log-panel { display:flex; flex-direction:column; height:min(34dvh,290px); min-height:190px; overflow:hidden; padding:13px; border-radius:14px; }
+.p-logs-modal .p-log-entries { flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior-y:contain; }
+.p-logs-modal .p-log-row { grid-template-columns:48px minmax(0,1fr) minmax(72px,auto); gap:8px; min-height:38px; font-size:12px; }
+.p-logs-modal .p-log-row strong { font-size:11px; }
+.p-logs-modal .p-log-heading h3 { font-size:13px; }
+.p-logs-modal .p-log-badge { padding:4px 7px; font-size:9px; }
 .p-log-panel { padding:18px 22px; border:1px solid #dce5ee; border-radius:17px; background:#fff; }
 .p-log-heading { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:11px; }
 .p-log-heading h3 { margin:0; color:#536984; font-size:15px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
@@ -150,6 +164,14 @@ body.patrol-view { background:#f5f8f7; color:#173f39; }
  .p-actions-panel>h3 { display:none; }
  .p-medical,.p-contacts,.p-escalation { padding-inline:18px; }
  .p-actions-panel { padding-inline:12px; }
+ .p-logs-fab { position:fixed; top:calc(env(safe-area-inset-top) + 72px); right:14px; z-index:30; display:grid; justify-items:center; align-content:center; gap:2px; width:62px; height:62px; padding:6px; border:0; border-radius:50%; background:#edf4f1; color:#578579; box-shadow:0 5px 16px rgba(55,94,82,.24); font-size:10px; font-weight:800; line-height:1; }
+ .p-logs-fab svg { width:21px; height:21px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+ .p-logs-fab:focus-visible,.p-logs-close:focus-visible { outline:3px solid #174f43; outline-offset:3px; }
+ .p-logs-dialog { max-height:88dvh; padding:11px; border-radius:15px; }
+ .p-logs-modal .p-log-panel { height:34dvh; min-height:170px; padding:11px; }
+ .p-logs-modal .p-log-actions { margin-bottom:8px; }
+ .p-logs-modal .p-log-button { min-height:36px; padding:6px 11px; font-size:12px; }
+ .p-logs-modal .p-log-note { margin-top:8px; font-size:10px; }
 }
 @media(min-width:440px) and (min-height:950px) {
  .patrol-view .p-detail-panel { grid-template-columns:minmax(0,1fr); }
