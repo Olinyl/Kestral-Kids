@@ -47,7 +47,12 @@ export function createDirector(root, seed, { onChange, onNavigate }) {
   renderNotifications();
   const knownAlerts=new Set((seed.patrolAlerts||[]).map(alert=>String(alert.id)));
   const observedAlertStatus=new Map((seed.patrolAlerts||[]).map(alert=>[String(alert.id),String(alert.status||'active').toLowerCase()]));
+  const guardianSnapshot=()=>JSON.stringify([seed.children.map(child=>[child.id,child.guardianId,child.emergencyName,child.emergencyPhone,child.emergencyRelationship,child.emergencyName2,child.emergencyPhone2,child.emergencyRelationship2,child.medical,child.medications,child.allergies,child.consentUpdatedAt]),seed.guardians.map(person=>[person.id,person.name,person.phone,person.email])]);
+  let priorGuardianSnapshot=guardianSnapshot();
   window.addEventListener('kestrel:preview-change',()=>{
+    const nextGuardianSnapshot=guardianSnapshot();
+    if(nextGuardianSnapshot!==priorGuardianSnapshot)notify('Guardian or emergency contact details were updated.');
+    priorGuardianSnapshot=nextGuardianSnapshot;
     for(const alert of seed.patrolAlerts||[]) {
       const id=String(alert.id),status=String(alert.status||'active').toLowerCase();
       const previous=observedAlertStatus.get(id);
@@ -336,6 +341,14 @@ export function createDirector(root, seed, { onChange, onNavigate }) {
       const person = record ?? { id: 'demo-instructor-new-' + ++serial };
       Object.assign(person, { name: value(kind + '-name'), email: value(kind + '-email'), phone: formatPhone(phone) });
       if (kind === 'instructor') person.qualification = value('instructor-qualification');
+      if (kind === 'guardian') {
+        for (const child of seed.children.filter(item=>item.guardianId===person.id)) {
+          child.emergencyName=person.name;
+          child.emergencyPhone=person.phone;
+          child.emergencyRelationship=child.emergencyRelationship||'Guardian';
+          child.consentUpdatedAt=new Date().toISOString().slice(0,10);
+        }
+      }
       if (!record) people.push(person);
       notice = person.name + ' saved in the demo.';
     }

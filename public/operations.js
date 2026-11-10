@@ -38,12 +38,23 @@ export function createOperations(root, seed, {onChange}) {
     panel.querySelector('[data-clear-instructor-notifications]').onclick=()=>{notifications.length=0;renderNotifications();};
   }
   const notify=text=>{notifications.unshift({text,time:new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}),read:document.body.classList.contains('instructor-view')&&role==='instructor'&&tab==='Alerts'});renderNotifications();};
-  const guardianSnapshot=()=>JSON.stringify(seed.children.map(child=>[child.id,child.medical,child.medications,child.allergies,child.emergencyName,child.emergencyPhone,child.emergencyRelationship,child.emergencyName2,child.emergencyPhone2,child.emergencyRelationship2,child.pickupAdults,child.consentStatus,child.consentUpdatedAt]));
+  const guardianSnapshot=()=>JSON.stringify([seed.children.map(child=>[child.id,child.medical,child.medications,child.allergies,child.emergencyName,child.emergencyPhone,child.emergencyRelationship,child.emergencyName2,child.emergencyPhone2,child.emergencyRelationship2,child.pickupAdults,child.consentStatus,child.consentUpdatedAt]),seed.guardians.map(person=>[person.id,person.name,person.phone,person.email,person.relationship])]);
   let priorGuardianSnapshot=guardianSnapshot();
   const observedAlertStatus=new Map((seed.patrolAlerts||[]).map(alert=>[String(alert.id),String(alert.status||'active').toLowerCase()]));
   window.addEventListener('kestrel:preview-change',()=>{
     const next=guardianSnapshot();
-    if(next!==priorGuardianSnapshot&&role==='instructor')notify('A Guardian updated child health, contact, or pickup information. Review the child record.');
+    if(next!==priorGuardianSnapshot){
+      for(const alert of seed.patrolAlerts||[]){
+        if(alert.active===false||String(alert.status||'').toLowerCase()==='found')continue;
+        const child=seed.children.find(record=>String(record.id)===String(alert.childId));
+        if(!child)continue;
+        alert.emergencyContacts=guardianContacts(child);
+        alert.authorizedPickupAdults=(child.pickupAdults||[]).map(adult=>({name:adult.name,relationship:adult.relationship||'Other'}));
+        alert.medical=guardianHealth(child);
+        alert.guardianUpdateDate=child.consentUpdatedAt||'Not recorded';
+        alert.consentStatus=child.consentStatus||'Not recorded';
+      }
+    }
     priorGuardianSnapshot=next;
     for(const alert of seed.patrolAlerts||[]){
       const id=String(alert.id),status=String(alert.status||'active').toLowerCase(),previous=observedAlertStatus.get(id);
@@ -78,9 +89,9 @@ export function createOperations(root, seed, {onChange}) {
     child?.allergies && `Allergies: ${child.allergies}`,
   ].filter(Boolean).join('\n') || 'N/A';
   const guardianContacts = child => [
-    {name:child?.emergencyName,relationship:child?.emergencyRelationship||'Emergency contact',phone:child?.emergencyPhone},
+    {name:child?.emergencyName,relationship:child?.emergencyRelationship||'Guardian / emergency contact',phone:child?.emergencyPhone},
     {name:child?.emergencyName2,relationship:child?.emergencyRelationship2||'Emergency contact',phone:child?.emergencyPhone2},
-  ].filter(contact=>contact.name).map(contact=>({...contact,phone:contact.phone||'Not provided',phoneStatus:contact.phone?'Verify before use':'Phone not provided'}));
+  ].filter(contact=>contact.name||contact.phone).map(contact=>({...contact,phone:contact.phone||'Not provided',phoneStatus:contact.phone?'Verify before use':'Phone not provided'}));
   const own = () => rows().filter(r => role !== 'instructor' || r.group?.instructorId === 'demo-instructor-01');
   const programDay = row => {const program=String(row.program||row.storeRegistration?.program||row.group?.program||'').toLowerCase();return /\bsat(?:urday)?\b/.test(program)?'sat':/\bsun(?:day)?\b/.test(program)?'sun':'';};
   const activeAdults = child => (child.pickupAdults ?? []).filter(a => (!a.validFrom || a.validFrom <= seed.lessonDate) && (!a.validUntil || a.validUntil >= seed.lessonDate));
@@ -205,15 +216,15 @@ export function createOperations(root, seed, {onChange}) {
       place:'',
       clothing:child?.clothing||'N/A',
       equipment:child?.equipment||'N/A',
-      concerns:guardianHealth(child),
+      concerns:'',
     });
-    const initial=instructor ? prefill(row) : deskMissing ? {place:'',clothing:row?.clothing||'',equipment:row?.equipment||'',concerns:row?.medical ? `Medical: ${row.medical}` : ''} : {place:'',clothing:'',equipment:'',concerns:''};
+    const initial=instructor ? prefill(row) : deskMissing ? {place:'',clothing:row?.clothing||'',equipment:row?.equipment||'',concerns:''} : {place:'',clothing:'',equipment:'',concerns:''};
     const currentTime=()=>{const now=new Date();return `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;};
     const roundedTime=()=>{const [hours,minutes]=currentTime().split(':').map(Number);return `${String(hours).padStart(2,'0')}:${String(Math.floor(minutes/10)*10).padStart(2,'0')}`;};
     const lastSeenField=deskMissing?`<div class="o-time-stepper">${field('radio-time','Last seen time',roundedTime(),'time')}<button type="button" class="o-button" data-testid="radio-time-earlier">Earlier by 10 min</button></div>`:instructor?`${field('radio-time','Last seen time',defaultTime,'time')}<p class="o-note">Defaults to local time; tap to edit. <strong data-testid="radio-time-auto">${e(formatTime12(defaultTime))}</strong></p>`:field('radio-time','Last seen time','','time');
     const reportTitle=instructor||deskMissing?'Report missing child':'Log a received radio report';
     const reportNote=instructor?'This prepares a demo report for Patrol. Call by radio; this app does not transmit radio.':deskMissing?'Review the details, add where and when the child was last seen, then save the report for Patrol. This does not send a radio message.':'Record the report received by the desk.';
-    show(reportTitle, `<p class="o-warning">${reportNote}</p><form id="radio-form">${(instructor||deskMissing)&&row ? `<p><strong>${e(row.displayName)}</strong> · Bib ${e(row.bib)} · ${e(row.group?.label||'Group not recorded')}</p>` : `<label>Child<select data-testid="radio-child" required><option value="">Choose a child</option>${(instructor ? own().filter(r=>r.status==='checked_in'&&!r.release) : rows()).map(r=>`<option value="${e(r.childId)}">${e(r.displayName)} · Bib ${e(r.bib)}</option>`).join('')}</select></label>`}${lastSeenField}${deskMissing?'<p class="o-form-error" data-testid="radio-time-error" hidden>Last seen time cannot be in the future.</p>':''}${field('radio-place','Last seen place',initial.place)}${field('radio-clothing','Clothing',initial.clothing)}${field('radio-equipment','Skis, helmet and other equipment',initial.equipment)}${field('radio-injuries','Injuries or concerns',initial.concerns)}${instructor ? '' : field('radio-staff',deskMissing?'Reporting staff':'Receiving staff')}${deskMissing?'':`<button class="o-button o-primary" data-testid="radio-save">${instructor?'Save report for Desk and Patrol':'Save received report'}</button>`}</form>`, undefined, false, deskMissing ? 'report' : '');
+    show(reportTitle, `<p class="o-warning">${reportNote}</p><form id="radio-form">${(instructor||deskMissing)&&row ? `<p><strong>${e(row.displayName)}</strong> · Bib ${e(row.bib)} · ${e(row.group?.label||'Group not recorded')}</p>` : `<label>Child<select data-testid="radio-child" required><option value="">Choose a child</option>${(instructor ? own().filter(r=>r.status==='checked_in'&&!r.release) : rows()).map(r=>`<option value="${e(r.childId)}">${e(r.displayName)} · Bib ${e(r.bib)}</option>`).join('')}</select></label>`}${lastSeenField}${deskMissing?'<p class="o-form-error" data-testid="radio-time-error" hidden>Last seen time cannot be in the future.</p>':''}${field('radio-place','Last seen place',initial.place)}${field('radio-clothing','Clothing',initial.clothing)}${field('radio-equipment','Skis, helmet and other equipment',initial.equipment)}${field('radio-injuries','Injuries',initial.concerns)}${instructor ? '' : field('radio-staff',deskMissing?'Reporting staff':'Receiving staff')}${deskMissing?'':`<button class="o-button o-primary" data-testid="radio-save">${instructor?'Save report for Desk and Patrol':'Save received report'}</button>`}</form>`, undefined, false, deskMissing ? 'report' : '');
     if(deskMissing){const time=get('radio-time');time.max=currentTime();time.step=600;get('radio-time-earlier').onclick=()=>{const [hours,minutes]=time.value.split(':').map(Number);const total=Math.max(0,hours*60+minutes-10);time.value=`${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`;time.dispatchEvent(new Event('input',{bubbles:true}));};}
     if(instructor)get('radio-time').addEventListener('input',event=>{get('radio-time-auto').textContent=formatTime12(event.target.value);});
     if (instructor && !row) {
@@ -223,7 +234,7 @@ export function createOperations(root, seed, {onChange}) {
         get('radio-place').value='';
         get('radio-clothing').value=details.clothing;
         get('radio-equipment').value=details.equipment;
-        get('radio-injuries').value=details.concerns;
+        get('radio-injuries').value='';
       });
     }
     dialog.querySelector('#radio-form').onsubmit = event => {
