@@ -70,7 +70,7 @@ export function createPatrol(root, seed, { onSignOut }) {
             ${fact(icons.medical, 'Injuries', alert.injuries)}
           </div>
           <section class="p-detail-panel" style="--p-detail-columns:${alert.medical ? 2 : 1}" aria-label="Medical and lift scan details">
-            ${alert.medical ? `<div class="p-detail-item p-medical-fact"><h3>Medical information</h3><p>${escapeHtml(alert.medical)}</p></div>` : ''}
+            ${alert.medical ? `<div class="p-detail-item p-medical-fact"><h3>Medical information</h3><p>${escapeHtml(alert.medical)}</p>${alert.consentStatus || alert.guardianUpdateDate ? `<p class="p-guardian-record"><strong>Guardian record:</strong> ${escapeHtml(alert.consentStatus || 'Status not recorded')} · Updated ${escapeHtml(alert.guardianUpdateDate || 'date not recorded')}</p>` : ''}</div>` : ''}
             <div class="p-detail-item p-scan-fact" data-testid="patrol-lift-scan"><h3>Latest lift ticket scan</h3><p data-testid="patrol-lift-scan-details" aria-live="polite">${escapeHtml(alert.liftScan ? `${alert.liftScan.pass} · ${alert.liftScan.time}` : 'Request lift scan if needed.')}</p></div>
           </section>
           </div>
@@ -78,6 +78,7 @@ export function createPatrol(root, seed, { onSignOut }) {
           ${alert.emergencyContacts?.length ? `<section class="p-contacts" style="--p-contact-columns:${alert.emergencyContacts.length}"><h3>Emergency contacts for police handoff</h3>
             ${alert.emergencyContacts.map(contact => `<div class="p-contact"><div><strong>${escapeHtml(contact.name)}</strong>${contactRelationship(contact.relationship)}</div><div class="p-contact-phone"><a href="tel:${escapeHtml(contact.phone)}">${escapeHtml(contact.phone)}</a></div></div>`).join('')}
           </section>` : ''}
+          ${alert.authorizedPickupAdults?.length ? `<section class="p-contacts" style="--p-contact-columns:${alert.authorizedPickupAdults.length}"><h3>Authorized pickup adults</h3>${alert.authorizedPickupAdults.map(adult => `<div class="p-contact"><div><strong>${escapeHtml(adult.name)}</strong>${contactRelationship(adult.relationship || 'Other')}</div></div>`).join('')}</section>` : ''}
           <section class="p-actions-panel" data-testid="patrol-actions">
             <h3>Actions</h3>
             <div class="p-action-buttons">
