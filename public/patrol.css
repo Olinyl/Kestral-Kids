@@ -130,7 +130,14 @@ body.patrol-view { background:#f5f8f7; color:#173f39; }
  .patrol-view .patrol-shell { border-radius:23px; min-height:calc(100dvh - 150px); }
  .p-topbar { padding:14px 18px; }
  .p-content { padding:18px; }
- .p-alert-head { padding:16px 18px 14px; }
+ .p-alert-head { grid-template-columns:32px minmax(0,1fr); gap:8px; padding:12px; }
+ .p-alert-icon { width:32px; height:32px; border-radius:9px; }
+ .p-alert-icon svg { width:16px; height:16px; }
+ .p-child-heading-row { flex-wrap:nowrap; gap:4px; min-width:0; }
+ .p-case { flex:0 0 auto; font-size:9px; white-space:nowrap; }
+ .p-status { flex:0 0 auto; padding:4px 7px; font-size:9px; white-space:nowrap; }
+ .p-child-heading-row .profile-meta-group { flex:0 1 auto; min-width:0; gap:2px; padding:3px 5px; white-space:nowrap; }
+ .p-child-heading-row .profile-meta-group dt,.p-child-heading-row .profile-meta-group dd { font-size:9px; }
  .p-facts { grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:10px; padding:5px 12px 10px; }
  .p-fact { grid-template-columns:24px minmax(0,1fr); gap:7px; padding:9px 0; }
  .p-icon-soft { width:24px; height:24px; border-radius:7px; }
