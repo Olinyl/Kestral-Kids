@@ -16,10 +16,11 @@ body.patrol-view { background:#f5f8f7; color:#173f39; }
 .p-title { margin:0; font-size:clamp(26px,5vw,31px); line-height:1.15; letter-spacing:-.045em; }
 .p-intro { margin:8px 0 22px; color:#5e7596; font-size:14px; }
 .p-alert-carousel { min-width:0; }
-.p-carousel-controls { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 0 10px; color:#536984; font-size:12px; font-weight:700; }
-.p-carousel-controls button { min-height:38px; padding:6px 12px; border:1px solid #d4dfec; border-radius:10px; background:white; color:#344359; font:inherit; touch-action:manipulation; }
-.p-carousel-controls button:disabled { opacity:.45; cursor:not-allowed; }
-.p-carousel-pagination-mobile { display:none; }
+.p-carousel-pagination { display:grid; justify-items:center; gap:9px; margin-top:13px; color:#536984; font-size:12px; font-weight:700; }
+.p-carousel-dots { display:flex; justify-content:center; align-items:center; gap:9px; }
+.p-carousel-dot { width:8px; height:8px; min-height:8px; padding:0; border:0; border-radius:50%; background:#c8d5d1; touch-action:manipulation; }
+.p-carousel-dot[aria-current="true"] { background:#205d46; transform:scale(1.25); }
+.p-carousel-dot:focus-visible { outline:2px solid #205d46; outline-offset:3px; }
 .p-alert-list { display:grid; grid-auto-flow:column; grid-auto-columns:100%; gap:16px; overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x mandatory; scrollbar-width:none; -webkit-overflow-scrolling:touch; touch-action:pan-x pan-y; }
 .p-alert-list::-webkit-scrollbar { display:none; }
 .p-alert-card { min-width:0; overflow:hidden; border:1px solid #edd3ce; border-radius:17px; background:#fff; scroll-snap-align:start; scroll-snap-stop:always; }
@@ -130,12 +131,4 @@ body.patrol-view { background:#f5f8f7; color:#173f39; }
  .p-scan { padding-inline:18px; }
  .p-medical,.p-search-context,.p-contacts,.p-escalation { padding-inline:18px; }
  .p-actions-panel { padding-inline:12px; }
-}
-@media(max-width:719px) {
- .p-carousel-controls-desktop { display:none; }
- .p-carousel-pagination-mobile { display:grid; justify-items:center; gap:9px; margin-top:13px; color:#536984; font-size:12px; font-weight:700; }
- .p-carousel-dots { display:flex; justify-content:center; align-items:center; gap:9px; }
- .p-carousel-dot { width:8px; height:8px; min-height:8px; padding:0; border:0; border-radius:50%; background:#c8d5d1; touch-action:manipulation; }
- .p-carousel-dot[aria-current="true"] { background:#205d46; transform:scale(1.25); }
- .p-carousel-dot:focus-visible { outline:2px solid #205d46; outline-offset:3px; }
 }
