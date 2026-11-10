@@ -76,12 +76,13 @@ h2 { margin: 0; font-size: 1.1rem; }
 .g-state { width:max-content; font-size:.82rem; font-weight:650; color:#8b4b16; background:#fff4df; padding:5px 9px; border-radius:20px; white-space:nowrap; }
 .g-state.done { color:#176044; background:#e7f4ed; }
 .g-profile { margin-top:18px; padding:20px; background:white; border:1px solid var(--line); border-radius:10px; }
-.g-lesson-card { display:grid; grid-template-columns:1fr 1fr; gap:8px 18px; margin:0 0 20px; padding:16px; background:white; border:1px solid var(--line); border-radius:9px; }
-.g-lesson-card h2 { grid-column:1 / -1; margin:0; font-size:.82rem; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }
-.g-lesson-card > strong { grid-column:1 / -1; font-size:1.1rem; }
+.g-schedule-card { margin:6px 0 12px; padding:12px 14px; background:white; border:1px solid var(--line); border-radius:9px; }
+.g-shared-times { display:flex; flex-wrap:wrap; gap:4px 18px; padding-bottom:8px; color:var(--muted); font-size:.82rem; }
+.g-shared-times strong { margin-left:4px; color:#173f39; }
+.g-program-row { display:grid; grid-template-columns:90px 58px minmax(0,1fr); align-items:baseline; gap:8px; padding:7px 0; border-top:1px solid var(--line); font-size:.88rem; }
+.g-program-row span:first-of-type { color:var(--muted); }
+.g-program-row span:last-child { font-weight:600; }
 .g-children-heading { margin:0 0 2px; font-size:1.2rem; }
-.g-lesson-card div { display:grid; gap:2px; }
-.g-lesson-card span { color:var(--muted); font-size:.84rem; }
 .g-profile-head { display:flex; justify-content:space-between; align-items:start; gap:12px; }
 .g-profile-head h3 { margin:0; font-size:1.35rem; }
 .g-profile-head p:last-child { margin:5px 0 0; color:var(--muted); }

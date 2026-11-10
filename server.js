@@ -5,6 +5,7 @@ import { liveHandler, reportProblemRoute, initializeLive } from './lib/live-work
 const routes = new Map([
   ['/', ['public/index.html', 'text/html; charset=utf-8']],
   ['/workspace.js', ['public/workspace.js', 'text/javascript; charset=utf-8']],
+  ['/store-import.js', ['public/store-import.js', 'text/javascript; charset=utf-8']],
   ['/live.js', ['public/live.js', 'text/javascript; charset=utf-8']],
   ['/report-problem-widget.js', ['node_modules/@piezas/sdk/dist/report-problem/widget.js', 'text/javascript; charset=utf-8']],
   ['/guardian.js', ['public/guardian.js', 'text/javascript; charset=utf-8']],

@@ -77,7 +77,7 @@ function renderRoster() {
 function renderWorkspace() {
   const workspace = workspaces[role];
   nav.style.setProperty('--tab-count',workspace.tabs.length);
-  title.textContent = role === 'guardian' ? 'Hello, Alyssa' : workspace.label + ' workspace';
+  title.textContent = role === 'guardian' ? `Hello, ${guardian?.accountHolder ?? ''}` : workspace.label + ' workspace';
   sectionTitle.textContent = tab === 'Today' ? 'Today’s roster' : tab;
   searchLabel.hidden = true;
   nav.replaceChildren(...workspace.tabs.map(label => {
