@@ -56,7 +56,6 @@ export function createPatrol(root, seed, { onSignOut }) {
           <section class="p-search-context"><h3>Search details</h3>
             <p><strong>Visibility:</strong> ${escapeHtml(alert.visibility || 'Not recorded')}</p>
             <p><strong>Injuries:</strong> ${escapeHtml(alert.injuries || 'Not recorded')}</p>
-            <p><strong>Clothing confidence:</strong> ${escapeHtml(alert.clothingConfidence || 'Not recorded')}</p>
           </section>
           <section class="p-scan" data-testid="patrol-lift-scan"><h3>Latest lift ticket scan</h3>
             <div data-testid="patrol-lift-scan-details" aria-live="polite">${alert.liftScan ? `
@@ -67,7 +66,7 @@ export function createPatrol(root, seed, { onSignOut }) {
           <div class="p-right-column">
           ${alert.medical ? `<section class="p-medical"><h3>Medical information</h3><p>${escapeHtml(alert.medical)}</p></section>` : ''}
           ${alert.emergencyContacts?.length ? `<section class="p-contacts"><h3>Emergency contacts for police handoff</h3>
-            ${alert.emergencyContacts.map(contact => `<div class="p-contact"><div><strong>${escapeHtml(contact.name)}</strong><span>${escapeHtml(contact.relationship)}</span></div><div class="p-contact-phone"><a href="tel:${escapeHtml(contact.phone)}">${escapeHtml(contact.phone)}</a><span>${escapeHtml(contact.phoneStatus)}</span></div></div>`).join('')}
+            ${alert.emergencyContacts.map(contact => `<div class="p-contact"><div><strong>${escapeHtml(contact.name)}</strong><span>${escapeHtml(contact.relationship)}</span></div><div class="p-contact-phone"><a href="tel:${escapeHtml(contact.phone)}">${escapeHtml(contact.phone)}</a></div></div>`).join('')}
           </section>` : ''}
           <section class="p-actions-panel" data-testid="patrol-actions">
             <h3>Actions</h3>
@@ -184,7 +183,7 @@ export function createPatrol(root, seed, { onSignOut }) {
           `Child: ${selectedAlert.childName} (consent form: ${selectedAlert.alternateName}) · ID ${selectedAlert.childId} · age ${selectedAlert.age} · ${selectedAlert.group}`,
           `Last seen: ${selectedAlert.lastSeenTime}, ${selectedAlert.lastSeenPlace}`,
           `Visibility: ${selectedAlert.visibility}`,
-          `Clothing: ${selectedAlert.clothing} (${selectedAlert.clothingConfidence})`,
+          `Clothing: ${selectedAlert.clothing}`,
           `Equipment: ${selectedAlert.equipment}`,
           `Injuries: ${selectedAlert.injuries}`,
           `Medical: ${selectedAlert.medical}`,
