@@ -74,6 +74,10 @@ export function createPatrol(root, seed, { onSignOut }) {
               <button class="p-action-button p-action-copy" type="button" data-testid="patrol-copy-report" data-action="copy" data-alert-id="${escapeHtml(alert.id)}">Copy details for police report</button>
               <button class="p-action-button p-action-police" type="button" data-testid="patrol-call-police" data-action="police" data-alert-id="${escapeHtml(alert.id)}">Call police (1 hr)</button>
             </div>
+            <div class="p-police-confirmation" data-testid="patrol-police-confirmation" data-alert-id="${escapeHtml(alert.id)}" role="group" aria-labelledby="patrol-police-confirm-title-${escapeHtml(alert.id)}" hidden>
+              <p id="patrol-police-confirm-title-${escapeHtml(alert.id)}">Are you sure you want to call police now? Confirm this action before continuing.</p>
+              <div><button class="p-police-cancel" type="button" data-police-cancel>Cancel</button><button class="p-police-confirm" type="button" data-police-confirm>Confirm</button></div>
+            </div>
             <p class="p-family-note">Police lead family communication once engaged.</p>
             <p class="p-action-message" role="status" aria-live="polite" data-testid="patrol-action-message" hidden></p>
           </section>
@@ -136,14 +140,18 @@ export function createPatrol(root, seed, { onSignOut }) {
     root.querySelectorAll('[data-action]').forEach(button => button.addEventListener('click', async () => {
       const selectedAlert = alerts.find(item => item.id === button.dataset.alertId);
       if (!selectedAlert) return;
-      const message = root.querySelector('[data-testid="patrol-action-message"]');
+      const card = button.closest('.p-alert-card');
+      const message = card?.querySelector('[data-testid="patrol-action-message"]');
       const reveal = text => { message.textContent = text; message.hidden = false; };
       if (button.dataset.action === 'lift') {
-        reveal(selectedAlert.liftScan
-          ? 'This preview cannot contact the ticket office. No scan request was sent.'
-          : 'No scan request was sent: the pass number is unknown and is not linked to the child.');
+        reveal('Scan request was sent.');
       } else if (button.dataset.action === 'police') {
-        reveal('This preview does not place calls. Follow the displayed escalation time and contact police; police request search and rescue through 911.');
+        const confirmation = card?.querySelector('[data-testid="patrol-police-confirmation"]');
+        if (confirmation) {
+          message.hidden = true;
+          confirmation.hidden = false;
+          confirmation.querySelector('[data-police-confirm]')?.focus();
+        }
       } else {
         const contacts = (selectedAlert.emergencyContacts ?? []).map(contact =>
           `${contact.name} (${contact.relationship}): ${contact.phone} — ${contact.phoneStatus}`
@@ -175,11 +183,28 @@ export function createPatrol(root, seed, { onSignOut }) {
             field.remove();
             if (!copied) throw new Error('Clipboard unavailable');
           }
-          reveal('Police report details copied. Nothing was sent.');
+          reveal('Police report details copied.');
         } catch {
           reveal('Could not copy automatically. You can still read and share the details above by following your procedure.');
         }
       }
+    }));
+    root.querySelectorAll('[data-police-confirm]').forEach(confirmButton => confirmButton.addEventListener('click', () => {
+      const card = confirmButton.closest('.p-alert-card');
+      const confirmation = confirmButton.closest('[data-testid="patrol-police-confirmation"]');
+      const message = card?.querySelector('[data-testid="patrol-action-message"]');
+      if (confirmation) confirmation.hidden = true;
+      if (message) {
+        message.textContent = 'This preview does not place calls. Follow the displayed escalation time and contact police; police request search and rescue through 911.';
+        message.hidden = false;
+      }
+      card?.querySelector('[data-testid="patrol-call-police"]')?.focus();
+    }));
+    root.querySelectorAll('[data-police-cancel]').forEach(cancelButton => cancelButton.addEventListener('click', () => {
+      const card = cancelButton.closest('.p-alert-card');
+      const confirmation = cancelButton.closest('[data-testid="patrol-police-confirmation"]');
+      if (confirmation) confirmation.hidden = true;
+      card?.querySelector('[data-testid="patrol-call-police"]')?.focus();
     }));
     root.querySelectorAll('[data-search-action]').forEach(button => button.addEventListener('click', () => {
       const selectedAlert = alerts.find(item => item.id === button.dataset.alertId);

@@ -64,9 +64,15 @@ body.patrol-view { background:#f5f8f7; color:#173f39; }
 .p-action-buttons { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
 .p-action-button { min-height:43px; padding:8px 10px; border:1px solid #d4dfec; border-radius:11px; background:white; color:#233b61; font-size:12px; line-height:1.3; font-weight:700; }
 .p-action-police { border-color:#b91c1c; background:#bf1e1e; color:#fff; }
+.p-police-confirmation { display:grid; gap:9px; margin-top:10px; padding:12px; border:1px solid #e7b2aa; border-radius:10px; background:#fff4f1; color:#68352b; }
+.p-police-confirmation[hidden] { display:none; }
+.p-police-confirmation p { margin:0; font-size:12px; line-height:1.5; }
+.p-police-confirmation>div { display:flex; justify-content:flex-end; gap:8px; }
+.p-police-confirmation button { min-height:36px; padding:6px 12px; border:1px solid #d5dfeb; border-radius:8px; background:#fff; color:#344359; font:inherit; font-size:12px; font-weight:700; }
+.p-police-confirmation .p-police-confirm { border-color:#b91f1f; background:#b91f1f; color:#fff; }
 .p-action-copy { grid-column:auto; }
-#app-shell .p-action-found { grid-column:auto; border-color:#40a9d7; background:#43b5e5; color:#fff; }
-#app-shell .p-action-found:not(:disabled):hover { border-color:#1688b9; background:#1688b9; color:#fff; }
+#app-shell .p-action-found { grid-column:auto; border-color:#2563eb; background:#2563eb; color:#fff; }
+#app-shell .p-action-found:not(:disabled):hover { border-color:#1d4ed8; background:#1d4ed8; color:#fff; }
 .p-family-note { margin:7px 0 0; color:#536987; text-align:center; font-size:11px; }
 .p-action-message { margin:9px 1px 0; padding:9px 11px; border-radius:8px; background:#eef4f1; color:#315a52; font-size:12px; line-height:1.5; }
 .p-empty { padding:20px; border:1px solid #dce6e2; border-radius:14px; background:white; color:#4d6964; }
