@@ -1,4 +1,5 @@
 import {lessonDetails,profileMeta} from './profile-ui.js';
+import {recordActivity} from './activity-log.js';
 const childMeta=(seed,child)=>{const {bib,...details}=lessonDetails(seed,child);return profileMeta(details);};
 export function createGuardian(root, seed, {onChange = () => {}} = {}) {
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -130,7 +131,7 @@ export function createGuardian(root, seed, {onChange = () => {}} = {}) {
         child[name]=input.type==='checkbox'?input.checked:input.value.trim();
       }
       child.pickupAdults=[...pickupList.querySelectorAll('.g-authorized-row')].map(row=>({...priorAdults.find(adult=>adult.name===row.dataset.name),name:row.dataset.name,relationship:row.dataset.relationship}));
-      child.consentStatus='complete';child.consentUpdatedAt=new Date().toISOString().slice(0,10);child.medicalStatus=[child.medical,child.medications,child.allergies].some(value=>value && !/^(none|no known (conditions|allergies)|no medical conditions)[.!]?$/i.test(value.trim()))?'alert':'none';onChange();consentDialog.close();render('My children');
+      child.consentStatus='complete';child.consentUpdatedAt=new Date().toISOString().slice(0,10);child.medicalStatus=[child.medical,child.medications,child.allergies].some(value=>value && !/^(none|no known (conditions|allergies)|no medical conditions)[.!]?$/i.test(value.trim()))?'alert':'none';recordActivity(seed,{actor:accountHolder,action:'Consent completed',childName:child.displayName});onChange();consentDialog.close();render('My children');
     };
   }
   return {render,get accountHolder(){return accountHolder;},get accountId(){return accountId;},setAccount(profile){

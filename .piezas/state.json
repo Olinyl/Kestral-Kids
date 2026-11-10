@@ -1,7 +1,14 @@
 {
   "version": 1,
-  "phase": "mock",
-  "approvals": [],
+  "phase": "build",
+  "approvals": [
+    {
+      "gate": "mock",
+      "by": "user",
+      "via": "user-prompt",
+      "at": "2026-11-10T21:34:00.700Z"
+    }
+  ],
   "createdAt": "2026-11-07T23:16:44.117Z",
-  "updatedAt": "2026-11-08T00:31:26.243Z"
+  "updatedAt": "2026-11-10T21:34:08.266Z"
 }

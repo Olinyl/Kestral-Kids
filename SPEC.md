@@ -1,10 +1,12 @@
 ﻿# Kestrel Kids Safety Desk — shared development starter
 
-Status: Milestone 0. A fictional-data preview for three developers and a designer.
+Status: The approved fictional-data preview is complete; live Piezas wiring is underway.
 
 ## Goal and scope
 
 Give the team one GitHub starting point and one Piezas-hosted preview. Keep the existing workspace, role selector, role navigation and fictional roster. This preview does not authenticate people, save edits or call Piezas business services. A role selection previews a screen; it does not grant access.
+
+The approval covered the static design preview only. `build/preview` must contain fictional data and no live sign-in or business-service code. `build/runtime` is the separate server app: its live routes use Piezas Users and Entity Records, and every business-data request must verify an active staff session and allowed role before reading or changing records. The Guardian registration and consent workflows and the Desk check-in and release workflows are still to be connected.
 
 The original product plan, future feature scenarios S-003 through S-006, role responsibilities, shared fields and design references are retained in ROADMAP.md. Those features are deferred, not implemented or accepted. They must become active acceptance checks as their owners implement them.
 
@@ -23,7 +25,7 @@ The original product plan, future feature scenarios S-003 through S-006, role re
 
 ## Data
 
-All records are fictional and come from demo-fixture.json. There is no database or business API access in this milestone.
+All records displayed in the static preview are fictional and come from demo-fixture.json. Live server data is stored in Piezas; the app must not create a parallel local database.
 
 - Child: ID, display name, linked demo guardian, consent status.
 - Group: ID, display label, assigned demo instructor.
@@ -373,7 +375,7 @@ Additional source: C:/Users/olive/Downloads/Pending Chaos at Kestrel Kids (Case)
 
 Assumed: pickup dates include both boundary dates and are evaluated against the visible lesson day. Director changes are demo-only and do not impersonate a guardian's consent. Only fictional information is used.
 
-The next milestone needs approval of the preview before backend wiring. Then return the deployment mode to server-runtime, select build/runtime, add the SDK report button, and implement Piezas users and records with server-side access checks. See ROADMAP.md and START-HERE.md for feature ownership. The roadmap's S-003 through S-006 remain reserved for their original features.
+The preview is approved. The build uses server-runtime and `build/runtime`; implement live data through Piezas Users and Entity Records with server-side access checks. Keep `build/preview` fictional-only. See ROADMAP.md and START-HERE.md for feature ownership. The roadmap's S-003 through S-006 remain reserved for their original features.
 
 ## Open conflicts
 

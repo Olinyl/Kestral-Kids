@@ -21,9 +21,11 @@ test('Director, Guardian, Desk and Instructor share one child and consent record
  const child=page.locator('.g-child-row').filter({hasText:'New Demo Child'});
  await expect(child).toBeVisible();
  await child.locator('[data-consent]').click();
- for(const [key,value] of Object.entries({emergencyRelationship:'Mother',medical:'None',medications:'None',allergies:'Peanuts',guardianSignature:'Alyssa Chen'})) await page.getByTestId('consent-'+key).fill(value);
- await page.locator('[data-tag-input]').fill('Alyssa Chen (Mother)');
- await page.locator('[data-tag-input]').press('Enter');
+ await page.getByTestId('consent-emergencyRelationship').selectOption('Mother');
+ for(const [key,value] of Object.entries({medical:'None',medications:'None',allergies:'Peanuts',guardianSignature:'Alyssa Chen'})) await page.getByTestId('consent-'+key).fill(value);
+ await page.locator('[data-pickup-name]').fill('Alyssa Chen');
+ await page.locator('[data-pickup-relationship]').selectOption('Mother');
+ await page.locator('[data-pickup-add]').click();
  await page.locator('[data-required-check]').nth(0).check();
  await page.locator('[data-required-check]').nth(1).check();
  await page.getByRole('button',{name:'Submit consent',exact:true}).click();

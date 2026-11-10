@@ -17,6 +17,12 @@
  .d-profile-card { padding:16px; }
  .d-card-facts { grid-template-columns:1fr; gap:12px; }
 }
+
+.d-activity-list { list-style: none; margin: 0; padding: 0 18px; }
+.d-activity-list li { border-top: 1px solid var(--line); padding: 14px 0; }
+.d-activity-list li:first-child { border-top: 0; }
+.d-activity-list p { margin: 4px 0; color: var(--ink); }
+.d-activity-list small { color: var(--muted); }
 .director-view .workspace { padding-top: 28px; }
 #director { color: #213e36; font-size: 14px; }
 .d-guardian-child + .d-guardian-child { margin-top:10px; padding-top:10px; border-top:1px solid var(--line); }

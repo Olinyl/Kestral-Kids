@@ -27,5 +27,9 @@
   "contractFetchedAt": "2026-11-07T22:39:30.346Z",
   "rules": "short",
   "reportButton": false,
-  "reportButtonUnsent": true
+  "reportButtonUnsent": true,
+  "testApp": {
+    "appId": "27d3d69c-737d-4cdb-b5d1-c6c842b086db",
+    "appName": "Kestrel-Kids (test)"
+  }
 }

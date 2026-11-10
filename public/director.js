@@ -1,6 +1,7 @@
 import { planAssignments } from './grouping.js';
 import {childMeta,profileMeta,lessonDetails} from './profile-ui.js';
 import {applyRegistrationImport,parseRegistrationCsv,registrationCsv} from './registration-import.js';
+import {recordActivity} from './activity-log.js';
 import {storeImport} from './store-import.js';
 
 const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
@@ -98,6 +99,7 @@ export function createDirector(root, seed, { onChange, onNavigate, alerts }) {
     const incomplete = seed.children.filter(child => child.consentStatus !== 'complete');
     const checked = today.filter(row => row.status === 'checked_in' && !row.release).length;
     const medical = seed.children.filter(child => child.medicalStatus === 'alert' && child.medical?.trim() && seed.attendance.some(row => row.childId === child.id));
+    const recentActivity=seed.activityLog||[];
     return `<div class="d-page-heading"><div><h2>School overview</h2><p>Start with the children who need your attention.</p></div>${button('Import registrations','registration-import')}</div>
       <dl class="d-totals" aria-label="Lesson day summary">
         <div><dt>Children today</dt><dd data-testid="director-today-count">${today.length}</dd></div>
@@ -110,6 +112,7 @@ export function createDirector(root, seed, { onChange, onNavigate, alerts }) {
         <footer class="d-section-note"><span>Consent must be completed by a guardian.</span><div class="d-overview-actions"><button class="d-button" type="button" data-action="remind-all" data-testid="consent-remind-all" ${incomplete.length?'':'disabled'}>Remind all parents</button><button type="button" class="d-button" data-action="missing-consent" data-testid="director-incomplete-link">View all missing consent forms</button></div></footer></section>
       <section class="d-section"><div class="d-section-heading d-overview-heading"><h3>Health notes <span class="d-count" aria-label="${medical.length} on today's roster">${medical.length}</span></h3></div><div class="d-overview-scroll" data-testid="director-medical-list" tabindex="0" aria-label="All children with health notes">${medical.map(child => `<div class="d-attention-row" data-testid="director-overview-profile"><div><strong>${escape(child.displayName)}</strong>${childMeta(seed,child)}<p>${escape(child.medical)}</p></div>${openChild(child)}</div>`).join('') || '<p class="d-empty">No health notes on today’s roster.</p>'}</div><footer class="d-section-note"><div class="d-overview-actions">${button('View all health notes','health-notes')}</div></footer></section></div>
       <section class="d-section d-spaced"><div class="d-section-heading d-overview-heading"><h3>Lesson groups</h3></div>${groupTable(seed.groups.slice(0,5))}<footer class="d-section-note"><div class="d-overview-actions">${button('Manage groups', 'view-groups')}</div></footer></section>
+      <section class="d-section d-spaced" data-testid="director-activity"><div class="d-section-heading d-overview-heading"><h3>Recent activity</h3></div>${recentActivity.length?`<ol class="d-activity-list">${recentActivity.slice(0,20).map(item=>`<li data-testid="director-activity-entry"><strong>${escape(item.action)}</strong>${item.childName?` · ${escape(item.childName)}`:''}${item.details?`<p>${escape(item.details)}</p>`:''}<small>${escape(item.actor)} · <time datetime="${escape(item.changedAt)}">${escape(new Date(item.changedAt).toLocaleString())}</time></small></li>`).join('')}</ol>`:'<p class="d-empty">No changes recorded in this preview yet.</p>'}<p class="d-help">This read-only history is fictional and resets when the preview reloads.</p></section>
       <div class="d-bottom-note">This is the team preview. Changes stay in this browser until you reload.</div>`;
   }
 
@@ -193,7 +196,7 @@ export function createDirector(root, seed, { onChange, onNavigate, alerts }) {
     dialog.querySelector('[data-testid="registration-download"]').onclick=()=>{const url=URL.createObjectURL(new Blob([registrationCsv(storeImport)],{type:'text/csv;charset=utf-8'}));const link=document.createElement('a');link.href=url;link.download='kestrel-kids-fictional-registrations.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
     apply.onclick=()=>{
       if(!reviewed)return;
-      try{const result=applyRegistrationImport(seed,reviewed);notice=`Registration import: ${result.added} added, ${result.updated} updated, ${result.unchanged} unchanged. Consent and group assignments still need review for new children.`;onChange();notify(notice);dialog.close();render();}catch(problem){showError(problem.message);}
+      try{const result=applyRegistrationImport(seed,reviewed);notice=`Registration import: ${result.added} added, ${result.updated} updated, ${result.unchanged} unchanged. Consent and group assignments still need review for new children.`;recordActivity(seed,{actor:'Director',action:'Registration import',details:`${result.added} added, ${result.updated} updated, ${result.unchanged} unchanged.`});onChange();notify(notice);dialog.close();render();}catch(problem){showError(problem.message);}
     };
     dialog.showModal();
   }
@@ -425,6 +428,7 @@ export function createDirector(root, seed, { onChange, onNavigate, alerts }) {
       if (!record) people.push(person);
       notice = person.name + ' saved in the demo.';
     }
+    recordActivity(seed,{actor:'Director',action:`${kind==='child'?'Child':kind==='guardian'?'Guardian':kind==='instructor'?'Instructor':'Lesson group'} profile saved`,childName:kind==='child'?(record?.displayName||value('child-name')):'',details:kind==='child'?'Profile fields updated.':(record?.name||record?.label||'Profile details updated.')});
     dialog.close();
     onChange();
     notify(notice);

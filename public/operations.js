@@ -1,4 +1,5 @@
 import {childMeta, lessonDetails, profileMeta} from './profile-ui.js';
+import {recordActivity} from './activity-log.js';
 const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const e = escape;
 const field = (id, label, value = '', type = 'text') => `<label>${label}<input data-testid="${id}" name="${id}" type="${type}" ${type==='time'?'step="60"':''} value="${e(value)}" required></label>`;
@@ -133,6 +134,7 @@ export function createOperations(root, seed, {onChange,alerts}) {
     };
     if (existing) Object.assign(existing, alertRecord);
     else seed.patrolAlerts.unshift(alertRecord);
+    recordActivity(seed,{actor:source==='School desk'?'Desk':'Instructor',action:existing?'Missing-child report updated':'Missing-child report filed',childName:row.displayName,details:`${report.time||'Time not recorded'} · ${report.place||'Place not recorded'}`});
     notify(`${existing?'Missing-child report updated':'Missing-child report sent'} for ${row.displayName}.`);
     onChange();
   }
@@ -175,7 +177,7 @@ export function createOperations(root, seed, {onChange,alerts}) {
     } else {
       if(activePatrolAlert(row)) body += '<p class="o-alert-sent" role="status">Missing report saved for Patrol.</p>';
       body += `<p class="${row.consentStatus === 'complete' ? 'o-note' : 'o-warning'}">${row.consentStatus === 'complete' ? 'Guardian consent on file' : 'Consent needed'}</p><dl class="o-facts"><div><dt>Emergency contact</dt><dd>${e(row.emergencyName)}<br>${e(row.emergencyPhone)}</dd></div><div><dt>Second emergency contact</dt><dd>${e(row.emergencyName2 || 'Not provided')}<br>${e(row.emergencyPhone2)}</dd></div></dl>`;
-      if (row.release) body += `<div class="o-confirmation">Released to ${e(row.release.adult)}<br>Verified by ${e(row.release.staff)}<br><time data-testid="release-time">${e(row.release.time)}</time></div>`;
+      if (row.release) body += `<div class="o-confirmation">Released to ${e(row.release.adult)}<br>Verified by ${e(row.release.staff)}<br>Bib returned: ${row.release.bibReturned?'Yes':'No'}<br><time data-testid="release-time">${e(row.release.time)}</time></div>`;
       if(!activePatrolAlert(row)) body += `<div class="o-detail-actions"><button type="button" class="o-button o-danger o-report-missing" data-testid="desk-report-missing">Report missing</button></div>`;
     }
     show(row.displayName, body, trigger, true);
@@ -193,7 +195,7 @@ export function createOperations(root, seed, {onChange,alerts}) {
     const checkin = mode === 'checkin';
     const body = checkin
       ? `<p class="o-note"><strong>${e(row.displayName)}</strong> · ${e(row.group?.label || 'Group not recorded')}</p><form id="checkin-form" class="o-checkin-form">${field('checkin-bib','Bib number',row.bib)}<p class="o-note">Confirm the bib assigned to this child’s group.</p>${colorSelect('checkin-jacket','Jacket colour',clothingColor(row.clothing,'jacket'))}${colorSelect('checkin-helmet','Helmet colour',clothingColor(row.clothing,'helmet'))}<label class="o-clothing-notes">Other clothing details (optional)<textarea data-testid="checkin-clothing-notes" rows="2" placeholder="Patterns, logos, or other details"></textarea></label><label class="o-clothing-notes">Skis, poles, and other equipment (optional)<textarea data-testid="checkin-equipment" rows="2" placeholder="Describe equipment the child has today">${e(row.equipment || '')}</textarea></label><p class="o-note">Confirm the child’s clothing and equipment for today.</p>${row.consentStatus !== 'complete' ? '<p class="o-warning">Guardian consent is required before check-in. Ask the guardian to complete consent; staff cannot override it.</p>' : ''}</form>`
-      : `<p class="o-note"><strong>${e(row.displayName)}</strong> · ${e(row.group?.label || 'Group not recorded')}</p><form id="pickup-form"><p>Check the adult's identity against today's authorization before releasing the child.</p><label>Authorized adult<select data-testid="pickup-adult" required><option value="">Choose an adult</option>${activeAdults(row).map((adult,index)=>`<option value="${index}">${e(adult.name)} — ${e(adult.relationship)}</option>`).join('')}</select></label>${field('pickup-staff','Verifying staff')}<label class="o-checkbox"><input type="checkbox" data-testid="pickup-verified" required> I checked this adult's identity and authorization.</label><p class="o-note">An unlisted adult cannot collect this child. Ask the director to resolve authorization.</p>${!activeAdults(row).length ? '<p class="o-warning">No authorized pickup adults are on file. Ask the director to resolve this before release.</p>' : ''}</form>`;
+      : `<p class="o-note"><strong>${e(row.displayName)}</strong> · ${e(row.group?.label || 'Group not recorded')}</p><form id="pickup-form"><p>Check the adult's identity against today's authorization before releasing the child.</p><label>Authorized adult<select data-testid="pickup-adult" required><option value="">Choose an adult</option>${activeAdults(row).map((adult,index)=>`<option value="${index}">${e(adult.name)} — ${e(adult.relationship)}</option>`).join('')}</select></label>${field('pickup-staff','Verifying staff')}<label class="o-checkbox"><input type="checkbox" data-testid="pickup-verified" required> I checked this adult's identity and authorization.</label><label class="o-checkbox"><input type="checkbox" data-testid="pickup-bib-returned"> Bib returned</label><p class="o-note">An unlisted adult cannot collect this child. Ask the director to resolve authorization.</p>${!activeAdults(row).length ? '<p class="o-warning">No authorized pickup adults are on file. Ask the director to resolve this before release.</p>' : ''}</form>`;
     show(checkin ? 'Check in child' : 'Release child', body, trigger, false, 'attendance');
     if (checkin) get('checkin-save').disabled = row.consentStatus !== 'complete';
     else get('pickup-save').disabled = row.status !== 'checked_in' || Boolean(row.release) || !activeAdults(row).length;
@@ -208,17 +210,20 @@ export function createOperations(root, seed, {onChange,alerts}) {
         if (child?.consentStatus !== 'complete') return;
         const bibInput=get('checkin-bib');
         const bib=value('checkin-bib');
+        const validBib=/^(?:[1-9]|[1-9]\d|[1-3]\d\d|400)$/.test(bib);
         const duplicate=seed.attendance.some(item=>item.childId!==row.childId&&item.groupId===attendance.groupId&&String(item.bib).trim().toLowerCase()===bib.toLowerCase());
-        bibInput.setCustomValidity(duplicate?'This bib is already assigned to another child in this group.':'');
-        if(duplicate){bibInput.reportValidity();return;}
+        bibInput.setCustomValidity(!validBib?'Enter a bib number from 1 to 400.':duplicate?'This bib is already assigned to another child in this group.':'');
+        if(!validBib||duplicate){bibInput.reportValidity();return;}
         attendance.bib=bib;
         attendance.clothing = `${value('checkin-jacket')} jacket, ${value('checkin-helmet')} helmet${value('checkin-clothing-notes') ? `; ${value('checkin-clothing-notes')}` : ''}`;
         attendance.status = 'checked_in';
         attendance.equipment = get('checkin-equipment').value.trim();
+        recordActivity(seed,{actor:'Desk',action:'Child checked in',childName:row.displayName,details:`${attendance.groupId} · bib ${attendance.bib}`});
       } else {
         const adult = activeAdults(rows().find(item=>item.childId===row.childId))[Number(value('pickup-adult'))];
         if (!adult || attendance.release || attendance.status !== 'checked_in' || !get('pickup-verified').checked || !value('pickup-staff')) return;
-        attendance.release = {adult:adult.name, staff:value('pickup-staff'),time:new Date().toLocaleTimeString('en-GB',{hour12:false})};
+        attendance.release = {adult:adult.name, staff:value('pickup-staff'),time:new Date().toLocaleTimeString('en-GB',{hour12:false}),bibReturned:get('pickup-bib-returned').checked};
+        recordActivity(seed,{actor:value('pickup-staff'),action:'Child released',childName:row.displayName,details:`Released to ${adult.name}; bib returned: ${attendance.release.bibReturned?'yes':'no'}.`});
       }
       onChange(); close(); render(role,tab);
     });
@@ -298,6 +303,7 @@ export function createOperations(root, seed, {onChange,alerts}) {
           alert.active=false;alert.status='Found';alert.foundTime=clock;
           alert.foundBy='Instructor';
           alert.systemLog=[...(alert.systemLog||[]),{time:clock,action:'Child marked found',actor:'Instructor'}];
+          recordActivity(seed,{actor:'Instructor',action:'Missing-child report resolved',childName:alert.childName,details:'Child marked found.'});
           onChange();list();
         });
       }

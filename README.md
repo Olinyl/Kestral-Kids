@@ -42,6 +42,6 @@ Run browser tests with `npm test`. Run the Piezas checks with `npx piezas doctor
 
 Sign in with `npx piezas login`. The project already records the shared Piezas app; do not create another app or change its identity to a personal copy. After building and running the required quality scan, run `npm run check` last (it invokes Piezas test), then `npx piezas deploy`. Follow the project rules for scan findings or failed checks; do not bypass them.
 
-Only `build/preview` is published in this milestone. It contains index.html, workspace.js, styles.css, director.js, director.css and demo-fixture.json. Open `/?view=director` to go straight to the director workspace. The preview uses no key, guest session or business service. Before backend development, restore server-runtime hosting and build/runtime, declare required server settings, add the SDK report button, and implement the roadmap's access checks.
+`build/preview` is the static, fictional-data design preview; it contains no live sign-in or business-service code. `build/runtime` is the separate server app and uses Piezas for authenticated staff sessions and shared operational records. Live routes must verify an active staff profile and role before reading or changing business data. The Guardian store-import and consent workflows and Desk check-in and release workflows are not connected yet.
 
 The repository owner grants GitHub access, and the Piezas organization owner grants console access. Neither access is granted by cloning the repository or sharing a private key.

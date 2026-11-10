@@ -1,4 +1,5 @@
 import {profileMeta} from './profile-ui.js';
+import {recordActivity} from './activity-log.js';
 
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
@@ -19,7 +20,6 @@ function fact(icon, label, value, extraClass = '', valueTestId = '', outerTestId
   const outerId = outerTestId ? ` data-testid="${outerTestId}"` : '';
   return `<div class="p-fact ${extraClass}"${outerId}><span class="p-icon p-icon-soft">${icon}</span><div><h3>${label}</h3><p${testId}>${escapeHtml(value || 'Not recorded')}</p></div></div>`;
 }
-
 function logRows(entries) {
   return entries.map(entry => `<div class="p-log-row"><time>${escapeHtml(entry.time)}</time><span>${escapeHtml(entry.action)}</span><strong>${escapeHtml(entry.actor)}</strong></div>`).join('');
 }
@@ -316,6 +316,7 @@ export function createPatrol(root, seed, { onSignOut, onChange = () => {} }) {
         selectedAlert.foundTime = new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
         selectedAlert.searchLog = entries;
         selectedAlert.systemLog = [...(selectedAlert.systemLog||[]),{time:selectedAlert.foundTime,action:'Child marked found',actor:'Patrol'}];
+        recordActivity(seed,{actor:'Patrol',action:'Missing-child report resolved',childName:selectedAlert.childName,details:'Child marked found.'});
         const alertCard = root.querySelector(`.p-alert-card[data-alert-id="${CSS.escape(selectedAlert.id)}"]`);
         const policeConfirmation = alertCard?.querySelector('[data-testid="patrol-police-confirmation"]');
         if (policeConfirmation) policeConfirmation.hidden = true;
