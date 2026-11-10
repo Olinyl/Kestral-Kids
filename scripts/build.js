@@ -1,4 +1,4 @@
-import { cp, mkdir, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
 
 const root = new URL('../', import.meta.url);
 const output = new URL('build/runtime/', root);
@@ -7,6 +7,8 @@ await mkdir(output, { recursive: true });
 for (const name of ['server.js', 'demo-fixture.json', 'public', 'lib']) {
   await cp(new URL(name, root), new URL(name, output), { recursive: true });
 }
+const runtimeIndex=new URL('public/index.html',output);
+await writeFile(runtimeIndex,(await readFile(runtimeIndex,'utf8')).replace('<body data-account-preview>','<body>'));
 await writeFile(new URL('package.json', output), JSON.stringify({
   name: 'kestral-kids-demo', private: true, type: 'module',
   scripts: { start: 'node server.js' },

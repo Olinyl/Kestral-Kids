@@ -46,7 +46,7 @@ function contactRelationship(value) {
   return `<span class="p-contact-role">${escapeHtml(role)}</span>${detail.length ? `<span class="p-contact-detail">${escapeHtml(detail.join(' · '))}</span>` : ''}`;
 }
 
-export function createPatrol(root, seed, { onSignOut }) {
+export function createPatrol(root, seed, { onSignOut, onChange = () => {} }) {
   const localSearchLogs = new Map();
   function render() {
     const alerts = (seed.patrolAlerts ?? []).filter(alert => ['School desk', 'Instructor'].includes(alert.source) && alert.active !== false);
@@ -75,10 +75,11 @@ export function createPatrol(root, seed, { onSignOut }) {
           </section>
           </div>
           <div class="p-right-column">
-          ${alert.emergencyContacts?.length ? `<section class="p-contacts" style="--p-contact-columns:${alert.emergencyContacts.length}"><h3>Emergency contacts for police handoff</h3>
-            ${alert.emergencyContacts.map(contact => `<div class="p-contact"><div><strong>${escapeHtml(contact.name)}</strong>${contactRelationship(contact.relationship)}</div><div class="p-contact-phone"><a href="tel:${escapeHtml(contact.phone)}">${escapeHtml(contact.phone)}</a></div></div>`).join('')}
-          </section>` : ''}
-          ${alert.authorizedPickupAdults?.length ? `<section class="p-contacts" style="--p-contact-columns:${alert.authorizedPickupAdults.length}"><h3>Authorized pickup adults</h3>${alert.authorizedPickupAdults.map(adult => `<div class="p-contact"><div><strong>${escapeHtml(adult.name)}</strong>${contactRelationship(adult.relationship || 'Other')}</div></div>`).join('')}</section>` : ''}
+          <section class="p-contacts" style="--p-contact-columns:${Math.max(1, alert.emergencyContacts?.length || 1)}"><h3>Emergency contacts for police handoff</h3>
+            ${alert.emergencyContacts?.length ? alert.emergencyContacts.map(contact => `<div class="p-contact"><div><strong>${escapeHtml(contact.name)}</strong>${contactRelationship(contact.relationship)}</div><div class="p-contact-phone">${contact.phone && contact.phone !== 'Not provided' ? `<a href="tel:${escapeHtml(contact.phone)}">${escapeHtml(contact.phone)}</a>` : '<span>Phone not provided</span>'}<span>${escapeHtml(contact.phoneStatus || 'Verify before use')}</span></div></div>`).join('') : '<p class="p-unavailable">No emergency contacts are recorded.</p>'}
+          </section>
+          <section class="p-contacts"><h3>Authorized pickup adults</h3>${alert.authorizedPickupAdults?.length ? alert.authorizedPickupAdults.map(adult => `<div class="p-contact"><div><strong>${escapeHtml(adult.name)}</strong>${contactRelationship(adult.relationship || 'Other')}</div></div>`).join('') : '<p class="p-unavailable">No authorized pickup adults are recorded.</p>'}</section>
+          ${alert.escalation ? `<p class="p-escalation" data-testid="patrol-escalation">${escapeHtml(alert.escalation)}</p>` : ''}
           <section class="p-actions-panel" data-testid="patrol-actions">
             <h3>Actions</h3>
             <div class="p-action-buttons">
@@ -314,6 +315,10 @@ export function createPatrol(root, seed, { onSignOut }) {
       if (button.dataset.searchAction === 'found') {
         selectedAlert.status = 'Found';
         selectedAlert.active = false;
+        selectedAlert.foundBy = 'Patrol';
+        selectedAlert.foundTime = new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+        selectedAlert.searchLog = entries;
+        selectedAlert.systemLog = [...(selectedAlert.systemLog||[]),{time:selectedAlert.foundTime,action:'Child marked found',actor:'Patrol'}];
         const alertCard = root.querySelector(`.p-alert-card[data-alert-id="${CSS.escape(selectedAlert.id)}"]`);
         const policeConfirmation = alertCard?.querySelector('[data-testid="patrol-police-confirmation"]');
         if (policeConfirmation) policeConfirmation.hidden = true;
@@ -324,6 +329,7 @@ export function createPatrol(root, seed, { onSignOut }) {
         }
         alertCard?.querySelector('[data-testid="patrol-log-found-mobile"]')?.setAttribute('disabled', '');
         alertCard?.querySelector('[data-testid="patrol-call-police"]')?.setAttribute('disabled', '');
+        onChange();
       }
       const entryList = root.querySelector(`#patrol-search-log-${CSS.escape(selectedAlert.id)}`);
       if (entryList) entryList.innerHTML = logRows(entries);

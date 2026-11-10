@@ -17,6 +17,45 @@ export function createOperations(root, seed, {onChange}) {
   let role = 'desk', tab = 'Roster', query = '', groupFilter = '', statusFilter = 'all', programFilter = 'all', page = 0, opener;
   const pageSize = 25;
   const number = value => value.toLocaleString('en-CA');
+  const notifications=[];
+  const unreadCount=()=>notifications.filter(item=>!item.read).length;
+  const updateAlertTab=()=>{
+    const button=document.querySelector('#workspace-nav [data-testid="instructor-nav-alerts"]');
+    if(!button)return;
+    const unread=unreadCount();
+    button.setAttribute('aria-label',`Alerts${unread?`, ${unread} unread`:''}`);
+    let badge=button.querySelector('.nav-alert-count');
+    if(unread){
+      if(!badge){badge=document.createElement('span');badge.className='nav-alert-count';badge.setAttribute('aria-hidden','true');button.append(badge);}
+      badge.textContent=unread>9?'9+':String(unread);
+    } else badge?.remove();
+  };
+  function renderNotifications(){
+    updateAlertTab();
+    const panel=root.querySelector('[data-testid="instructor-alerts"]');
+    if(!panel)return;
+    panel.innerHTML=`<header class="i-notification-heading"><div><h2>Alerts</h2><small>${notifications.length?`${notifications.length} update${notifications.length===1?'':'s'} for your group`:'Updates for your group'}</small></div><span class="i-alerts-count">${notifications.length}</span></header>${notifications.length?`<div class="i-notification-list" aria-live="polite">${notifications.map(item=>`<article class="i-notification-item"><span class="i-notification-indicator" aria-hidden="true"></span><span class="i-notification-copy">${e(item.text)}<small>${e(item.time)}</small></span></article>`).join('')}</div>`:'<div class="i-notification-empty"><strong>You’re all caught up</strong><small>No new activity for your group.</small></div>'}<footer class="i-notification-footer"><button type="button" class="o-button" data-clear-instructor-notifications ${notifications.length?'':'disabled'}>Clear alerts</button></footer>`;
+    panel.querySelector('[data-clear-instructor-notifications]').onclick=()=>{notifications.length=0;renderNotifications();};
+  }
+  const notify=text=>{notifications.unshift({text,time:new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}),read:document.body.classList.contains('instructor-view')&&role==='instructor'&&tab==='Alerts'});renderNotifications();};
+  const guardianSnapshot=()=>JSON.stringify(seed.children.map(child=>[child.id,child.medical,child.medications,child.allergies,child.emergencyName,child.emergencyPhone,child.emergencyRelationship,child.emergencyName2,child.emergencyPhone2,child.emergencyRelationship2,child.pickupAdults,child.consentStatus,child.consentUpdatedAt]));
+  let priorGuardianSnapshot=guardianSnapshot();
+  const observedAlertStatus=new Map((seed.patrolAlerts||[]).map(alert=>[String(alert.id),String(alert.status||'active').toLowerCase()]));
+  window.addEventListener('kestrel:preview-change',()=>{
+    const next=guardianSnapshot();
+    if(next!==priorGuardianSnapshot&&role==='instructor')notify('A Guardian updated child health, contact, or pickup information. Review the child record.');
+    priorGuardianSnapshot=next;
+    for(const alert of seed.patrolAlerts||[]){
+      const id=String(alert.id),status=String(alert.status||'active').toLowerCase(),previous=observedAlertStatus.get(id);
+      if(previous&&previous!=='found'&&status==='found'){
+        const attendance=seed.attendance.find(row=>String(row.childId)===String(alert.childId));
+        const group=seed.groups.find(item=>item.id===attendance?.groupId);
+        if(group?.instructorId==='demo-instructor-01')notify(`${alert.childName||'A child'} was marked found by ${alert.foundBy||'staff'}.`);
+      }
+      observedAlertStatus.set(id,status);
+    }
+  });
+  renderNotifications();
   const dialog = document.createElement('dialog');
   let activeHost = dialog;
   dialog.className = 'o-dialog';
@@ -74,6 +113,7 @@ export function createOperations(root, seed, {onChange}) {
     };
     if (existing) Object.assign(existing, alertRecord);
     else seed.patrolAlerts.unshift(alertRecord);
+    notify(`${existing?'Missing-child report updated':'Missing-child report sent'} for ${row.displayName}.`);
     onChange();
   }
   const close = () => {
@@ -120,6 +160,14 @@ export function createOperations(root, seed, {onChange}) {
     }
     show(row.displayName, body, trigger, true);
     if (role === 'desk') get('desk-report-missing')?.addEventListener('click',()=>radio(row,'desk-missing'));
+    if(role==='instructor') activeHost.querySelector('#checkin-form')?.addEventListener('submit',event=>{
+      event.preventDefault();
+      const attendance=seed.attendance.find(item=>item.childId===row.childId);
+      if(!attendance||row.status!=='checked_in'||row.release)return;
+      attendance.clothing=`${value('checkin-jacket')} jacket, ${value('checkin-helmet')} helmet${value('checkin-clothing-notes')?`; ${value('checkin-clothing-notes')}`:''}`;
+      attendance.equipment=get('checkin-equipment').value.trim();
+      onChange();close();render('instructor',tab);
+    });
   }
   function attendanceAction(row, mode, trigger) {
     const checkin = mode === 'checkin';
@@ -201,7 +249,7 @@ export function createOperations(root, seed, {onChange}) {
     if(role==='instructor') {
       const checkedIn=visible.filter(row=>row.status==='checked_in'&&!row.release);
       const notCheckedIn=visible.filter(row=>row.status!=='checked_in'||row.release);
-      const instructorCards=(children,inactive)=>children.map((row,index)=>`<article class="o-roster-row o-instructor-card${inactive?' is-not-checked-in-card':''}" data-testid="roster-row"><div class="o-instructor-child${inactive?' is-not-checked-in':''}"><div class="o-instructor-primary"><span class="o-row-number">${String(index+1).padStart(2,'0')}</span><strong dir="auto">${e(row.displayName)}</strong></div>${instructorMetadata(row)}${inactive&&row.release?'<span class="o-instructor-status">Released</span>':''}</div><div class="o-instructor-actions">${activePatrolAlert(row)?'<span class="o-instructor-alert" role="status">Alert Sent · Searching</span>':''}<button type="button" class="o-button o-instructor-view-child" data-testid="ops-open-${e(row.childId)}" ${inactive?'disabled aria-label="View child unavailable until checked in"':''}>View child</button></div></article>`).join('');
+      const instructorCards=(children,inactive)=>children.map((row,index)=>{const alert=activePatrolAlert(row);return `<article class="o-roster-row o-instructor-card${inactive?' is-not-checked-in-card':''}" data-testid="roster-row"><div class="o-instructor-child${inactive?' is-not-checked-in':''}"><div class="o-instructor-primary"><span class="o-row-number">${String(index+1).padStart(2,'0')}</span><strong dir="auto">${e(row.displayName)}</strong></div>${instructorMetadata(row)}${inactive&&row.release?'<span class="o-instructor-status">Released</span>':''}</div><div class="o-instructor-actions">${alert?'<span class="o-instructor-alert" role="status">Alert Sent · Searching</span><button type="button" class="o-button o-instructor-found" data-testid="instructor-found-'+e(row.childId)+'">Found child</button>':''}<button type="button" class="o-button o-instructor-view-child" data-testid="ops-open-${e(row.childId)}" ${inactive?'disabled aria-label="View child unavailable until checked in"':''}>View child</button></div></article>`;}).join('');
       root.querySelector('#ops-list').innerHTML=instructorCards(checkedIn,false)||'<p class="o-empty">No children are checked in yet.</p>';
       root.querySelector('#not-checked-list').innerHTML=instructorCards(notCheckedIn,true)||'<p class="o-empty">All assigned children are checked in.</p>';
       root.querySelector('[data-testid="instructor-not-checked-count"]').textContent=String(notCheckedIn.length);
@@ -215,7 +263,17 @@ export function createOperations(root, seed, {onChange}) {
         card.onclick=event=>{if(!event.target.closest('button'))detail(row,card);};
         card.onkeydown=event=>{if((event.key==='Enter'||event.key===' ')&&!event.target.closest('button')){event.preventDefault();detail(row,card);}};
         root.querySelector(`[data-testid="desk-action-${row.childId}"]`).onclick=event=>{event.stopPropagation();if(!row.release)attendanceAction(row,row.status==='checked_in'?'release':'checkin',event.currentTarget);};
-      } else root.querySelector(`[data-testid="ops-open-${row.childId}"]`)?.addEventListener('click',event=>detail(row,event.currentTarget));
+      } else {
+        root.querySelector(`[data-testid="ops-open-${row.childId}"]`)?.addEventListener('click',event=>detail(row,event.currentTarget));
+        root.querySelector(`[data-testid="instructor-found-${row.childId}"]`)?.addEventListener('click',()=>{
+          const alert=activePatrolAlert(row);if(!alert)return;
+          const clock=new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+          alert.active=false;alert.status='Found';alert.foundTime=clock;
+          alert.foundBy='Instructor';
+          alert.systemLog=[...(alert.systemLog||[]),{time:clock,action:'Child marked found',actor:'Instructor'}];
+          onChange();list();
+        });
+      }
     }
     const pager=root.querySelector('#ops-pagination');
     if(pager) {
@@ -226,12 +284,19 @@ export function createOperations(root, seed, {onChange}) {
   }
   function render(nextRole,nextTab) {
     role=nextRole; tab=nextTab;
+    if(role==='instructor'&&tab==='Alerts') notifications.forEach(item=>{item.read=true;});
+    updateAlertTab();
     root.replaceChildren();
     const assigned = own();
     const groupNames = [...new Set(assigned.map(r=>r.group?.label).filter(Boolean))].join(', ');
     const activeAssigned=assigned.filter(r=>r.status==='checked_in'&&!r.release);
     const levelLabel=[...new Set(assigned.map(r=>r.group?.level).filter(Boolean))].join(', ')||'Level not recorded';
     const medicalAlerts=activeAssigned.filter(r=>r.medicalStatus==='alert');
+    if(role==='instructor'&&tab==='Alerts'){
+      root.innerHTML=`<div class="i-alerts-heading"><div><h2>Alerts</h2><p>${e(groupNames||'Your assigned group')} · Instructor updates</p></div></div><section class="i-alerts-page" data-testid="instructor-alerts" aria-label="Instructor alerts"></section>`;
+      renderNotifications();
+      return;
+    }
     const medicalPanel = role === 'instructor' ? `<section class="o-medical-list" data-testid="instructor-medical"><header class="o-medical-header"><div><span class="o-medical-eyebrow">Safety overview</span><h3>Medical alerts</h3></div><span class="o-medical-count">${medicalAlerts.length?`${medicalAlerts.length} ${medicalAlerts.length===1?'alert':'alerts'}`:'None today'}</span></header>${medicalAlerts.map(r=>`<article class="o-medical-item"><div class="o-medical-item-heading"><span class="o-medical-mark" aria-hidden="true">!</span><strong>${e(r.displayName)}</strong><span class="o-medical-tag">Medical alert</span></div><p>${e(r.medical)}</p></article>`).join('')||'<p class="o-medical-clear">No medical alerts for children checked in today.</p>'}</section>` : '';
     root.innerHTML = `<div class="o-heading"><div><h2>${role === 'instructor' ? groupNames || 'No group assigned' : tab === 'Pickup' ? 'Verify every pickup' : 'Lesson-day roster'}</h2><p>${role === 'instructor' ? `Alex Morgan · ${e(levelLabel)} · ${e(assigned[0]?.group?.meeting || 'Meeting place not recorded')}` : `${assigned.filter(r=>r.status==='checked_in'&&!r.release).length} checked in · ${assigned.filter(r=>r.status==='expected').length} expected · ${assigned.filter(r=>r.release).length} released`}</p></div></div>${role === 'instructor' ? '' : `<label class="o-search">Find a child<input type="search" placeholder="Name, bib or group" data-testid="roster-search" value="${e(query)}"></label>`}${role === 'desk' ? `<div class="o-filters"><label>Group<select data-testid="roster-group"><option value="">All groups</option>${seed.groups.map(g=>`<option value="${e(g.id)}" ${groupFilter===g.id?'selected':''}>${e(g.label)}</option>`).join('')}</select></label><label>Status<select data-testid="roster-status">${[['all','All children'],['expected','Expected'],['checked_in','Checked in'],['consent','Consent needed'],['medical','Medical alert'],['to_release','To be released']].map(([v,t])=>`<option value="${v}" ${statusFilter===v?'selected':''}>${t}</option>`).join('')}</select></label></div>` : ''}${medicalPanel}${role === 'instructor' ? `<section class="o-group-card" aria-label="Today’s Group"><div class="o-roster-heading"><h3>Today’s Group</h3><span>${activeAssigned.length} checked in</span></div><div class="o-list" id="ops-list"></div></section><section class="o-group-card o-not-checked-card" aria-label="Not Checked In"><div class="o-roster-heading"><h3>Not Checked In</h3><span data-testid="instructor-not-checked-count">0</span></div><div class="o-list" id="not-checked-list"></div></section>` : '<div class="o-list" id="ops-list"></div>'}${role==='desk'?'<div id="ops-pagination" class="o-pagination"></div>':''}${role==='instructor'?'':`<p class="o-footer">Demo edits stay on this page and reset on reload.</p>`}${role==='instructor'?`<div class="instructor-report-cta"><button type="button" class="o-button o-danger" data-testid="instructor-report-missing" ${activeAssigned.length?'':'disabled'}>Report missing child</button></div>`:''}`;
     if(role==='desk') {

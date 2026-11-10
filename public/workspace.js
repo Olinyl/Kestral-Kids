@@ -8,8 +8,8 @@ const workspaces = {
     label: 'School desk', tabs: ['Roster', 'Account'],
   },
   guardian: { label: 'Guardian', tabs: ['My children', 'Alerts', 'Account'] },
-  director: { label: 'Director', tabs: ['Overview', 'Children', 'Guardians', 'Instructors', 'Lesson groups', 'Account'] },
-  instructor: { label: 'Instructor', tabs: ['Group roster', 'Account'] },
+  director: { label: 'Director', tabs: ['Overview', 'Children', 'Guardians', 'Instructors', 'Lesson groups', 'Alerts', 'Account'] },
+  instructor: { label: 'Instructor', tabs: ['Group roster', 'Alerts', 'Account'] },
   patrol: { label: 'Patrol', tabs: ['Active alerts', 'Account'] },
 };
 
@@ -169,9 +169,11 @@ function renderWorkspace() {
     const button = document.createElement('button');
     button.type = 'button';
     button.setAttribute('aria-label',label);
+    if (role === 'instructor' && label === 'Alerts') button.dataset.testid = 'instructor-nav-alerts';
     const shortLabel=label==='Instructors'?'Team':label==='Lesson groups'?'Groups':label;
     button.innerHTML=`<span class="nav-label-full">${label}</span><span class="nav-label-short">${shortLabel}</span>`;
     if (role === 'director') button.dataset.testid = 'director-nav-' + ({ 'Lesson groups': 'groups' }[label] ?? label.toLowerCase());
+    if (role === 'guardian' && label === 'Alerts') button.dataset.testid = 'guardian-nav-alerts';
     if (label === tab) button.setAttribute('aria-current', 'page');
     button.addEventListener('click', () => {
       tab = label;
@@ -246,6 +248,7 @@ async function start() {
     guardian = createGuardian(document.querySelector('#guardian'), seed, {onChange:updateRows});
     patrol = createPatrol(document.querySelector('#patrol'), seed, {
       onSignOut: signOutAccount,
+      onChange: updateRows,
     });
     for(const [id,name] of Object.entries({guardian:guardian.accountHolder,director:'Taylor Reed',desk:'Jordan Lee',instructor:'Alex Morgan',patrol:'Robin Fournier'})) accounts.push({id,role:id,name,email:id+'@example.test',sample:true,signedIn:true});
     Object.assign(accounts.find(account=>account.role==='guardian'),{guardianId:guardian.accountId,email:seed.guardians[0]?.email || 'guardian@example.test'});
