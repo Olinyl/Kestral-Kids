@@ -16,7 +16,7 @@ const status = row => row.release ? 'Released' : row.status === 'checked_in' ? '
 function physicalBibNumber(label) {
   const match = /^(?:\d+-)?(\d+)$/.exec(String(label ?? '').trim());
   const number = Number(match?.[1]);
-  return Number.isInteger(number) && number >= 1 && number <= 400 ? number : null;
+  return Number.isSafeInteger(number) && number > 0 ? number : null;
 }
 
 export function previewBibAssignment(seed, attendance, input) {
@@ -24,7 +24,7 @@ export function previewBibAssignment(seed, attendance, input) {
   const groupNumber = String(group?.number ?? group?.label?.match(/\b(\d+)$/)?.[1] ?? '');
   if (!/^\d+$/.test(groupNumber)) return { error: 'Assign this child to a numbered lesson group before check-in.' };
   const number = /^\d+$/.test(input) ? physicalBibNumber(input) : null;
-  if (number === null) return { error: 'Enter a physical bib number from 1 to 400.' };
+  if (number === null) return { error: 'Enter the whole number printed on the bib.' };
   const inUse = seed.attendance.some(row => row !== attendance &&
     (row.status === 'checked_in' || row.release) && row.bibReturned !== true &&
     (row.bibNumber ?? physicalBibNumber(row.bib)) === number);
@@ -148,7 +148,7 @@ export function createOperations(root, seed, {onChange,alerts}) {
       liftScan:null, liftScanUnavailableReason:'Pass number is unknown and is not linked to the child.',
       systemLog:existing ? [...(existing.systemLog||[]),{time:clock,action:'Missing alert updated',actor:source}] : [{time:clock,action:'Missing alert sent',actor:source}], searchLog:existing?.searchLog||[],
       emergencyContacts:guardianContacts(row),
-      escalation:'Follow the school’s missing-child procedure. Verify details with the desk and patrol lead.',
+      escalation:'Escalate to police 60 minutes after the child was last seen or by 4 PM, whichever comes first. Police coordinate family communications.',
     };
     if (existing) Object.assign(existing, alertRecord);
     else seed.patrolAlerts.unshift(alertRecord);
@@ -219,7 +219,7 @@ export function createOperations(root, seed, {onChange,alerts}) {
   function attendanceAction(row, mode, trigger) {
     const checkin = mode === 'checkin';
     const body = checkin
-      ? `<p class="o-note"><strong>${e(row.displayName)}</strong> · ${e(row.group?.label || 'Group not recorded')}</p><form id="checkin-form" class="o-checkin-form">${field('checkin-bib','Physical bib number (1?400)',physicalBibNumber(row.bib) ?? '')}<p data-testid="checkin-bib-label" aria-live="polite"></p><p class="o-form-error" role="alert" data-testid="checkin-bib-error" hidden></p><p class="o-note">Confirm the bib assigned to this child’s group.</p>${colorSelect('checkin-jacket','Jacket colour',clothingColor(row.clothing,'jacket'))}${colorSelect('checkin-helmet','Helmet colour',clothingColor(row.clothing,'helmet'))}<label class="o-clothing-notes">Other clothing details (optional)<textarea data-testid="checkin-clothing-notes" rows="2" placeholder="Patterns, logos, or other details"></textarea></label><label class="o-clothing-notes">Skis, poles, and other equipment (optional)<textarea data-testid="checkin-equipment" rows="2" placeholder="Describe equipment the child has today">${e(row.equipment || '')}</textarea></label><p class="o-note">Confirm the child’s clothing and equipment for today.</p>${row.consentStatus !== 'complete' ? '<p class="o-warning">Guardian consent is required before check-in. Ask the guardian to complete consent; staff cannot override it.</p>' : ''}</form>`
+      ? `<p class="o-note"><strong>${e(row.displayName)}</strong> · ${e(row.group?.label || 'Group not recorded')}</p><form id="checkin-form" class="o-checkin-form">${field('checkin-bib','Number on the physical bib',physicalBibNumber(row.bib) ?? '')}<p data-testid="checkin-bib-label" aria-live="polite"></p><p class="o-form-error" role="alert" data-testid="checkin-bib-error" hidden></p>${colorSelect('checkin-jacket','Jacket colour',clothingColor(row.clothing,'jacket'))}${colorSelect('checkin-helmet','Helmet colour',clothingColor(row.clothing,'helmet'))}<label class="o-clothing-notes">Other clothing details (optional)<textarea data-testid="checkin-clothing-notes" rows="2" placeholder="Patterns, logos, or other details"></textarea></label><label class="o-clothing-notes">Skis, poles, and other equipment (optional)<textarea data-testid="checkin-equipment" rows="2" placeholder="Describe equipment the child has today">${e(row.equipment || '')}</textarea></label><p class="o-note">Confirm the child’s clothing and equipment for today.</p>${row.consentStatus !== 'complete' ? '<p class="o-warning">Guardian consent is required before check-in. Ask the guardian to complete consent; staff cannot override it.</p>' : ''}</form>`
       : `<p class="o-note"><strong>${e(row.displayName)}</strong> · ${e(row.group?.label || 'Group not recorded')}</p><form id="pickup-form"><p>Check the adult's identity against today's authorization before releasing the child.</p><label>Authorized adult<select data-testid="pickup-adult" required><option value="">Choose an adult</option>${activeAdults(row).map((adult,index)=>`<option value="${index}">${e(adult.name)} — ${e(adult.relationship)}</option>`).join('')}</select></label>${field('pickup-staff','Verifying staff')}<label>Bib return<select data-testid="pickup-bib-return" required><option value="">Choose return status</option><option value="returned">Returned</option><option value="outstanding">Not returned</option></select></label><label class="o-checkbox"><input type="checkbox" data-testid="pickup-verified" required> I checked this adult's identity and authorization.</label><p class="o-note">An unlisted adult cannot collect this child. Ask the director to resolve authorization.</p>${!activeAdults(row).length ? '<p class="o-warning">No authorized pickup adults are on file. Ask the director to resolve this before release.</p>' : ''}</form>`;
     show(checkin ? 'Check in child' : 'Release child', body, trigger, false, 'attendance');
     if (checkin) get('checkin-save').disabled = row.consentStatus !== 'complete';

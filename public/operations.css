@@ -176,9 +176,6 @@ body.instructor-view nav button,body.live-instructor-view nav button {display:fl
 .instructor-view .o-heading h2 {font-size:26px;}
 .instructor-view .o-heading p {font-size:14px;}
 .instructor-view .o-note {font-size:14px;}
-.prototype-controls {position:fixed;bottom:calc(86px + env(safe-area-inset-bottom,0px));inset-inline-end:16px;background:#f0f0f0;border:1px solid #aaa;border-radius:6px;z-index:9;padding:6px 8px;color:#333;font:12px/1.4 system-ui,sans-serif;}
-.prototype-controls select {font-size:14px;min-height:34px;min-width:0;max-width:150px;}
-.prototype-view .workspace {padding-bottom:180px;}
 @media(hover:hover) and (pointer:fine) {.o-primary:hover {background:#164632;}}
 @media(max-width:650px) {
  .desk-view nav button {font-size:12px;padding-inline:2px;}
@@ -222,7 +219,6 @@ body .navigation nav button[aria-current] {background:#e3f0e6;color:#205d46;}
 .d-member-row>div {min-width:0;}
 .d-member-row .d-button {flex-shrink:0;}
 .d-group-children .d-help {margin:0;}
-.prototype-view .workspace {padding-bottom:180px;}
 @media(hover:hover) and (pointer:fine) {.o-primary:hover,.d-primary:hover {background:#164632;}}
 @media(max-width:430px) {
  body .navigation nav {width:calc(100% - 12px);gap:2px;}

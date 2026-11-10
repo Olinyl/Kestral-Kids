@@ -63,14 +63,17 @@ export function createPatrol(root, seed, { onSignOut, onChange = () => {} }) {
           </div>
           <div class="p-left-column">
           <div class="p-facts">
+            ${fact(icons.people, 'Child ID', alert.childId || 'Not recorded')}
+            ${alert.alternateName && alert.alternateName !== alert.childName ? fact(icons.people, 'Name on consent form', alert.alternateName) : ''}
             ${fact(icons.clock, 'Last seen time', alert.lastSeenTime)}
             ${fact(icons.place, 'Last seen place', alert.lastSeenPlace)}
             ${fact(icons.people, 'Clothing', alert.clothing)}
+            ${alert.clothingConfidence ? fact(icons.people, 'Clothing source', alert.clothingConfidence) : ''}
             ${fact(icons.ski, 'Equipment', alert.equipment)}
           </div>
-          <section class="p-detail-panel" style="--p-detail-columns:${(alert.reportedViaForm !== true && alert.reportedViaDeskForm !== true && alert.medical) || hasKnownInjuries(alert.injuries) ? 2 : 1}" aria-label="Medical and lift scan details">
-            ${(alert.reportedViaForm !== true && alert.reportedViaDeskForm !== true && alert.medical) || hasKnownInjuries(alert.injuries) ? `<div class="p-detail-item p-medical-fact"><h3>Medical information / injuries</h3>${alert.reportedViaForm !== true && alert.reportedViaDeskForm !== true && alert.medical ? `<p>${escapeHtml(alert.medical)}</p>` : ''}${hasKnownInjuries(alert.injuries) ? `<p class="p-injury-detail">${escapeHtml(alert.injuries)}</p>` : ''}</div>` : ''}
-            <div class="p-detail-item p-scan-fact" data-testid="patrol-lift-scan"><h3>Latest lift ticket scan</h3><p data-testid="patrol-lift-scan-details" aria-live="polite">${escapeHtml(alert.liftScan ? `${alert.liftScan.pass} · ${alert.liftScan.time}` : 'Request lift scan if needed.')}</p></div>
+          <section class="p-detail-panel" style="--p-detail-columns:${alert.medical || hasKnownInjuries(alert.injuries) ? 2 : 1}" aria-label="Medical and lift scan details">
+            ${alert.medical || hasKnownInjuries(alert.injuries) ? `<div class="p-detail-item p-medical-fact"><h3>Medical information</h3><p>${escapeHtml(alert.medical || 'Not recorded')}</p>${hasKnownInjuries(alert.injuries) ? `<p class="p-injury-detail">Injuries: ${escapeHtml(alert.injuries)}</p>` : ''}</div>` : ''}
+            <div class="p-detail-item p-scan-fact" data-testid="patrol-lift-scan"><h3>Latest lift ticket scan</h3><p data-testid="patrol-lift-scan-details" aria-live="polite">${escapeHtml(alert.liftScan ? `${alert.liftScan.pass} · ${alert.liftScan.time}` : alert.liftScanUnavailableReason || 'No verified lift scan is available.')}</p></div>
           </section>
           </div>
           <div class="p-right-column">
@@ -83,12 +86,12 @@ export function createPatrol(root, seed, { onSignOut, onChange = () => {} }) {
               <button class="p-action-button" type="button" data-testid="patrol-request-lift-scan" data-action="lift" data-alert-id="${escapeHtml(alert.id)}" ${alert.liftScanRequested ? 'disabled' : ''}>${alert.liftScanRequested ? 'Lift scan requested' : 'Request lift scan'}</button>
               <button class="p-action-button p-action-found" type="button" data-testid="patrol-log-found-mobile" data-search-action="found" data-alert-id="${escapeHtml(alert.id)}" ${alert.status === 'Found' || alert.active === false ? 'disabled aria-disabled="true"' : ''}>Found / Resolved</button>
               <button class="p-action-button p-action-copy" type="button" data-testid="patrol-copy-report" data-action="copy" data-alert-id="${escapeHtml(alert.id)}">Copy details for police report</button>
-              <button class="p-action-button p-action-police" type="button" data-testid="patrol-call-police" data-action="police" data-alert-id="${escapeHtml(alert.id)}" ${alert.status === 'Found' || alert.active === false ? 'disabled aria-disabled="true"' : ''}>Call police (1 hr)</button>
+              <button class="p-action-button p-action-police" type="button" data-testid="patrol-call-police" data-action="police" data-alert-id="${escapeHtml(alert.id)}" ${alert.status === 'Found' || alert.active === false ? 'disabled aria-disabled="true"' : ''}>Call police</button>
             </div>
             <div class="p-police-confirmation" data-testid="patrol-police-confirmation" role="group" aria-labelledby="patrol-police-confirm-title-${escapeHtml(alert.id)}" hidden>
               <div class="p-police-confirm-copy" id="patrol-police-confirm-title-${escapeHtml(alert.id)}">
                 <strong>Are you sure you want to call police now?</strong>
-                <span>Police will coordinate with Search and Rescue and handle family communications.</span>
+                <span>The case procedure calls for escalation 60 minutes after the child was last seen or by 4 PM, whichever comes first. Police coordinate Search and Rescue and family communications.</span>
                 <span class="p-preview-only">* This is a preview only. No call will be placed.</span>
               </div>
               <div><button class="p-police-cancel" type="button" data-police-cancel>Cancel</button><button class="p-police-confirm" type="button" data-police-confirm>Confirm</button></div>
@@ -191,18 +194,13 @@ export function createPatrol(root, seed, { onSignOut, onChange = () => {} }) {
       const reveal = text => { message.textContent = text; message.hidden = false; };
       if (button.dataset.action === 'lift') {
         if (!selectedAlert.liftScanRequested) {
-          const clickedAt = new Date();
-          const pass = `P-${Math.floor(100000 + Math.random() * 900000)}`;
-          const time = clickedAt.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
-          selectedAlert.liftScan = {pass, time};
           selectedAlert.liftScanRequested = true;
           const scanDetails = card?.querySelector('[data-testid="patrol-lift-scan-details"]');
-          if (scanDetails) scanDetails.textContent = `${pass} · ${time}`;
+          if (scanDetails && !selectedAlert.liftScan) scanDetails.textContent = selectedAlert.liftScanUnavailableReason || 'No verified lift scan is available.';
           button.textContent = 'Lift scan requested';
           button.disabled = true;
           if (message) {
-            message.textContent = '';
-            message.hidden = true;
+            reveal('Preview only. No lift scan request was sent.');
           }
         }
       } else if (button.dataset.action === 'police') {

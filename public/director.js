@@ -1,19 +1,13 @@
 import { planAssignments } from './grouping.js';
-import {childMeta,profileMeta,lessonDetails} from './profile-ui.js';
+import {childMeta,profileMeta,lessonDetails,relationshipOptions,phoneValid,formatPhone,medicalStatusFromDetails} from './profile-ui.js';
 import {applyRegistrationImport,parseRegistrationCsv,registrationCsv} from './registration-import.js';
 import {storeImport} from './store-import.js';
 
 const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
-const phoneValid = value => /^[+\d\s().-]+$/.test(value) && value.replace(/\D/g, '').length >= 10 && value.replace(/\D/g, '').length <= 15;
-const formatPhone = value => {
-  const digits = value.replace(/\D/g, '');
-  const national = digits.length === 10 ? digits : digits.length === 11 && digits[0] === '1' ? digits.slice(1) : null;
-  return national ? `+1 ${national.slice(0, 3)} ${national.slice(3, 6)} ${national.slice(6)}` : '+' + digits;
-};
 const button = (label, action, id = '', style = '') => `<button type="button" class="d-button ${style}" data-action="${action}" data-id="${escape(id)}" data-testid="${action}${id ? '-' + escape(id) : ''}">${escape(label)}</button>`;
 const state = (text, type = '') => `<span class="d-state ${type}">${escape(text)}</span>`;
 
-export function createDirector(root, seed, { onChange, onNavigate, alerts }) {
+export function createDirector(root, seed, { onChange, onNavigate, alerts, demoData }) {
   let view = 'Overview';
   let guardianFromChild=null;
   let query = '';
@@ -172,6 +166,11 @@ export function createDirector(root, seed, { onChange, onNavigate, alerts }) {
     dialog.dataset.testid='registration-import-dialog';
     dialog.setAttribute('aria-labelledby','director-dialog-title');
     dialog.innerHTML=`<div class="d-dialog-heading"><h2 id="director-dialog-title">Import registrations</h2><button type="button" class="d-close" data-action="close" data-testid="dialog-close" aria-label="Close import">×</button></div><div class="d-dialog-body g-form"><p class="g-registration-note">Preview only. Imported records are shared across the demo and reset on reload. This does not connect to a live store.</p><p>Choose the store registration export. Review the file before adding records. Existing consent, group assignments and lesson-day activity are preserved.</p><label>Registration CSV file<input type="file" accept=".csv,text/csv" data-testid="registration-file"></label><div class="d-import-actions"><button type="button" class="d-button" data-testid="registration-sample">Review 300 sample registrations</button><button type="button" class="d-button" data-testid="registration-download">Download sample CSV</button></div><p class="d-help">The case export has one child per order. Repeated order numbers or changed identities require review. Signed consent, verified pickup adults and groups are supplied separately.</p><p role="alert" class="d-form-error" data-testid="registration-error" hidden></p><section data-testid="registration-review" aria-live="polite"><p>No file reviewed yet.</p></section></div><footer class="d-dialog-footer"><button type="button" class="d-button" data-action="close">Cancel</button><button type="button" class="d-button d-primary" data-testid="registration-apply" disabled>Import reviewed registrations</button></footer>`;
+    if (demoData) {
+      const body = dialog.querySelector('.d-dialog-body');
+      body.insertAdjacentHTML('beforeend', `<section class="d-import-preview"><h3>Demo data</h3><label>Starting records<select data-testid="prototype-data">${demoData.options.map(([value,label])=>`<option value="${escape(value)}"${value===demoData.mode?' selected':''}>${escape(label)}</option>`).join('')}</select></label><p class="d-help">Loading a demo mode resets changes in this preview.</p><button type="button" class="d-button" data-testid="load-demo-data">Load demo data</button></section>`);
+      body.querySelector('[data-testid="load-demo-data"]').onclick = () => demoData.load(body.querySelector('[data-testid="prototype-data"]').value);
+    }
     const review=dialog.querySelector('[data-testid="registration-review"]'),error=dialog.querySelector('[data-testid="registration-error"]'),apply=dialog.querySelector('[data-testid="registration-apply"]');
     const showError=message=>{reviewed=null;apply.disabled=true;error.textContent=message;error.hidden=false;review.innerHTML='<p>No registrations have been imported.</p>';};
     const preview=text=>{
@@ -277,7 +276,11 @@ export function createDirector(root, seed, { onChange, onNavigate, alerts }) {
   }
 
   function pickupFields(adult, index) {
-    return `<div class="d-pickup-row" data-pickup-row><div class="d-form-grid"><label>Name<input data-pickup-name data-testid="pickup-${index}-name" value="${escape(adult.name)}"></label><label>Relationship<input data-pickup-relationship data-testid="pickup-${index}-relationship" value="${escape(adult.relationship)}"></label><label>From (optional)<input type="date" data-pickup-from data-testid="pickup-${index}-from" value="${escape(adult.validFrom)}"></label><label>Until (optional)<input type="date" data-pickup-until data-testid="pickup-${index}-until" value="${escape(adult.validUntil)}"></label></div><div class="d-pickup-status"><span data-testid="pickup-${index}-status">${adult.name ? pickupStatus(adult) : 'Enter an adult to authorize pickup'}</span><button type="button" class="d-text-button" data-action="pickup-remove" data-testid="pickup-${index}-remove">Remove adult</button></div></div>`;
+    return `<div class="d-pickup-row" data-pickup-row><div class="d-form-grid"><label>Name<input data-pickup-name data-testid="pickup-${index}-name" value="${escape(adult.name)}"></label><label>Relationship<select data-pickup-relationship data-testid="pickup-${index}-relationship">${relationshipOptions(adult.relationship)}</select></label><label>From (optional)<input type="date" data-pickup-from data-testid="pickup-${index}-from" value="${escape(adult.validFrom)}"></label><label>Until (optional)<input type="date" data-pickup-until data-testid="pickup-${index}-until" value="${escape(adult.validUntil)}"></label></div><div class="d-pickup-status"><span data-testid="pickup-${index}-status">${adult.name ? pickupStatus(adult) : 'Enter an adult to authorize pickup'}</span><button type="button" class="d-text-button" data-action="pickup-remove" data-testid="pickup-${index}-remove">Remove adult</button></div></div>`;
+  }
+
+  function readHealthDetails(data) {
+    return Object.fromEntries(['medical','medications','allergies'].map(key=>[key, String(data.get('child-'+key) ?? '').trim()]));
   }
 
   function showProfile(kind, id) {
@@ -332,8 +335,8 @@ export function createDirector(root, seed, { onChange, onNavigate, alerts }) {
       content = `<div class="d-form-grid">${field('group-name', 'Group name', record?.label, 'text', true)}${select('group-level', 'Lesson level', record?.level ?? 'Level 1', [1, 2, 3, 4, 5, 6].map(level => ['Level ' + level, 'Level ' + level]))}${select('group-instructor', 'Instructor', record?.instructorId ?? '', [['', 'Select an instructor'], ...seed.instructors.map(person => [person.id, person.name])])}${field('group-meeting', 'Meeting place', record?.meeting)}</div><p class="d-help">An instructor may have up to six children across all their lesson groups. Assign children from their profiles.</p>${record ? `<div class="d-linked"><strong>Children in this group</strong><p>${escape(members(record).map(child => child.displayName).join(', ') || 'No children assigned yet.')}</p></div>` : ''}`;
     }
     if(kind==='child') {
-      content=content.replace('<h3 class="d-wide">Emergency contact 2</h3>',field('child-emergency-relationship','Relationship',record?.emergencyRelationship)+'<h3 class="d-wide">Emergency contact 2 (optional)</h3>');
-      content=content.replace('<label>Medical information status',field('child-emergency-relationship2','Relationship',record?.emergencyRelationship2)+'<h3 class="d-wide">Health information</h3><label>Medical information status');
+      content=content.replace('<h3 class="d-wide">Emergency contact 2</h3>',`<label>Relationship<select name="child-emergency-relationship" data-testid="child-emergency-relationship">${relationshipOptions(record?.emergencyRelationship)}</select></label>`+'<h3 class="d-wide">Emergency contact 2 (optional)</h3>');
+      content=content.replace('<label>Medical information status',`<label>Relationship<select name="child-emergency-relationship2" data-testid="child-emergency-relationship2">${relationshipOptions(record?.emergencyRelationship2)}</select></label>`+'<h3 class="d-wide">Health information</h3><label>Medical information status');
       content=content.replace('<section class="d-wide d-pickups">',textarea('child-medications','Medications and where they are kept',record?.medications||'')+field('child-allergies','Allergies',record?.allergies||'')+'<section class="d-wide d-pickups">');
     }
     if(kind==='group') {
@@ -347,6 +350,13 @@ export function createDirector(root, seed, { onChange, onNavigate, alerts }) {
     dialog.dataset.testid = kind + '-dialog';
     dialog.innerHTML = `<form novalidate><div class="d-dialog-heading"><h2 id="director-dialog-title">${escape(title)}</h2><button type="button" class="d-close" data-action="close" data-testid="dialog-close" aria-label="Close form">×</button></div><div class="d-dialog-body g-form">${content}<p class="d-form-error" role="alert" data-testid="form-error" hidden></p></div><footer class="d-dialog-footer"><span>Demo changes reset on reload.</span><div>${button('Cancel', 'close')}<button class="d-button d-primary" type="submit" data-testid="${kind}-save">${kind === 'child' ? 'Save child' : kind === 'guardian' ? 'Save contact' : kind === 'instructor' ? 'Save instructor' : 'Save group'}</button></div></footer></form>`;
     if(kind==='child') {
+      const form = dialog.querySelector('form');
+      const healthStatus = form.elements.namedItem('child-medical-status');
+      const syncHealthStatus = () => { healthStatus.value = medicalStatusFromDetails(readHealthDetails(new FormData(form))); };
+      syncHealthStatus();
+      form.addEventListener('input', event => {
+        if (['child-medical','child-medications','child-allergies'].includes(event.target.name)) syncHealthStatus();
+      });
       for(const name of ['child-emergency-name','child-emergency-phone']) dialog.querySelector(`[name="${name}"]`).required=false;
       const summary=document.createElement('p');summary.className='g-registration-note';
       summary.textContent=`Program: ${programFor(record||{})} · Group: ${childGroup(id)?.label||'Unassigned'}. Consent is completed by the guardian.`;
@@ -387,6 +397,12 @@ export function createDirector(root, seed, { onChange, onNavigate, alerts }) {
       if((contact2||phone2)&&(!contact2||!phoneValid(phone2))) {error('Complete the second emergency contact or leave it empty.');return;}
       const pickupAdults = [...dialog.querySelectorAll('[data-pickup-row]')].map(row => ({ name: row.querySelector('[data-pickup-name]').value.trim(), relationship: row.querySelector('[data-pickup-relationship]').value.trim(), validFrom: row.querySelector('[data-pickup-from]').value, validUntil: row.querySelector('[data-pickup-until]').value })).filter(adult => adult.name);
       if (pickupAdults.some(adult => adult.validFrom && adult.validUntil && adult.validUntil < adult.validFrom)) { error('A pickup end date must be on or after its start date.'); return; }
+      const health = readHealthDetails(data);
+      const medicalStatus = medicalStatusFromDetails(health);
+      if (value('child-medical-status') !== medicalStatus) {
+        error('Choose the medical status that matches the health details.');
+        return;
+      }
       const child = record ?? { id: 'demo-child-new-' + ++serial, consentStatus: 'incomplete' };
       Object.assign(child, { displayName: value('child-name'), abilityLevel: value('child-level'), birthDate, guardianId: value('child-guardian'), emergencyName:contact1, emergencyPhone:phone?formatPhone(phone):'',emergencyRelationship:value('child-emergency-relationship'),emergencyRelationship2:value('child-emergency-relationship2'), emergencyName2:contact2, emergencyPhone2: phone2 ? formatPhone(phone2) : '', alternateName: value('child-alternate-name'), medical: value('child-medical'),medications:value('child-medications'),allergies:value('child-allergies'), medicalStatus: value('child-medical-status'), pickupAdults, pickup: pickupAdults.map(adult => adult.name).join('; ') });
       if (!record) seed.children.push(child);
@@ -414,14 +430,6 @@ export function createDirector(root, seed, { onChange, onNavigate, alerts }) {
       const person = record ?? { id: 'demo-instructor-new-' + ++serial };
       Object.assign(person, { name: value(kind + '-name'), email: value(kind + '-email'), phone: formatPhone(phone) });
       if (kind === 'instructor') person.qualification = value('instructor-qualification');
-      if (kind === 'guardian') {
-        for (const child of seed.children.filter(item=>item.guardianId===person.id)) {
-          child.emergencyName=person.name;
-          child.emergencyPhone=person.phone;
-          child.emergencyRelationship=child.emergencyRelationship||'Guardian';
-          child.consentUpdatedAt=new Date().toISOString().slice(0,10);
-        }
-      }
       if (!record) people.push(person);
       notice = person.name + ' saved in the demo.';
     }
@@ -497,5 +505,5 @@ export function createDirector(root, seed, { onChange, onNavigate, alerts }) {
     }
   });
   dialog.addEventListener('change',event=>{if(event.target.dataset.testid==='group-level') refreshGroupMembers();});
-  return {render,openChild(id){showProfile('child',id);}};
+  return {render,openRegistrationImport:showRegistrationImport,openChild(id){showProfile('child',id);}};
 }

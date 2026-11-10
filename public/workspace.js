@@ -3,6 +3,7 @@ import { createOperations } from './operations.js';
 import { createGuardian } from './guardian.js';
 import { createPatrol } from './patrol.js';
 import { createAlertStore, createSharedAlerts } from './alerts.js';
+import {phoneValid,formatPhone} from './profile-ui.js';
 
 const workspaces = {
   desk: {
@@ -75,7 +76,8 @@ function openAccountMenu() {
       const error=form.querySelector('[role="alert"]');const fail=text=>{error.textContent=text;error.hidden=false;};
       if(!data.name)return fail('Enter your name.');
       if(accounts.some(account=>account!==activeAccount&&account.email.toLowerCase()===data.email))return fail('This email belongs to another preview account.');
-      if(data.phone&&!/^\+?[\d\s().-]+$/.test(data.phone)||data.phone&&(data.phone.replace(/\D/g,'').length<10||data.phone.replace(/\D/g,'').length>15))return fail('Enter a complete phone number.');
+      if (data.phone && !phoneValid(data.phone)) return fail('Enter a complete phone number.');
+      data.phone = formatPhone(data.phone);
       try{saveOwnDetails(data);}catch(problem){fail(problem.message);return;}error.hidden=true;form.querySelector('[role="status"]').textContent='Your details were saved in this preview.';
       accountDialog.querySelector('.account-choices').innerHTML=accountChoices(true);
       accountMenu.querySelector('.account-avatar').textContent=data.name.split(' ').map(n=>n[0]).slice(0,2).join('');
@@ -254,11 +256,19 @@ async function start() {
     const response = await fetch('/demo-fixture.json');
     if (!response.ok) throw new Error('Fixture unavailable');
     let seed = await response.json();
+    let demoData;
     if (location.pathname === '/prototype') {
-      const {prototypeSeed,addPrototypeControls} = await import('/prototype-fixtures.js');
-      const mode = new URLSearchParams(location.search).get('data') || 'demo';
+      const {prototypeSeed,demoModes} = await import('/prototype-fixtures.js');
+      const requested = new URLSearchParams(location.search).get('data');
+      const mode = demoModes.some(([value])=>value===requested) ? requested : 'demo';
       seed = prototypeSeed(seed,mode);
-      addPrototypeControls(mode);
+      demoData = {mode, options:demoModes, load(next) {
+        const url = new URL(location.href);
+        url.searchParams.set('view','director');
+        url.searchParams.set('data',next);
+        url.searchParams.set('import','1');
+        location.assign(url);
+      }};
     }
     const alertStore=createAlertStore(seed);
     sharedAlertRoot=document.createElement('section');sharedAlertRoot.id='shared-alerts';sharedAlertRoot.hidden=true;document.querySelector('.workspace').append(sharedAlertRoot);
@@ -286,6 +296,7 @@ async function start() {
     updateRows();
     operations = createOperations(document.querySelector('#operations'), seed, {onChange: updateRows,alerts:{store:alertStore}});
     director = createDirector(document.querySelector('#director'), seed, {
+      demoData,
       onChange: updateRows,
       onNavigate: next => { tab = next; renderWorkspace(); },
       alerts:{store:alertStore,context:()=>({id:'director',role:'director',name:accounts.find(a=>a.role==='director')?.name||'Director'}),visible:()=>role==='director'&&!signedOut},
@@ -356,6 +367,12 @@ async function start() {
 
     search.addEventListener('input', renderRoster);
     renderWorkspace();
+    const url = new URL(location.href);
+    if (demoData && role === 'director' && url.searchParams.get('import') === '1') {
+      url.searchParams.delete('import');
+      history.replaceState(null, '', url);
+      director.openRegistrationImport();
+    }
   } catch (error) {
     console.error(error);
     message.textContent = 'The demo records could not load. Reload to try again.';

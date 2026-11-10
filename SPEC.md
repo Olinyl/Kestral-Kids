@@ -61,6 +61,11 @@ All records are fictional and come from demo-fixture.json. There is no database 
 
 ## Acceptance Scenarios
 
+### S-059: I can run the lesson-day workflow from registrations alone
+Given Director loads the empty registration roster from Import registrations.
+When Director reviews and imports the sample, Guardian submits consent, Director assigns a group, Desk checks in the child, Instructor reports the child missing, Patrol resolves the case, and Desk verifies pickup and records the bib return.
+Then each role sees the same child record and the fields it needs, Patrol's active dossier closes when found, and Desk can record release to the authorized adult. The preview distinguishes unavailable lift information from a verified scan.
+
 ### S-057: I manage my account at the top and guardians inside Children
 Given I use any of the existing role screens, with the owner's approved visual baseline.
 When I open the top Account entry, update my own details, or open Manage guardians from Director Children and follow a child's guardian link.
@@ -93,7 +98,7 @@ Then the school has 300 children without duplicates, Saturday and Sunday registr
 
 ### S-056: Desk confirms an available physical bib at each daily check-in
 Given groups are assigned before arrival and a child has complete consent and care information.
-When Desk records today's clothing and confirms a group-stock bib numbered 1–400.
+When Desk records today's clothing and enters the number printed on the physical bib issued for the child's group.
 Then the child is checked in with the composed group–bib label, the assigned instructor sees that same label, parents do not see it, and duplicate or wrong-group bibs cannot be issued.
 
 ### S-045: Parent care details reach only staff who need them

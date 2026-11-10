@@ -1,4 +1,4 @@
-import {lessonDetails,profileMeta} from './profile-ui.js';
+import {lessonDetails,profileMeta,relationshipOptions,phoneValid,formatPhone,medicalStatusFromDetails} from './profile-ui.js';
 const childMeta=(seed,child)=>{const {bib,...details}=lessonDetails(seed,child);return profileMeta(details);};
 export function createGuardian(root, seed, {onChange = () => {}} = {}) {
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -53,26 +53,29 @@ export function createGuardian(root, seed, {onChange = () => {}} = {}) {
   function consent(child) {
       const template=document.createElement('template');
       template.innerHTML = `<section class="g-home"><div class="g-form-heading"><div><h2>${esc(child.displayName)}</h2><p>Consent form</p></div></div><form class="g-form"><div class="g-registration-note">These details come from registration and cannot be changed here.</div><div class="g-locked"><label>Child’s name<input value="${esc(child.displayName)}" readonly></label><label>Date of birth<input value="${esc(child.birthDate)}" readonly></label></div><h3>Emergency contacts</h3><p>Complete at least one emergency contact. A second contact is optional.</p><div class="g-contact"><label>Contact 1 name<input value="${esc(child.emergencyName)}"></label><label>Phone number<input type="tel" value="${esc(child.emergencyPhone)}"></label><label>Relationship<input placeholder="For example, parent"></label></div><div class="g-contact"><label>Contact 2 name (optional)<input placeholder="Full name"></label><label>Phone number<input type="tel" placeholder="Phone number"></label><label>Relationship<input placeholder="For example, family friend"></label></div><h3>Health information</h3><label>Medical conditions<textarea placeholder="List medical conditions">${esc(child.medical)}</textarea></label><label>Medications and where they are kept<textarea placeholder="List medications and where each is kept"></textarea></label><label>Allergies<input placeholder="List allergies or enter none"></label><h3>Authorized pickup adults</h3><p>Add each adult as <strong>name (relationship)</strong>.</p><div class="g-tags" data-tags><div class="g-tag-list" aria-live="polite"></div><input data-tag-input placeholder="Type a name and relationship, then press Enter"></div><h3>Consent</h3><aside class="g-use"><strong>How your child’s information is used</strong><p>Contact and health details help the school care for your child, respond to emergencies, and release them only to an adult you authorize. Medical details are shared with staff and patrol who need them to support your child’s safety.</p></aside><label class="g-check g-required-check"><input type="checkbox" data-required-check> I confirm the information above is accurate</label><label class="g-check g-required-check"><input type="checkbox" data-required-check> I understand medical details are shared with the staff and patrol who need them</label><label class="g-check g-optional-check"><input type="checkbox"> I give permission for photos <span>(optional)</span></label><label>Guardian signature<input placeholder="Type full name"></label><label>Date<input type="date"></label></form></section>`;
-      const relationshipGroups={
-        'Primary/Immediate Family':['Spouse','Partner/Significant Other','Parent','Mother','Father','Child','Sibling'],
-        'Extended Family':['Grandparent','Aunt/Uncle','Cousin','Legal Guardian'],
-        'Non-Family':['Friend','Neighbour','Co-worker','Other'],
-      };
-      template.content.querySelectorAll('.g-contact label:last-child').forEach(label=>{
+      template.content.querySelectorAll('.g-contact label:last-child').forEach((label,index)=>{
         const select=document.createElement('select');
-        select.innerHTML='<option value="">Choose a relationship</option>'+Object.entries(relationshipGroups).map(([group,options])=>`<optgroup label="${esc(group)}">${options.map(option=>`<option value="${esc(option)}">${esc(option)}</option>`).join('')}</optgroup>`).join('');
+        select.innerHTML=relationshipOptions(index ? child.emergencyRelationship2 : child.emergencyRelationship);
         label.replaceChild(select,label.querySelector('input'));
       });
       const pickup=template.content.querySelector('.g-tags');
       pickup.className='g-authorized-adults';
       pickup.previousElementSibling.textContent='Add each person with their relationship.';
-      pickup.innerHTML=`<div class="g-authorized-entry"><label>Adult name<input data-pickup-name placeholder="Full name"></label><label>Relationship<select data-pickup-relationship><option value="">Choose a relationship</option>${Object.entries(relationshipGroups).map(([group,options])=>`<optgroup label="${esc(group)}">${options.map(option=>`<option value="${esc(option)}">${esc(option)}</option>`).join('')}</optgroup>`).join('')}</select></label><button type="button" class="d-button" data-pickup-add>Add</button></div><div class="g-authorized-list" data-pickup-list aria-live="polite"></div>`;
+      pickup.innerHTML=`<div class="g-authorized-entry"><label>Adult name<input data-pickup-name placeholder="Full name"></label><label>Relationship<select data-pickup-relationship>${relationshipOptions()}</select></label><button type="button" class="d-button" data-pickup-add>Add</button></div><div class="g-authorized-list" data-pickup-list aria-live="polite"></div>`;
       const formTemplate=template.content.querySelector('.g-form');
       consentDialog.innerHTML=`<form class="g-dialog-form g-form"><header class="d-dialog-heading"><div><p>Consent form</p><h2 id="guardian-consent-title">${esc(child.displayName)}</h2></div><button type="button" class="d-close" aria-label="Close consent form">×</button></header><div class="d-dialog-body"><div class="g-form-content">${formTemplate.innerHTML}</div></div><footer class="d-dialog-footer"><div><button type="button" class="d-button g-clear">Clear</button><button class="d-button d-primary" type="submit">${child.consentStatus==='complete'?'Save changes':'Submit consent'}</button></div></footer></form>`;
     consentDialog.querySelector('.d-close').onclick=()=>consentDialog.close();
     if(!consentDialog.open) consentDialog.showModal();
     const pickupName=consentDialog.querySelector('[data-pickup-name]'),pickupRelationship=consentDialog.querySelector('[data-pickup-relationship]'),pickupList=consentDialog.querySelector('[data-pickup-list]');
-    const addPickupAdult=(name,relationship)=>{const row=document.createElement('div');row.className='g-authorized-row';row.dataset.name=name;row.dataset.relationship=relationship;row.innerHTML=`<span><strong>${esc(name)}</strong><small>${esc(relationship)}</small></span><button type="button" class="d-button" aria-label="Remove ${esc(name)}">Remove</button>`;row.querySelector('button').onclick=()=>row.remove();pickupList.append(row);};
+    const pickupRecords = new WeakMap();
+    const addPickupAdult = (name, relationship, saved) => {
+      const row = document.createElement('div');
+      row.className = 'g-authorized-row';
+      row.innerHTML = `<span><strong>${esc(name)}</strong><small>${esc(relationship || 'Relationship not recorded')}</small></span><button type="button" class="d-button" aria-label="Remove ${esc(name)}">Remove</button>`;
+      pickupRecords.set(row, saved ? {...saved} : {name, relationship});
+      row.querySelector('button').onclick = () => row.remove();
+      pickupList.append(row);
+    };
     consentDialog.querySelector('[data-pickup-add]').onclick=()=>{pickupName.classList.remove('g-invalid');pickupRelationship.classList.remove('g-invalid');if(!pickupName.value.trim()||!pickupRelationship.value){if(!pickupName.value.trim())pickupName.classList.add('g-invalid');if(!pickupRelationship.value)pickupRelationship.classList.add('g-invalid');return;}addPickupAdult(pickupName.value.trim(),pickupRelationship.value);pickupName.value='';pickupRelationship.value='';pickupName.focus();};
     const form=consentDialog.querySelector('form');
     consentDialog.querySelector('.g-clear').onclick=()=>{
@@ -88,18 +91,13 @@ export function createGuardian(root, seed, {onChange = () => {}} = {}) {
       if(input.type==='checkbox') input.checked=Boolean(child[name]);
       else if(name!=='pickupInput') input.value=child[name]||'';
     });
-    const priorAdults=child.pickupAdults||[];
-    for(const adult of priorAdults) addPickupAdult(adult.name,adult.relationship||'Other');
+    for(const adult of child.pickupAdults||[]) addPickupAdult(adult.name,adult.relationship,adult);
     form.noValidate=true;
     const today=new Date();
     const dateInput=form.querySelector('input[type=date]');
-    if(dateInput) dateInput.value=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');
+    if(dateInput && !dateInput.value) dateInput.value=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');
     form.addEventListener('input',event=>{
       event.target.classList.remove('g-invalid');
-      if(event.target.type==='tel'){
-        const digits=event.target.value.replace(/\D/g,'').slice(0,11);
-        event.target.value=digits.length>10?`+${digits[0]} ${digits.slice(1,4)} ${digits.slice(4,7)} ${digits.slice(7)}`:digits.length>6?`${digits.slice(0,3)}-${digits.slice(3,6)}-${digits.slice(6)}`:digits.length>3?`${digits.slice(0,3)}-${digits.slice(3)}`:digits;
-      }
     });
     form.onsubmit=event=>{
       event.preventDefault();
@@ -112,7 +110,7 @@ export function createGuardian(root, seed, {onChange = () => {}} = {}) {
       if(!contactComplete.some(contact=>contact.every(Boolean))){errors.push('Complete at least one emergency contact, including their name, phone number and relationship.');const partialIndex=contactComplete.findIndex(contact=>contact.some(Boolean));const target=partialIndex<0?0:partialIndex;contacts[target].querySelectorAll('input,select').forEach((input,index)=>{if(!contactComplete[target][index])mark(input);});}
       for(const [index,contact] of contactComplete.entries()){
         if(contact.some(Boolean)&&!contact.every(Boolean)){errors.push(`Finish all details for emergency contact ${index+1}.`);contacts[index].querySelectorAll('input,select').forEach((input,i)=>{if(!contact[i])mark(input);});}
-        if(contact[1]){const digits=contact[1].replace(/\D/g,'');if(!(digits.length===10||(digits.length===11&&digits.startsWith('1')))){errors.push(`Enter a valid phone number for emergency contact ${index+1}.`);mark(contacts[index].querySelectorAll('input')[1]);}}
+        if(contact[1]&&!phoneValid(contact[1])){errors.push(`Enter a valid phone number for emergency contact ${index+1}.`);mark(contacts[index].querySelectorAll('input')[1]);}
       }
       const conditions=form.querySelector('textarea[placeholder="List medical conditions"]'),medications=form.querySelector('textarea[placeholder="List medications and where each is kept"]'),allergies=form.querySelector('input[placeholder="List allergies or enter none"]'),signature=form.querySelector('input[placeholder="Type full name"]'),date=form.querySelector('input[type=date]');
       if(!conditions.value.trim()){errors.push('Enter medical conditions or write “None”.');mark(conditions);}
@@ -125,17 +123,19 @@ export function createGuardian(root, seed, {onChange = () => {}} = {}) {
       if(errors.length){const message=document.createElement('div');message.className='g-error';message.setAttribute('role','alert');message.innerHTML='<strong>Please complete these items:</strong><ul>'+errors.map(error=>`<li>${esc(error)}</li>`).join('')+'</ul>';consentDialog.querySelector('.g-form-content').prepend(message);consentDialog.querySelector('.d-dialog-body').scrollTo({top:0,behavior:'smooth'});message.focus?.();return;}
       consentDates[child.id]=new Intl.DateTimeFormat('en-CA',{timeZone:'UTC',year:'numeric',month:'short',day:'numeric'}).format(new Date());
       for(const name of fields.slice(2)) {
-        if(name==='pickupInput') continue;
+        if(name==='pickupInput'||name==='pickupRelationship') continue;
         const input=form.elements.namedItem(name);
-        child[name]=input.type==='checkbox'?input.checked:input.value.trim();
+        child[name]=input.type==='checkbox'?input.checked:input.type==='tel'?formatPhone(input.value):input.value.trim();
       }
-      child.pickupAdults=[...pickupList.querySelectorAll('.g-authorized-row')].map(row=>({...priorAdults.find(adult=>adult.name===row.dataset.name),name:row.dataset.name,relationship:row.dataset.relationship}));
-      child.consentStatus='complete';child.consentUpdatedAt=new Date().toISOString().slice(0,10);child.medicalStatus=[child.medical,child.medications,child.allergies].some(value=>value && !/^(none|no known (conditions|allergies)|no medical conditions)[.!]?$/i.test(value.trim()))?'alert':'none';onChange();consentDialog.close();render('My children');
+      child.pickupAdults=[...pickupList.querySelectorAll('.g-authorized-row')].map(row=>pickupRecords.get(row));
+      child.pickup=child.pickupAdults.map(adult=>adult.name).join('; ');
+      child.consentStatus='complete';child.consentUpdatedAt=new Date().toISOString().slice(0,10);child.medicalStatus=medicalStatusFromDetails(child);onChange();consentDialog.close();render('My children');
     };
   }
   return {render,get accountHolder(){return accountHolder;},get accountId(){return accountId;},setAccount(profile){
     accountId=profile.guardianId || profile.id;
     let person=seed.guardians.find(person=>person.id===accountId);
+    if(!person && profile.sample){accountHolder=profile.name;selected=null;return;}
     if(!person){person={id:accountId,name:profile.name,email:profile.email,phone:'',relationship:'Guardian'};seed.guardians.push(person);}
     profile.guardianId=person.id;accountHolder=person.name;selected=null;
   },clear(){root.replaceChildren();if(consentDialog.open)consentDialog.close()}};

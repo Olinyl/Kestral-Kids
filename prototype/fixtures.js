@@ -1,9 +1,26 @@
 import {storeImport} from './store-import.js';
+import {applyRegistrationImport} from './registration-import.js';
+
+export const demoModes = [
+  ['demo', 'Prepared demo'],
+  ['registration', 'Empty registration roster'],
+  ['imports', '300 sample registrations only'],
+  ['200', '200 prepared children'],
+  ['1000', '1,000 prepared children'],
+  ['worst', 'Long names and other edge cases'],
+  ['empty', 'Empty school'],
+  ['one', 'One prepared child'],
+];
 
 // Local preview only. This module is excluded from both published build folders.
 export function prototypeSeed(base, mode) {
   if (mode === 'demo') return base;
-  const count = {empty:0,one:1,worst:200,imports:200,'200':200,'1000':1000}[mode] ?? 200;
+  if (mode === 'registration' || mode === 'imports') {
+    const seed = {...base, children:[], attendance:[], guardians:[], patrolAlerts:[], incidents:[]};
+    if (mode === 'imports') applyRegistrationImport(seed, storeImport);
+    return seed;
+  }
+  const count = {empty:0,one:1,worst:200,'200':200,'1000':1000}[mode] ?? 200;
   const seed = {lessonDate:base.lessonDate,roles:base.roles,patrolAlerts:structuredClone(base.patrolAlerts ?? []),children:[],attendance:[],groups:[],guardians:[],instructors:[],incidents:[]};
   const first = ['Avery','Jordan','Riley','Morgan','Taylor','Sam','Alex','Charlie','Jamie','Casey'];
   const last = ['Patel','Martin','Wilson','Lee','Garcia','Campbell','Brown','Ahmed','Murphy','Tremblay'];
@@ -35,17 +52,4 @@ export function prototypeSeed(base, mode) {
     seed.attendance.push({childId:child.id,groupId:seed.groups[Math.floor(i/6)].id,bib:String(1000+i),status:i%3===0?'checked_in':'expected',clothing:['Green jacket, white helmet','Blue jacket, black helmet','Red jacket, blue helmet'][i%3]});
   }
   return seed;
-}
-
-export function addPrototypeControls(mode) {
-  document.body.classList.add('prototype-view');
-  const label=document.createElement('label');
-  label.className='prototype-controls';
-  label.textContent='Test records ';
-  const select=document.createElement('select');
-  select.dataset.testid='prototype-data';
-  for(const [value,text] of [['demo','Demo data'],['imports','200 store imports'],['200','200 children'],['1000','1,000 children'],['worst','Worst case'],['empty','Empty'],['one','One child']]) select.add(new Option(text,value));
-  select.value=mode;
-  select.onchange=()=>{const url=new URL(location.href);url.searchParams.set('data',select.value);location.href=url;};
-  label.append(select);document.body.append(label);
 }
