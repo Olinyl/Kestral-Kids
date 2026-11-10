@@ -43,7 +43,7 @@ export function createPatrol(root, seed, { onSignOut }) {
           <div class="p-alert-main">
           <div class="p-alert-head">
             <span class="p-icon p-alert-icon">${icons.alert}</span>
-            <div class="p-child"><div class="p-child-heading-row"><span class="p-case">${escapeHtml(alert.caseNumber)}</span><span class="p-status">${escapeHtml(alert.status)}</span>${patrolGroupMeta(alert.group)}</div><h3>${escapeHtml(alert.childName)}</h3><div class="p-child-quick-meta"><span>Age ${escapeHtml(alert.age)}</span><span>Desk alert received ${escapeHtml(alert.receivedTime)}</span></div></div>
+            <div class="p-child"><div class="p-child-heading-row"><span class="p-case">${escapeHtml(alert.caseNumber)}</span><span class="p-status${alert.status === 'Found' ? ' p-status-found' : ''}">${escapeHtml(alert.status)}</span>${patrolGroupMeta(alert.group)}</div><h3>${escapeHtml(alert.childName)}</h3><div class="p-child-quick-meta"><span>Age ${escapeHtml(alert.age)}</span><span>Desk alert received ${escapeHtml(alert.receivedTime)}</span></div></div>
             ${alert.program ? `<div class="p-child-meta">${profileMeta({program:alert.program})}</div>` : ''}
           </div>
           <div class="p-left-column">
@@ -75,15 +75,11 @@ export function createPatrol(root, seed, { onSignOut }) {
               <button class="p-action-button" type="button" data-testid="patrol-request-lift-scan" data-action="lift" data-alert-id="${escapeHtml(alert.id)}" ${alert.liftScanRequested ? 'disabled' : ''}>${alert.liftScanRequested ? 'Lift scan requested' : 'Request lift scan'}</button>
               <button class="p-action-button p-action-found" type="button" data-testid="patrol-log-found-mobile" data-search-action="found" data-alert-id="${escapeHtml(alert.id)}">Found / Resolved</button>
               <button class="p-action-button p-action-copy" type="button" data-testid="patrol-copy-report" data-action="copy" data-alert-id="${escapeHtml(alert.id)}">Copy details for police report</button>
-              <button class="p-action-button p-action-police" type="button" data-testid="patrol-call-police" data-action="police" data-alert-id="${escapeHtml(alert.id)}">Call police (1 hr)</button>
+              <button class="p-action-button p-action-police" type="button" data-testid="patrol-call-police" disabled aria-disabled="true">Call police (1 hr)</button>
             </div>
-            <div class="p-police-confirmation" data-testid="patrol-police-confirmation" data-alert-id="${escapeHtml(alert.id)}" role="group" aria-labelledby="patrol-police-confirm-title-${escapeHtml(alert.id)}" hidden>
-              <div class="p-police-confirm-copy" id="patrol-police-confirm-title-${escapeHtml(alert.id)}">
-                <strong>Are you sure you want to call police now?</strong>
-                <span>Police will coordinate with Search and Rescue and handle family communications.</span>
-                <span class="p-preview-only">* This is a preview only. No call will be placed.</span>
-              </div>
-              <div><button class="p-police-cancel" type="button" data-police-cancel>Cancel</button><button class="p-police-confirm" type="button" data-police-confirm>Confirm</button></div>
+            <div class="p-found-confirmation" data-testid="patrol-found-confirmation" role="group" aria-labelledby="patrol-found-confirm-title-${escapeHtml(alert.id)}" hidden>
+              <strong id="patrol-found-confirm-title-${escapeHtml(alert.id)}">Confirm this child has been found and close the alert?</strong>
+              <div><button class="p-found-cancel" type="button" data-found-cancel>Cancel</button><button class="p-found-confirm" type="button" data-found-confirm>Confirm</button></div>
             </div>
             <p class="p-action-message" role="status" aria-live="polite" data-testid="patrol-action-message" hidden></p>
           </section>
@@ -92,7 +88,7 @@ export function createPatrol(root, seed, { onSignOut }) {
           <div class="p-patrol-logs" data-testid="patrol-logs">
             <section class="p-log-panel p-system-log-panel" aria-labelledby="system-log-title">
               <div class="p-log-heading"><h3 id="system-log-title">System log</h3><span class="p-log-badge p-automatic">Automatic</span></div>
-              <div class="p-log-entries">${logRows(alert.systemLog || [])}</div>
+              <div class="p-log-entries" data-testid="patrol-system-log-entries" tabindex="0" aria-label="System log entries">${logRows(alert.systemLog || [])}</div>
               <p class="p-log-note">App events only. Radio coordination is not captured.</p>
             </section>
             <section class="p-log-panel p-search-log-panel" aria-labelledby="search-log-title">
@@ -164,13 +160,6 @@ export function createPatrol(root, seed, { onSignOut }) {
             message.hidden = true;
           }
         }
-      } else if (button.dataset.action === 'police') {
-        const confirmation = card?.querySelector('[data-testid="patrol-police-confirmation"]');
-        if (confirmation) {
-          message.hidden = true;
-          confirmation.hidden = false;
-          confirmation.querySelector('[data-police-confirm]')?.focus();
-        }
       } else {
         const contacts = (selectedAlert.emergencyContacts ?? []).map(contact =>
           `${contact.name} (${contact.relationship}): ${contact.phone} — ${contact.phoneStatus}`
@@ -208,22 +197,34 @@ export function createPatrol(root, seed, { onSignOut }) {
         }
       }
     }));
-    root.querySelectorAll('[data-police-confirm]').forEach(confirmButton => confirmButton.addEventListener('click', () => {
-      const card = confirmButton.closest('.p-alert-card');
-      const confirmation = confirmButton.closest('[data-testid="patrol-police-confirmation"]');
-      const message = card?.querySelector('[data-testid="patrol-action-message"]');
-      if (confirmation) confirmation.hidden = true;
-      if (message) {
-        message.textContent = 'This preview does not place calls. Follow the displayed escalation time and contact police; police request search and rescue through 911.';
-        message.hidden = false;
+    root.querySelectorAll('[data-testid="patrol-log-found-mobile"]').forEach(foundButton => foundButton.addEventListener('click', event => {
+      if (foundButton.dataset.confirmed === 'true') return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const card = foundButton.closest('.p-alert-card');
+      const confirmation = card?.querySelector('[data-testid="patrol-found-confirmation"]');
+      if (confirmation) {
+        confirmation.hidden = false;
+        confirmation.querySelector('[data-found-confirm]')?.focus();
       }
-      card?.querySelector('[data-testid="patrol-call-police"]')?.focus();
     }));
-    root.querySelectorAll('[data-police-cancel]').forEach(cancelButton => cancelButton.addEventListener('click', () => {
-      const card = cancelButton.closest('.p-alert-card');
-      const confirmation = cancelButton.closest('[data-testid="patrol-police-confirmation"]');
+    root.querySelectorAll('[data-found-confirm]').forEach(confirmButton => confirmButton.addEventListener('click', () => {
+      const card = confirmButton.closest('.p-alert-card');
+      const confirmation = confirmButton.closest('[data-testid="patrol-found-confirmation"]');
+      const foundButton = card?.querySelector('[data-testid="patrol-log-found-mobile"]');
       if (confirmation) confirmation.hidden = true;
-      card?.querySelector('[data-testid="patrol-call-police"]')?.focus();
+      if (foundButton) {
+        foundButton.dataset.confirmed = 'true';
+        foundButton.click();
+        delete foundButton.dataset.confirmed;
+        foundButton.disabled = true;
+      }
+    }));
+    root.querySelectorAll('[data-found-cancel]').forEach(cancelButton => cancelButton.addEventListener('click', () => {
+      const card = cancelButton.closest('.p-alert-card');
+      const confirmation = cancelButton.closest('[data-testid="patrol-found-confirmation"]');
+      if (confirmation) confirmation.hidden = true;
+      card?.querySelector('[data-testid="patrol-log-found-mobile"]')?.focus();
     }));
     root.querySelectorAll('[data-search-action]').forEach(button => button.addEventListener('click', () => {
       const selectedAlert = alerts.find(item => item.id === button.dataset.alertId);
@@ -244,7 +245,10 @@ export function createPatrol(root, seed, { onSignOut }) {
         selectedAlert.active = false;
         const alertCard = root.querySelector(`.p-alert-card[data-alert-id="${CSS.escape(selectedAlert.id)}"]`);
         const status = alertCard?.querySelector('.p-status');
-        if (status) status.textContent = 'Found';
+        if (status) {
+          status.textContent = 'Found';
+          status.classList.add('p-status-found');
+        }
       }
       const entryList = root.querySelector(`#patrol-search-log-${CSS.escape(selectedAlert.id)}`);
       if (entryList) entryList.innerHTML = logRows(entries);

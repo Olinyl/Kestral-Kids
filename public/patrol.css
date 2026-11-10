@@ -34,6 +34,7 @@ body.patrol-view { background:#f5f8f7; color:#173f39; }
 .p-child-heading-row { display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:2px; }
 .p-child-heading-row .profile-meta { display:contents; }
 .p-status { justify-self:start; border-radius:20px; padding:6px 13px; background:#ffe3e2; color:#a92323; font-size:11px; font-weight:700; }
+.p-status.p-status-found { background:#2563eb; color:#fff; }
 .p-child-meta { grid-column:1/-1; display:flex; flex-wrap:wrap; gap:5px 14px; color:#536f69; font-size:11px; }
 .p-child-meta strong { color:#315a52; }
 .p-facts { display:grid; gap:0; padding:5px 20px 10px; }
@@ -65,14 +66,12 @@ body.patrol-view { background:#f5f8f7; color:#173f39; }
 .p-action-buttons { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
 .p-action-button { min-height:43px; padding:8px 10px; border:1px solid #d4dfec; border-radius:11px; background:white; color:#233b61; font-size:12px; line-height:1.3; font-weight:700; }
 .p-action-police { border-color:#b91c1c; background:#bf1e1e; color:#fff; }
-.p-police-confirmation { display:grid; gap:9px; margin-top:10px; padding:12px; border:1px solid #e7b2aa; border-radius:10px; background:#fff4f1; color:#68352b; }
-.p-police-confirmation[hidden] { display:none; }
-.p-police-confirm-copy { display:grid; gap:4px; font-size:12px; line-height:1.5; }
-.p-police-confirm-copy strong { font-size:13px; }
-.p-preview-only { color:#788795; }
-.p-police-confirmation>div:last-child { display:flex; justify-content:flex-end; gap:8px; }
-.p-police-confirmation button { min-height:36px; padding:6px 12px; border:1px solid #d5dfeb; border-radius:8px; background:#fff; color:#344359; font:inherit; font-size:12px; font-weight:700; }
-.p-police-confirmation .p-police-confirm { border-color:#b91f1f; background:#b91f1f; color:#fff; }
+#app-shell .p-action-police:disabled { border-color:#cbd5e1; background:#e5e7eb; color:#64748b; opacity:1; cursor:not-allowed; }
+.p-found-confirmation { display:grid; gap:9px; margin-top:10px; padding:12px; border:1px solid #b7cbe9; border-radius:10px; background:#f2f7ff; color:#334b70; font-size:12px; line-height:1.5; }
+.p-found-confirmation[hidden] { display:none; }
+.p-found-confirmation>div { display:flex; justify-content:flex-end; gap:8px; }
+.p-found-confirmation button { min-height:36px; padding:6px 12px; border:1px solid #c9d5e4; border-radius:8px; background:#fff; color:#344359; font:inherit; font-weight:700; }
+.p-found-confirmation .p-found-confirm { border-color:#2563eb; background:#2563eb; color:#fff; }
 .p-action-copy { grid-column:auto; }
 #app-shell .p-action-found { grid-column:auto; border-color:#2563eb; background:#2563eb; color:#fff; }
 #app-shell .p-action-found:not(:disabled):hover { border-color:#1d4ed8; background:#1d4ed8; color:#fff; }
@@ -87,8 +86,7 @@ body.patrol-view { background:#f5f8f7; color:#173f39; }
 .p-automatic { background:#e5f4ff; color:#155779; }
 .p-patrol-entry { background:#f3e8ff; color:#7035a5; }
 .p-log-entries { display:grid; }
-.p-search-log-entries { max-height:min(38dvh,320px); overflow-y:auto; overscroll-behavior-y:contain; scrollbar-width:thin; scrollbar-color:#b8cbc5 #eef3f1; }
-.p-search-log-entries:focus-visible { outline:2px solid #205d46; outline-offset:2px; }
+.p-search-log-entries:focus-visible,.p-system-log-panel .p-log-entries:focus-visible { outline:2px solid #205d46; outline-offset:2px; }
 .p-log-row { display:grid; grid-template-columns:72px minmax(0,1fr) minmax(110px,auto); align-items:center; gap:14px; min-height:44px; border-bottom:1px dashed #dce5ee; color:#43546b; font-size:14px; }
 .p-log-row time { color:#303f55; font-weight:750; font-variant-numeric:tabular-nums; }
 .p-log-row strong { color:#91a2b8; text-align:right; font-size:13px; }
@@ -107,7 +105,8 @@ body.patrol-view { background:#f5f8f7; color:#173f39; }
  .patrol-view .p-patrol-logs { display:contents; }
  .patrol-view .p-search-log-panel { grid-column:1; grid-row:2; }
  .patrol-view .p-system-log-panel { grid-column:2; grid-row:2; }
- .p-log-panel { border-radius:18px; }
+ .p-log-panel { display:flex; flex-direction:column; height:clamp(320px,42dvh,440px); min-height:0; overflow:hidden; border-radius:18px; }
+ .p-log-panel .p-log-entries { flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior-y:contain; scrollbar-width:thin; scrollbar-color:#b8cbc5 #eef3f1; }
  .p-log-row { min-height:45px; font-size:15px; }
  .p-log-button { font-size:14px; }
 }
