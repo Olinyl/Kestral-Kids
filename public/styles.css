@@ -200,6 +200,15 @@ h2 { margin: 0; font-size: 1.1rem; }
 .g-form-heading p { margin:3px 0 0; color:var(--muted); font-size:14px; }
 .g-form-heading .g-back { display:grid; place-items:center; flex:0 0 44px; width:44px; height:44px; padding:0; border:1px solid #bdcbc5; border-radius:6px; background:white; color:#173f39; font-size:23px; }
 .g-form-heading .g-back:hover { background:#edf5f2; }
+.g-consent-dialog { width:min(760px,calc(100% - 32px)); max-height:calc(100dvh - 32px); }
+.g-consent-dialog > .g-dialog-form { display:grid; grid-template-rows:auto minmax(0,1fr) auto; max-height:calc(100dvh - 34px); gap:0; padding:0; border:0; border-radius:0; background:white; }
+.g-consent-dialog .d-dialog-body { min-height:0; overflow-y:auto; overscroll-behavior:contain; }
+.g-consent-dialog .g-form-content { display:grid; gap:14px; }
+.g-consent-dialog .d-dialog-heading { align-items:start; flex-shrink:0; }
+.g-consent-dialog .d-dialog-heading p { margin:0 0 3px; color:var(--muted); font-size:12px; }
+.g-consent-dialog .d-dialog-heading h2 { margin:0; font-size:22px; }
+.g-consent-dialog .d-dialog-footer { justify-content:flex-end; flex-shrink:0; }
+.g-consent-dialog .d-dialog-footer > div { display:flex; justify-content:flex-end; gap:10px; }
 .g-review { min-height:38px; font-size:.85rem; white-space:nowrap; }
 .g-invalid,.g-tags.g-invalid { border-color:#b42318!important; box-shadow:0 0 0 1px #b42318; background:#fff7f6!important; }
 .g-error { padding:12px 14px; background:#fff1ed; border:1px solid #dd9b8c; border-radius:7px; color:#713525; }
