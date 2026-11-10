@@ -36,7 +36,7 @@ export function createOperations(root, seed, {onChange}) {
     seed.patrolAlerts ??= [];
     const caseNumber = `MC-${String(1043 + seed.patrolAlerts.length).padStart(4, '0')}`;
     seed.patrolAlerts.unshift({
-      id: `demo-alert-${Date.now()}`, caseNumber, active:true, childId:row.id || row.childId,
+      id: `demo-alert-${Date.now()}`, caseNumber, active:true, childId:row.id || row.childId, bib:row.bib || '',
       childName:row.displayName, alternateName:row.alternateName || row.displayName, age,
       group:`${row.group?.label || 'Group not recorded'} · ${row.group?.level || 'Level not recorded'}`,
       radioChannel:'Channel 4', status:'Searching', source, receivedTime:clock,

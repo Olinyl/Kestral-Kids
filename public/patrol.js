@@ -26,10 +26,19 @@ function logRows(entries) {
   return entries.map(entry => `<div class="p-log-row"><time>${escapeHtml(entry.time)}</time><span>${escapeHtml(entry.action)}</span><strong>${escapeHtml(entry.actor)}</strong></div>`).join('');
 }
 
-function patrolGroupMeta(value) {
+function patrolGroupMeta(value, bib) {
   const [group, ...levelParts] = String(value ?? '').split('·').map(part => part.trim());
   const level = levelParts.join(' · ').replace(/^level\s*/i, 'Level ');
-  return profileMeta({group, level});
+  return profileMeta({group, level, bib});
+}
+
+function patrolBib(alert, seed) {
+  if (alert.bib) return alert.bib;
+  const child = (seed.children ?? []).find(record =>
+    [record.id, record.stableId].includes(alert.childId) ||
+    [record.displayName, record.alternateName].some(name => name && [alert.childName, alert.alternateName].includes(name))
+  );
+  return (seed.attendance ?? []).find(row => row.childId === (child?.id ?? alert.childId))?.bib ?? '';
 }
 
 function contactRelationship(value) {
@@ -48,7 +57,7 @@ export function createPatrol(root, seed, { onSignOut }) {
           <div class="p-alert-main">
           <div class="p-alert-head">
             <span class="p-icon p-alert-icon">${icons.alert}</span>
-            <div class="p-child"><div class="p-child-heading-row"><span class="p-case">${escapeHtml(alert.caseNumber)}</span><span class="p-status${alert.status === 'Found' ? ' p-status-found' : ''}">${escapeHtml(alert.status)}</span>${patrolGroupMeta(alert.group)}</div><h3>${escapeHtml(alert.childName)}</h3><div class="p-child-quick-meta"><span>Age ${escapeHtml(alert.age)}</span><span>Desk alert received ${escapeHtml(alert.receivedTime)}</span></div></div>
+            <div class="p-child"><div class="p-child-heading-row"><span class="p-case">${escapeHtml(alert.caseNumber)}</span><span class="p-status${alert.status === 'Found' ? ' p-status-found' : ''}">${escapeHtml(alert.status)}</span>${patrolGroupMeta(alert.group, patrolBib(alert, seed))}</div><h3>${escapeHtml(alert.childName)}</h3><div class="p-child-quick-meta"><span>Age ${escapeHtml(alert.age)}</span><span>Desk alert received ${escapeHtml(alert.receivedTime)}</span></div></div>
             ${alert.program ? `<div class="p-child-meta">${profileMeta({program:alert.program})}</div>` : ''}
           </div>
           <div class="p-left-column">

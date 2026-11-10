@@ -152,6 +152,8 @@ body.patrol-view { background:#f5f8f7; color:#173f39; }
  .p-status { flex:0 0 auto; padding:4px 7px; font-size:9px; white-space:nowrap; }
  .p-child-heading-row .profile-meta-group { flex:0 1 auto; min-width:0; gap:2px; padding:3px 5px; white-space:nowrap; }
  .p-child-heading-row .profile-meta-group dt,.p-child-heading-row .profile-meta-group dd { font-size:9px; }
+ .p-child-heading-row .profile-meta-item { flex:0 1 auto; min-width:0; gap:2px; padding:3px 4px; white-space:nowrap; }
+ .p-child-heading-row .profile-meta-item dt,.p-child-heading-row .profile-meta-item dd,#app-shell .p-child-heading-row .profile-meta-item.bib { font-size:8px; }
  .p-facts { grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:10px; padding:5px 12px 10px; }
  .p-facts { gap:5px; }
  .p-fact { grid-template-columns:24px minmax(0,1fr); gap:7px; padding:9px 0; }
