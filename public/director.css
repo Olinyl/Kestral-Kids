@@ -1,6 +1,7 @@
 .d-pagination {display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 20px;border-top:1px solid var(--line);font-size:13px;font-variant-numeric:tabular-nums;flex-wrap:wrap;}
 .director-view .workspace { padding-top: 28px; }
 #director { color: #213e36; font-size: 14px; }
+.d-guardian-child + .d-guardian-child { margin-top:10px; padding-top:10px; border-top:1px solid var(--line); }
 #director h2 { font-size: 22px; line-height: 1.3; letter-spacing: -.02em; }
 #director h3 { font-size: 15px; margin: 0; }
 .d-page-heading { display: flex; gap: 20px; justify-content: space-between; align-items: center; margin-bottom: 22px; }

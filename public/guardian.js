@@ -1,15 +1,20 @@
+import {storeImport} from './store-import.js';
+
 export function createGuardian(root, seed) {
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   let selected = null;
   const consentDates = {};
+  const accountHolder = storeImport[0].accountHolder;
   const updatedDate = child => consentDates[child.id] || (child.consentStatus === 'complete' && child.consentUpdatedAt ? new Intl.DateTimeFormat('en-CA',{timeZone:'UTC',year:'numeric',month:'short',day:'numeric'}).format(new Date(child.consentUpdatedAt+'T00:00:00Z')) : '');
   function render(tab) {
-    const children = seed.children.filter(child => ['demo-guardian-01','demo-guardian-02'].includes(child.guardianId));
+    const children = storeImport.filter(registration=>registration.accountHolder===accountHolder).map((registration,index)=>({id:registration.orderNumber,displayName:registration.child,birthDate:registration.birthDate,guardianId:'store-demo-account',consentStatus:index===0?'incomplete':'complete',consentUpdatedAt:index===0?'':'2026-11-06',storeRegistration:registration,medical:'',emergencyName:'',emergencyPhone:'',emergencyName2:'',emergencyPhone2:''}));
     const active = children.find(child => child.id === selected) || children[0];
-    const guardian=seed.guardians.find(person=>person.id===active?.guardianId);
-    const groupFor=child=>{const attendance=seed.attendance.find(item=>item.childId===child.id);return seed.groups.find(group=>group.id===attendance?.groupId)?.label.replace(/^[A-Za-z]+\s*/, 'Group ')||'Group not assigned';};
-    root.innerHTML = `<section class="g-home">${tab === 'Messages' ? `<h2>Messages</h2><p class="g-intro">No messages yet.</p>` : `<article class="g-lesson-card"><h2>Next lesson</h2><strong>${new Intl.DateTimeFormat('en-US',{weekday:'long',month:'long',day:'numeric',timeZone:'UTC'}).format(new Date(seed.lessonDate+'T00:00:00Z'))}</strong><div><span>Check-in</span><b>8:30–9:15 AM</b></div><div><span>Lesson starts</span><b>9:30 AM</b></div></article><h2 class="g-children-heading">My children</h2>`}
-      ${tab === 'My children' ? children.map(child => `<div class="g-child-row"><button class="g-child ${active?.id===child.id?'selected':''}" data-child="${esc(child.id)}"><span class="g-child-name"><span class="g-child-title"><strong>${esc(child.displayName)}</strong><span class="g-group-tag">${esc(groupFor(child))}</span></span><small>Born ${esc(child.birthDate)}</small>${child.consentStatus==='complete'?`<small>Consent on file. Last updated: ${esc(updatedDate(child))}</small>`:`<span class="g-alert-inline">Consent form required</span>`}</span></button><button class="g-button secondary g-review" data-consent="${esc(child.id)}">${child.consentStatus==='complete'?'Review or edit consent':'Fill consent form'}</button></div>`).join('') : ''}
+    const guardianName=accountHolder;
+    const groupFor=child=>`Group ${child.storeRegistration.level}`;
+    const nextLessonDate=child=>{const base=new Date(seed.lessonDate+'T00:00:00Z');const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];const target=days.findIndex(day=>child.storeRegistration.program.includes(day));const offset=(target-base.getUTCDay()+7)%7;base.setUTCDate(base.getUTCDate()+offset);return base;};
+    const programs=[...new Map(children.map(child=>[child.storeRegistration.program,children.filter(item=>item.storeRegistration.program===child.storeRegistration.program)])).entries()];
+    root.innerHTML = `<section class="g-home">${tab === 'Messages' ? `<h2>Messages</h2><p class="g-intro">No messages yet.</p>` : `<h2>Next lessons</h2><article class="g-schedule-card"><div class="g-shared-times"><span>Check-in <strong>8:30–9:15 AM</strong></span><span>Lessons start <strong>9:30 AM</strong></span></div>${programs.map(([program,members])=>`<div class="g-program-row"><strong>${esc(program.replace('Kestrel Kids, ',''))}</strong><span>${new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',timeZone:'UTC'}).format(nextLessonDate(members[0]))}</span><span>${members.map(child=>esc(child.displayName)).join(', ')}</span></div>`).join('')}</article><h2 class="g-children-heading">My children</h2>`}
+      ${tab === 'My children' ? children.map(child => `<div class="g-child-row"><button class="g-child ${active?.id===child.id?'selected':''}" data-child="${esc(child.id)}"><span class="g-child-name"><span class="g-child-title"><strong>${esc(child.displayName)}</strong><span class="g-group-tag">${esc(groupFor(child))}</span></span><small>${esc(child.storeRegistration.program)} · Born ${esc(child.birthDate)}</small>${child.consentStatus==='complete'?`<small>Consent on file. Last updated: ${esc(updatedDate(child))}</small>`:`<span class="g-alert-inline">Consent form required</span>`}</span></button><button class="g-button secondary g-review" data-consent="${esc(child.id)}">${child.consentStatus==='complete'?'Review or edit consent':'Fill consent form'}</button></div>`).join('') : ''}
       </section>`;
     root.querySelectorAll('[data-child]').forEach(button => button.onclick=()=>{selected=button.dataset.child;render(tab)});
     root.querySelectorAll('[data-consent]').forEach(button=>{button.onclick=event=>{event.stopPropagation();consent(children.find(child=>child.id===button.dataset.consent));};button.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();event.stopPropagation();consent(children.find(child=>child.id===button.dataset.consent));}}});
@@ -78,5 +83,5 @@ export function createGuardian(root, seed) {
       child.consentStatus='complete';render('My children');
     };
   }
-  return {render,clear(){root.replaceChildren()}};
+  return {render,accountHolder,clear(){root.replaceChildren()}};
 }

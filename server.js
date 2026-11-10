@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 const routes = new Map([
   ['/', ['public/index.html', 'text/html; charset=utf-8']],
   ['/workspace.js', ['public/workspace.js', 'text/javascript; charset=utf-8']],
+  ['/store-import.js', ['public/store-import.js', 'text/javascript; charset=utf-8']],
   ['/guardian.js', ['public/guardian.js', 'text/javascript; charset=utf-8']],
   ['/styles.css', ['public/styles.css', 'text/css; charset=utf-8']],
   ['/director.js', ['public/director.js', 'text/javascript; charset=utf-8']],
