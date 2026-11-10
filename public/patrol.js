@@ -74,9 +74,9 @@ export function createPatrol(root, seed, { onSignOut, onChange = () => {} }) {
           </section>
           </div>
           <div class="p-right-column">
-          ${alert.emergencyContacts?.length ? `<section class="p-contacts" style="--p-contact-columns:${alert.emergencyContacts.length}"><h3>Emergency contacts for police handoff</h3>
-            ${alert.emergencyContacts.map(contact => `<div class="p-contact"><div><strong>${escapeHtml(contact.name)}</strong>${contactRelationship(contact.relationship)}</div><div class="p-contact-phone"><a href="tel:${escapeHtml(contact.phone)}">${escapeHtml(contact.phone)}</a></div></div>`).join('')}
-          </section>` : ''}
+          <section class="p-contacts" style="--p-contact-columns:${Math.max(1, alert.emergencyContacts?.length || 1)}"><h3>Emergency contacts for police handoff</h3>
+            ${alert.emergencyContacts?.length ? alert.emergencyContacts.map(contact => `<div class="p-contact"><div><strong>${escapeHtml(contact.name)}</strong>${contactRelationship(contact.relationship)}</div><div class="p-contact-phone">${contact.phone && contact.phone !== 'Not provided' ? `<a href="tel:${escapeHtml(contact.phone)}">${escapeHtml(contact.phone)}</a>` : '<span>Phone not provided</span>'}</div></div>`).join('') : '<p class="p-contact-empty">No emergency contacts are recorded.</p>'}
+          </section>
           <section class="p-actions-panel" data-testid="patrol-actions">
             <h3>Actions</h3>
             <div class="p-action-buttons">
