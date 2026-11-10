@@ -312,6 +312,10 @@ export function createPatrol(root, seed, { onSignOut, onChange = () => {} }) {
       if (button.dataset.searchAction === 'found') {
         selectedAlert.status = 'Found';
         selectedAlert.active = false;
+        selectedAlert.foundBy = 'Patrol';
+        selectedAlert.foundTime = new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+        selectedAlert.searchLog = entries;
+        selectedAlert.systemLog = [...(selectedAlert.systemLog||[]),{time:selectedAlert.foundTime,action:'Child marked found',actor:'Patrol'}];
         const alertCard = root.querySelector(`.p-alert-card[data-alert-id="${CSS.escape(selectedAlert.id)}"]`);
         const policeConfirmation = alertCard?.querySelector('[data-testid="patrol-police-confirmation"]');
         if (policeConfirmation) policeConfirmation.hidden = true;

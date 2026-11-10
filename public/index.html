@@ -16,13 +16,12 @@
   <header class="top">
     <div class="wrap brand">
       <span class="brand-mark" aria-hidden="true">▲</span>
-      <div class="brand-identity"><strong>Kestrel Kids</strong><small id="demo-banner" data-testid="demo-banner"><strong>Preview</strong></small></div>
-      <span class="brand-detail">Safety Desk</span>
-      <div class="brand-actions"><button type="button" class="account-menu-button" data-testid="account-menu" aria-haspopup="dialog"><span class="account-avatar" aria-hidden="true">D</span><span data-current-role>Account</span></button></div>
+      <div class="brand-identity"><strong>Kestrel Kids</strong><small class="brand-subtitle"><span class="brand-product">Safety Desk</span><span class="brand-separator" aria-hidden="true">·</span><span id="demo-banner" data-testid="demo-banner"><strong>Preview</strong></span></small></div>
+      <div class="brand-actions"><button type="button" class="account-menu-button" data-testid="account-menu" aria-haspopup="dialog"><span class="account-avatar" aria-hidden="true">D</span><span data-current-role>Account</span></button><button type="button" class="live-sign-in" data-testid="live-sign-in" hidden>Live staff sign in</button></div>
     </div>
   </header>
   <div class="navigation">
-    <nav class="wrap" aria-label="Workspace" data-testid="workspace-nav"></nav>
+    <nav id="workspace-nav" class="wrap" aria-label="Workspace" data-testid="workspace-nav"></nav>
   </div>
   <main class="wrap">
     <div class="workspace">
@@ -68,7 +67,7 @@
       <label>Last seen place<input data-testid="live-last-seen-place" name="lastSeenPlace" required></label>
       <label>Confirmed clothing<input data-testid="live-clothing" name="clothing"></label>
       <label>Skis, helmet and other equipment<input data-testid="live-equipment" name="equipment"></label>
-      <label>Injuries or concerns<input data-testid="live-injuries" name="injuries" value="Unknown" required></label>
+      <label>Injuries<input data-testid="live-injuries" name="injuries"></label>
       <p class="o-warning">Save sends this report to Desk and Patrol. Call both by physical radio; no radio message is sent by this app.</p>
       <p class="o-note" role="status" data-testid="live-report-status"></p>
       <button class="o-button o-primary" type="submit" data-testid="live-report-save">Save report for Desk and Patrol</button>

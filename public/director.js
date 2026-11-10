@@ -22,38 +22,47 @@ export function createDirector(root, seed, { onChange, onNavigate }) {
   let groupCandidates = [];
   let candidateIndex = -1;
   const notifications = [];
+  const unreadCount=()=>notifications.filter(item=>!item.read).length;
   seed.parentAlerts ??= [];
-  const notificationButton = document.createElement('button');
-  notificationButton.type = 'button';
-  notificationButton.className = 'd-notifications-button';
-  notificationButton.dataset.testid = 'director-notifications';
-  document.querySelector('.brand-actions').prepend(notificationButton);
-  const notificationPanel = document.createElement('section');
-  notificationPanel.className = 'd-notification-panel';
-  notificationPanel.dataset.testid = 'director-notification-list';
-  notificationPanel.setAttribute('aria-label','Preview notifications');
-  notificationPanel.hidden = true;
-  document.querySelector('#app-shell').append(notificationPanel);
+  const updateAlertTab=()=>{
+    const button=document.querySelector('#workspace-nav [data-testid="director-nav-alerts"]');
+    if(!button)return;
+    const unread=unreadCount();
+    button.setAttribute('aria-label',`Alerts${unread?`, ${unread} unread`:''}`);
+    let badge=button.querySelector('.nav-alert-count');
+    if(unread){if(!badge){badge=document.createElement('span');badge.className='nav-alert-count';badge.setAttribute('aria-hidden','true');button.append(badge);}badge.textContent=unread>9?'9+':String(unread);}
+    else badge?.remove();
+  };
   function renderNotifications() {
-    notificationPanel.style.top=document.querySelector('.top').offsetHeight+'px';
-    notificationButton.textContent = `Alerts${notifications.length ? ' ('+notifications.length+')' : ''}`;
-    notificationButton.setAttribute('aria-expanded',String(!notificationPanel.hidden));
-    notificationPanel.innerHTML = `<div class="d-section-heading"><h2>Preview notifications</h2><button type="button" class="d-close" data-notifications-close aria-label="Close notifications">×</button></div>${notifications.length ? notifications.map(item=>`<p class="d-notification-entry">${escape(item.text)}<small>${escape(item.time)}</small></p>`).join('') : '<p class="d-empty">No new preview activity.</p>'}<button type="button" class="d-button" data-notifications-clear>Clear notifications</button>`;
-    notificationPanel.querySelector('[data-notifications-close]').onclick=()=>{notificationPanel.hidden=true;renderNotifications();notificationButton.focus();};
-    notificationPanel.querySelector('[data-notifications-clear]').onclick=()=>{notifications.length=0;renderNotifications();};
+    updateAlertTab();
+    const panel=root.querySelector('[data-testid="director-alerts"]');
+    if(!panel)return;
+    panel.innerHTML=`<header class="i-notification-heading"><div><h2>Alerts</h2><small>${notifications.length?`${notifications.length} update${notifications.length===1?'':'s'} for the school`:'School updates and safety reports'}</small></div><span class="i-alerts-count">${notifications.length}</span></header>${notifications.length?`<div class="i-notification-list" aria-live="polite">${notifications.map(item=>`<article class="i-notification-item"><span class="i-notification-indicator" aria-hidden="true"></span><span class="i-notification-copy">${escape(item.text)}<small>${escape(item.time)}</small></span></article>`).join('')}</div>`:'<div class="i-notification-empty"><strong>You’re all caught up</strong><small>No new school alerts.</small></div>'}<footer class="i-notification-footer"><button type="button" class="o-button" data-clear-director-alerts ${notifications.length?'':'disabled'}>Clear alerts</button></footer>`;
+    panel.querySelector('[data-clear-director-alerts]').onclick=()=>{notifications.length=0;renderNotifications();};
   }
   function notify(text) {
-    notifications.unshift({text,time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})});
+    notifications.unshift({text,time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}),read:document.body.classList.contains('director-view')&&view==='Alerts'});
     renderNotifications();
   }
-  notificationButton.onclick=()=>{notificationPanel.hidden=!notificationPanel.hidden;renderNotifications();};
   renderNotifications();
-  const knownAlerts=new Set((seed.patrolAlerts||[]).map(alert=>alert.id));
+  const knownAlerts=new Set((seed.patrolAlerts||[]).map(alert=>String(alert.id)));
+  const observedAlertStatus=new Map((seed.patrolAlerts||[]).map(alert=>[String(alert.id),String(alert.status||'active').toLowerCase()]));
+  const guardianSnapshot=()=>JSON.stringify([seed.children.map(child=>[child.id,child.guardianId,child.emergencyName,child.emergencyPhone,child.emergencyRelationship,child.emergencyName2,child.emergencyPhone2,child.emergencyRelationship2,child.medical,child.medications,child.allergies,child.consentUpdatedAt]),seed.guardians.map(person=>[person.id,person.name,person.phone,person.email])]);
+  let priorGuardianSnapshot=guardianSnapshot();
   window.addEventListener('kestrel:preview-change',()=>{
+    const nextGuardianSnapshot=guardianSnapshot();
+    if(nextGuardianSnapshot!==priorGuardianSnapshot)notify('Guardian or emergency contact details were updated.');
+    priorGuardianSnapshot=nextGuardianSnapshot;
     for(const alert of seed.patrolAlerts||[]) {
-      if(knownAlerts.has(alert.id)) continue;
-      knownAlerts.add(alert.id);
-      if(alert.active!==false) notify(`Missing-child alert: ${alert.childName||'Child'} · ${alert.lastSeenPlace||'Review alert details'}`);
+      const id=String(alert.id),status=String(alert.status||'active').toLowerCase();
+      const previous=observedAlertStatus.get(id);
+      if(!knownAlerts.has(id)){
+        knownAlerts.add(id);
+        if(alert.active!==false)notify(`Missing-child alert: ${alert.childName||'Child'} · ${alert.lastSeenPlace||'Review alert details'}`);
+      } else if(previous&&previous!=='found'&&status==='found'){
+        notify(`${alert.childName||'A child'} was marked found by ${alert.foundBy||'staff'}.`);
+      }
+      observedAlertStatus.set(id,status);
     }
   });
   let pageTotal = 0;
@@ -136,6 +145,14 @@ export function createDirector(root, seed, { onChange, onNavigate }) {
     const changedView=view!==nextView;
     if (view !== nextView) { page=0; query = ''; if (nextView !== 'Children') filter = 'all'; }
     view = nextView;
+    if(view==='Alerts') notifications.forEach(item=>{item.read=true;});
+    updateAlertTab();
+    if(view==='Alerts'){
+      root.innerHTML=`<div class="d-feedback" role="status" data-testid="director-feedback" ${notice?'':'hidden'}>${escape(notice)}</div><div class="i-alerts-heading"><div><h2>Alerts</h2><p>School updates and missing-child reports.</p></div></div><section class="i-alerts-page" data-testid="director-alerts" aria-label="Director alerts"></section>`;
+      renderNotifications();
+      if(changedView) document.querySelector('#app-shell > main').scrollTop=0;
+      return;
+    }
     const subtitles = { Children: 'Review profiles, emergency contacts and lesson assignments.', Guardians: 'Keep parent and guardian contact details up to date.', Instructors: 'Manage your teaching team and the children assigned to them.', 'Lesson groups': 'Keep every child with an assigned instructor. Maximum six per instructor.' };
     root.innerHTML = `<div class="d-feedback" role="status" data-testid="director-feedback" ${notice ? '' : 'hidden'}>${escape(notice)}</div>` + (view === 'Overview' ? overview() : `<div class="d-page-heading"><div><h2>${escape(view)}</h2><p>${subtitles[view]}</p></div>${view==='Lesson groups' ? button('Auto-assign','group-autoassign') : ''}${view === 'Guardians' ? '' : `<button type="button" class="d-button d-primary" data-action="add" data-testid="director-add">${view === 'Children' ? 'Add child' : view === 'Instructors' ? 'Add instructor' : 'Create group'}</button>`}</div>
       <section class="d-section"><div class="d-toolbar"><label class="d-search">Search ${view.toLowerCase()}<input type="search" data-testid="director-search" placeholder="${view === 'Children' ? 'Child name, bib or group' : 'Search by name'}" value="${escape(query)}"></label>${view === 'Children' ? `<label>Profile status<select data-testid="director-filter"><option value="all" ${filter === 'all' ? 'selected' : ''}>All profiles</option><option value="consent" ${filter === 'consent' ? 'selected' : ''}>Missing consent forms</option><option value="incomplete" ${filter === 'incomplete' ? 'selected' : ''}>Needs attention</option><option value="ready" ${filter === 'ready' ? 'selected' : ''}>Ready</option></select></label>` : ''}<span class="d-toolbar-note">Fictional records · changes reset on reload</span></div><div data-testid="director-list">${listContent()}${pagination()}</div></section>`);
@@ -324,6 +341,14 @@ export function createDirector(root, seed, { onChange, onNavigate }) {
       const person = record ?? { id: 'demo-instructor-new-' + ++serial };
       Object.assign(person, { name: value(kind + '-name'), email: value(kind + '-email'), phone: formatPhone(phone) });
       if (kind === 'instructor') person.qualification = value('instructor-qualification');
+      if (kind === 'guardian') {
+        for (const child of seed.children.filter(item=>item.guardianId===person.id)) {
+          child.emergencyName=person.name;
+          child.emergencyPhone=person.phone;
+          child.emergencyRelationship=child.emergencyRelationship||'Guardian';
+          child.consentUpdatedAt=new Date().toISOString().slice(0,10);
+        }
+      }
       if (!record) people.push(person);
       notice = person.name + ' saved in the demo.';
     }

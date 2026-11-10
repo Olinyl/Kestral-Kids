@@ -40,6 +40,10 @@ All records are fictional and come from demo-fixture.json. There is no database 
 
 - R-023: Staff sign in with Piezas Users. Instructors see their assigned live group and save missing-child reports to Piezas for Desk and Patrol. Instructors call by physical radio; the app does not transmit radio. Desk and Patrol can review active reports; Patrol can mark a child found.
 - R-024: The server verifies the staff session, active role, child attendance and instructor assignment before accepting a report. Client-supplied identity or group is never trusted.
+- R-025: Missing-child reports include the latest Guardian health details, consent update status/date, emergency contacts and currently authorized pickup adults from the child record. Patrol and Desk can review this snapshot with the report.
+- R-026: An instructor can mark a reported child found from that child's roster card. The app resolves the shared report so it disappears from active searches in every staff workspace.
+- R-027: Instructors and Directors use a bottom-navigation Alerts page with matching alert-feed styling. Instructors see Guardian updates and missing-child report changes; Directors see school and safety updates.
+- R-028: When any authorized staff member marks a reported child found, the app records who found them and when. The assigned Instructor and Director receive an alert naming the child and the staff member.
 
 - R-011: The instructor view shows the group number, level, meeting place and assigned children. Checked-in children and children not checked in appear in separate categories; the latter cards are grey, and medical alerts only include children checked in today. Each card has a View child button that opens details without family contact lists and allows clothing and equipment updates.
 - R-012: An instructor can prepare a missing-child radio report with an editable last-seen time defaulted to local time, an initially blank place, clothing, equipment and concerns. Clothing, equipment and medical concerns prefill from the selected child's record; missing values show N/A. Patrol receives the last-seen time in AM/PM format. The app saves the report but does not transmit radio.
@@ -47,7 +51,7 @@ All records are fictional and come from demo-fixture.json. There is no database 
 - R-014: Desk pickup uses adults authorized on the lesson date; staff must choose one, record verifying staff and confirm the identity check. Release records retain adult, staff and time. An unlisted adult cannot release a child.
 - R-015: Desk staff can log an instructor radio report with child identity, last seen details, clothing/equipment and injuries. The log states that patrol handoff happens by radio; it does not send notifications.
 - R-016: Desk and director lists support 200 or more children with full-roster search, visible result counts and pages of 25; desk also has group/status filters. A local-only prototype offers demo, 200, 1,000, worst-case, empty and one-child data; every instructor still has at most six children. (Owner scale concern; page size is an implementation assumption.)
-- R-017: Every role uses the same fixed bottom navigation style with safe-area padding and content clear of controls. Desk tabs are Roster and Incidents, with drop-off and verified pickup in each child's details; director tabs are Overview, Children, Guardians, Instructors and Lesson groups. The same layout works on phones, tablets and desktops. (Owner's explicit navigation requests; Figma desk frame 2:101.)
+- R-017: Every role uses the same fixed bottom navigation style with safe-area padding and content clear of controls. Desk tabs are Roster and Incidents, with drop-off and verified pickup in each child's details; Director tabs are Overview, Children, Guardians, Instructors, Lesson groups, Alerts and Account. The same layout works on phones, tablets and desktops. (Owner's explicit navigation requests; Figma desk frame 2:101.)
 - R-018: Every role keeps the owner's green palette, using Figma only for layout inspiration: compact phone rosters and visible group medical reminders. Keep readable touch controls and real data-driven identities; do not claim offline functionality. (Owner's design ideas, Figma frames 2:45 and 2:101, file CDfKgyYvSobrwn8xAfzuEr.)
 - R-019: Directors manage group membership directly in Lesson groups: add, remove or move a child. Child details are edited from Children, not from group membership. Membership changes are staged until the group is saved, respect the six-child limit per instructor, and show a warning for a manual placement at a different recorded ability level. (Owner clarification.)
 - R-020: Directors can preview and apply automatic assignment of unassigned children to existing groups with matching recorded ability levels. Preserve existing assignments and respect the six-child limit per instructor across groups. Explain children left unassigned for missing ability level, missing matching group or capacity. Never guess a child's level. (Owner agreed to recorded ability levels, 2026-11-07.)
@@ -266,6 +270,26 @@ covers: R-024
 Given I am signed in as an instructor assigned to one group.
 When I submit a report for a child outside my assigned attendance roster.
 Then the server rejects it and no active report is created.
+
+### S-041: Patrol receives the latest Guardian update with a missing-child report
+Given I update a child's Guardian health, emergency contact and consent details.
+When the instructor reports that child missing.
+Then Patrol sees the latest health details, emergency contacts, consent update date and authorized pickup adults with the report.
+
+### S-042: I can mark a reported child found from the instructor roster
+Given an active missing-child report exists for a child in my assigned group.
+When I choose Found child on that child's card.
+Then the report is resolved and no longer appears as an active search.
+
+### S-043: Staff can review alerts in a consistent style
+Given I am in the Instructor or Director workspace.
+When I open Alerts from the bottom navigation.
+Then I can review role-appropriate updates in the same alert-feed layout and clear alerts from the page.
+
+### S-044: The assigned Instructor and Director are alerted when a child is found
+Given a child has an active missing-child report and a known Instructor group.
+When Desk or Patrol marks the child found.
+Then that child’s assigned Instructor and the Director receive an alert naming the child and who marked them found.
 
 
 Use the existing Node.js development server and plain JavaScript UI. npm run build produces both build/runtime for future server hosting and build/preview for this static milestone. Only the built public files are uploaded for the preview; no key, server source, private settings or dependencies are uploaded.

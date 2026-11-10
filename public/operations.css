@@ -57,6 +57,9 @@
 .o-facts dd {margin:0;}
 .o-empty {padding:32px 22px;color:var(--muted);}
 .o-incident {padding:22px;background:white;border:1px solid var(--line);margin-top:16px;border-radius:6px;}
+.o-report-guardian { margin:16px 0; padding:16px; border:1px solid #d8e3ec; border-radius:12px; background:#f5f8fb; }
+.o-report-guardian h4 { margin:0 0 10px; color:#344b6a; font-size:13px; }
+.o-report-guardian p { margin:8px 0 0; line-height:1.55; overflow-wrap:anywhere; }
 .o-footer {font-size:13px;margin-top:22px;}
 .instructor-view .o-roster-row {grid-template-columns:1fr auto;gap:12px;padding:20px;}
 .instructor-view .o-roster-row .o-button {grid-column:1/-1;min-height:56px;}
@@ -128,7 +131,43 @@ body.desk-view,body.instructor-view {color:#173f39;background:#f5f8f7;--line:#d8
 .instructor-view .o-instructor-actions,#live-workspace .o-instructor-actions {display:flex;flex:0 0 auto;align-items:center;justify-content:flex-end;gap:14px;}
 .instructor-view .o-instructor-card.is-not-checked-in-card .o-instructor-view-child,#live-workspace .o-instructor-card.is-not-checked-in-card .o-instructor-view-child {background:#e2e7e5;border-color:#d0d8d5;color:#53625f;}
 .o-instructor-alert {font-size:12px;font-weight:700;color:#b91f1f;white-space:nowrap;}
+#app-shell .o-instructor-found {min-height:44px;padding:9px 14px;border:1px solid #40a9d7;border-radius:8px;background:#43b5e5;color:#fff;font-size:14px;font-weight:750;box-shadow:none;white-space:nowrap;}
+#app-shell .o-instructor-found:not(:disabled):hover {border-color:#1688b9;background:#1688b9;color:#fff;box-shadow:none;}
+#app-shell .o-instructor-found:focus-visible {outline:3px solid #8bd8f4;outline-offset:2px;}
+.i-notification-heading {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid #e8eeea;}
+.i-notification-heading h2 {margin:0;color:#173f39;font-size:16px;font-weight:720;letter-spacing:-.015em;}
+.i-notification-heading small {display:block;margin-top:3px;color:#71837d;font-size:11px;}
+.i-notification-list {display:grid;gap:8px;padding:10px;}
+.i-notification-item {display:grid;grid-template-columns:9px minmax(0,1fr);gap:11px;align-items:start;padding:12px;border:1px solid #e5ece8;border-radius:11px;background:#fbfcfb;}
+.i-notification-indicator {width:8px;height:8px;margin-top:6px;border-radius:50%;background:#2b8060;box-shadow:0 0 0 3px #e5f2eb;}
+.i-notification-copy {min-width:0;color:#253f36;font-size:13px;line-height:1.45;overflow-wrap:anywhere;}
+.i-notification-copy small {display:block;margin-top:5px;color:#71837d;font-size:11px;}
+.i-notification-empty {display:grid;justify-items:center;gap:4px;padding:28px 18px;color:#405e52;text-align:center;}
+.i-notification-empty strong {font-size:13px;}
+.i-notification-empty small {color:#71837d;font-size:12px;}
+.i-notification-footer {display:flex;justify-content:flex-end;padding:8px 16px 4px;}
+.i-notification-footer .o-button {min-width:auto;min-height:36px;padding:6px 10px;border-color:transparent;background:transparent;color:#416a55;font-size:12px;}
+.i-notification-footer .o-button:hover {background:#edf5f0;}
+/* Instructor navigation exposes alerts as a first-class page. */
+body.instructor-view nav {grid-template-columns:repeat(3,minmax(0,1fr));max-width:520px;}
+body.live-instructor-view .navigation,body.live-desk-view .navigation {position:fixed;bottom:0;inset-inline:0;z-index:10;background:#fff;border-top:1px solid #d8e4e0;border-bottom:0;padding-bottom:env(safe-area-inset-bottom,0px);}
+body.live-instructor-view .navigation nav,body.live-desk-view .navigation nav {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;min-height:70px;padding-block:8px;width:min(calc(100% - 24px),520px);overflow:visible;}
+body.live-instructor-view .workspace,body.live-desk-view .workspace {padding-bottom:112px;}
+body.live-director-view .navigation {position:fixed;bottom:0;inset-inline:0;z-index:10;background:#fff;border-top:1px solid #d8e4e0;border-bottom:0;padding-bottom:env(safe-area-inset-bottom,0px);}
+body.live-director-view .navigation nav {display:grid;grid-template-columns:minmax(0,1fr);gap:8px;min-height:70px;padding-block:8px;width:min(calc(100% - 24px),360px);overflow:visible;}
+body.live-director-view .workspace {padding-bottom:112px;}
+body.instructor-view nav button,body.live-instructor-view nav button {display:flex;align-items:center;justify-content:center;gap:7px;}
+.nav-alert-count {display:inline-grid;place-items:center;min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:#b42318;color:#fff;font-size:11px;font-weight:750;line-height:1;}
+.i-alerts-heading {display:flex;align-items:center;justify-content:space-between;gap:16px;margin:8px 0 18px;padding:18px 20px;border-left:3px solid #397d62;border-radius:8px;background:#fff;}
+.i-alerts-heading h2 {margin:0;color:#173f39;font-size:26px;line-height:1.2;letter-spacing:-.025em;}
+.i-alerts-heading p {margin:5px 0 0;color:#4d6964;font-size:14px;line-height:1.45;}
+.i-alerts-page {margin:0 0 18px;padding:0;border:1px solid #d8e4e0;border-radius:12px;background:#fff;overflow:hidden;}
+.i-alerts-page .i-notification-heading {padding:16px 18px;background:#fbfcfb;}
+.i-alerts-count {display:inline-grid;place-items:center;min-width:30px;height:30px;padding:0 9px;border:1px solid #dce7e1;border-radius:999px;background:#f1f6f3;color:#355d4d;font-size:13px;font-weight:750;font-variant-numeric:tabular-nums;}
+.i-alerts-page .i-notification-empty {min-height:170px;}
+.i-alerts-page .i-notification-footer {border-top:1px solid #edf1ef;}
 .o-row-number {color:#205d46;font-size:12px;}
+.o-missing-tag {display:inline-flex;align-items:center;width:max-content;padding:3px 8px;border:1px solid #f1b9b5;border-radius:999px;background:#fff0ef;color:#a12622;font-size:11px;font-weight:750;line-height:1.2;letter-spacing:.015em;}
 .o-medical-list {margin-top:24px;}
 .o-medical-item {margin-top:12px;border:1px solid #d8e4e0;background:#fff4ce;border-radius:16px;padding:14px 16px;font-size:14px;overflow-wrap:anywhere;}
 .o-medical-item p {margin:5px 0 0;line-height:1.5;}
@@ -315,7 +354,7 @@ body .navigation nav button[aria-current] {background:#e3f0e6;color:#205d46;}
  .instructor-view #app-shell .o-instructor-child {grid-template-columns:18px minmax(0,1fr) auto;gap:6px;}
  .instructor-view #app-shell .o-instructor-child .bib {grid-column:2;}
  .instructor-view #app-shell .o-instructor-view-child,#live-workspace .o-instructor-view-child {min-width:84px;padding-inline:9px;}
- .instructor-view #app-shell .o-instructor-actions,#live-workspace .o-instructor-actions {gap:10px;}
+ .instructor-view #app-shell .o-instructor-actions,#live-workspace .o-instructor-actions {flex-wrap:wrap;gap:7px;}
  .instructor-view #app-shell .o-instructor-alert,#live-workspace .o-instructor-alert {font-size:10px;}
  .instructor-view #app-shell .o-instructor-primary strong {font-size:15px;}
  .instructor-view #app-shell .o-group-card .profile-meta {gap:4px;}

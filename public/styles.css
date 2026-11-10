@@ -242,7 +242,7 @@ h2 { margin: 0; font-size: 1.1rem; }
 
 /* One action system, with sizing driven by purpose rather than role. */
 :root { --button-height:44px; --button-radius:8px; --button-ink:#173f39; --button-border:#bdcbc5; }
-#app-shell :is(.d-button,.d-text-button,.o-button,.g-button,.p-action-button,.p-log-button,.p-signout,.account-menu-button,.account-choice,.d-notifications-button),
+#app-shell :is(.d-button,.d-text-button,.o-button,.g-button,.p-action-button,.p-log-button,.p-signout,.account-menu-button,.account-choice),
 body :is(.d-dialog,.o-dialog) :is(.d-button,.o-button,.g-button) {
   min-height:var(--button-height); min-width:88px; padding:10px 14px;
   border:1px solid var(--button-border); border-radius:var(--button-radius);
@@ -267,7 +267,6 @@ body :is(.d-dialog,.o-dialog) :is(.d-primary,.o-primary,.g-button:not(.secondary
 #app-shell .d-close { width:44px; height:44px; min-height:44px; min-width:44px; border:1px solid var(--button-border); border-radius:8px; background:white; color:#173f39; }
 #app-shell ::selection,.d-dialog ::selection,.o-dialog ::selection { background:#d5ec8b; color:#173f39; }
 #app-shell .brand-actions { display:flex; align-items:center; gap:8px; margin-left:auto; flex-shrink:0; }
-#app-shell .d-notifications-button { position:static; margin:0; min-width:68px; }
 #app-shell .account-menu-button { display:flex; align-items:center; gap:8px; text-align:left; }
 .account-avatar { display:grid; place-items:center; flex:0 0 30px; width:30px; height:30px; border-radius:50%; background:#edf5f2; color:#205d46; font-size:12px; font-weight:700; }
 .brand-identity { display:grid; gap:1px; }
@@ -287,7 +286,7 @@ body .d-dialog .account-choice,#app-shell .account-choice { display:flex; align-
 .account-auth-form .d-dialog-footer > button { margin-left:auto; }
 body .d-dialog .g-form > button { width:auto; justify-self:start; }
 .nav-label-short { display:none; }
-body.signed-out .d-notifications-button,body.signed-out .date { display:none; }
+body.signed-out .date { display:none; }
 body.signed-out #app-shell .workspace { display:block; padding:24px 0; }
 @media(hover:hover) {
  #app-shell :is(.d-button,.o-button,.g-button,.p-action-button,.p-log-button):not(:disabled):hover { background:#edf5f2; }
@@ -303,13 +302,31 @@ body.signed-out #app-shell .workspace { display:block; padding:24px 0; }
  #app-shell .account-menu-button small { font-size:9px; line-height:1.1; }
  #app-shell .account-menu-button #demo-banner strong { font-size:9px; }
  #app-shell .brand-actions { gap:6px; }
- #app-shell .d-notifications-button { min-width:60px; padding-inline:8px; }
  #app-shell .navigation nav button { font-size:12px; padding-inline:1px; border-radius:8px; }
  .nav-label-full { display:none; }
  .nav-label-short { display:inline; }
  .account-page { padding:16px; }
  #account-switcher .d-dialog-footer { align-items:stretch; gap:8px; }
  #account-switcher .d-dialog-footer > div { width:auto; flex-wrap:wrap; justify-content:start; gap:8px; }
+}
+
+/* Polished shared brand and notification controls. */
+#app-shell > .top { border-bottom-color:#e2ebe6; }
+#app-shell .brand { min-height:76px; gap:12px; padding:14px 24px; }
+#app-shell .brand-mark { width:36px; height:36px; flex:0 0 36px; border-radius:11px; background:#205d46; color:#d5ec8b; font-size:16px; box-shadow:0 2px 5px rgb(23 63 57 / 14%); }
+#app-shell .brand-identity { display:grid; gap:3px; min-width:0; }
+#app-shell .brand-identity > strong { color:#173f39; font-size:16px; font-weight:760; line-height:1.15; letter-spacing:-.025em; }
+#app-shell .brand-subtitle { display:flex; align-items:center; gap:6px; color:#647a75; font-size:11px; font-weight:550; line-height:1.2; letter-spacing:.015em; }
+#app-shell .brand-product { color:#526a64; }
+#app-shell .brand-separator { color:#9aaca6; }
+#app-shell #demo-banner { display:inline-flex; align-items:center; min-height:18px; padding:1px 7px; border:1px solid #dbe8e1; border-radius:999px; background:#f2f7f3; color:#4c6d5d; font-size:10px; line-height:1.2; white-space:nowrap; }
+#app-shell #demo-banner strong { color:inherit; font-size:inherit; font-weight:700; }
+#app-shell .brand-actions { gap:10px; }
+@media(max-width:650px) {
+ #app-shell .brand { min-height:66px; gap:9px; padding-inline:14px; }
+ #app-shell .brand-mark { width:32px; height:32px; flex-basis:32px; border-radius:10px; font-size:14px; }
+ #app-shell .brand-identity > strong { font-size:14px; }
+ #app-shell .brand-subtitle { gap:4px; font-size:10px; }
 }
 
 /* The same compact lesson facts follow every child, regardless of role. */

@@ -46,6 +46,45 @@ const login=document.querySelector('#staff-dialog');
 const message=login.querySelector('[data-testid="staff-message"]');
 const workspace=document.querySelector('#live-workspace');
 let currentUser=null;
+const liveNotifications=[];
+const unreadLiveCount=()=>liveNotifications.filter(item=>!item.read).length;
+const liveNav=document.querySelector('#workspace-nav');
+let liveInstructorTab='Group roster';
+let liveDashboard=null;
+const liveAlertStartedAt=Date.now();
+const observedLiveFoundStatuses=new Map();
+let liveRefreshTimer=null;
+function updateLiveAlertTab(){
+  const button=liveNav.querySelector('[data-testid="live-nav-alerts"],[data-testid="live-director-nav-alerts"],[data-testid="live-desk-nav-alerts"]');
+  if(!button)return;
+  const unread=unreadLiveCount();
+  button.setAttribute('aria-label',`Alerts${unread?`, ${unread} unread`:''}`);
+  let badge=button.querySelector('.nav-alert-count');
+  if(unread){if(!badge){badge=document.createElement('span');badge.className='nav-alert-count';badge.setAttribute('aria-hidden','true');button.append(badge);}badge.textContent=unread>9?'9+':String(unread);}
+  else badge?.remove();
+}
+function renderLiveNotifications(){
+  updateLiveAlertTab();
+  const panel=workspace.querySelector('[data-testid="live-instructor-alerts"],[data-testid="live-director-alerts"],[data-testid="live-desk-alerts"]');
+  if(!panel)return;
+  const audience=currentUser?.role==='instructor'?'group':'school';
+  panel.innerHTML=`<header class="i-notification-heading"><div><h2>Alerts</h2><small>${liveNotifications.length?`${liveNotifications.length} update${liveNotifications.length===1?'':'s'} for your ${audience}`:`Updates for your ${audience}`}</small></div><span class="i-alerts-count">${liveNotifications.length}</span></header>${liveNotifications.length?`<div class="i-notification-list" aria-live="polite">${liveNotifications.map(item=>`<article class="i-notification-item"><span class="i-notification-indicator" aria-hidden="true"></span><span class="i-notification-copy">${escape(item.text)}<small>${escape(item.time)}</small></span></article>`).join('')}</div>`:'<div class="i-notification-empty"><strong>You’re all caught up</strong><small>No new activity for your ${audience}.</small></div>'}<footer class="i-notification-footer"><button type="button" class="o-button" data-clear-live-notifications ${liveNotifications.length?'':'disabled'}>Clear alerts</button></footer>`;
+  panel.querySelector('[data-clear-live-notifications]').onclick=()=>{liveNotifications.length=0;renderLiveNotifications();};
+}
+const notifyLive=text=>{liveNotifications.unshift({text,time:new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}),read:liveInstructorTab==='Alerts'});renderLiveNotifications();};
+function observeLiveFoundReports(reports=[]){
+  for(const report of reports){
+    const id=String(report.id),status=String(report.status||'active').toLowerCase(),previous=observedLiveFoundStatuses.get(id);
+    const foundAt=Date.parse(report.foundAt||'');
+    const reportedAt=Date.parse(report.reportedAt||'');
+    if(currentUser?.role==='desk'&&!previous&&status!=='found'&&reportedAt>=liveAlertStartedAt)
+      notifyLive(`Missing-child report for ${report.childName||'a child'} · ${report.lastSeenPlace||'Review alert details'}.`);
+    if(status==='found'&&foundAt&&((previous&&previous!=='found')||(!previous&&foundAt>=liveAlertStartedAt)))
+      notifyLive(`${report.childName||'A child'} was marked found by ${report.foundByName||'staff'}.`);
+    observedLiveFoundStatuses.set(id,status);
+  }
+}
+renderLiveNotifications();
 const reportDialog=document.querySelector('#live-report-dialog');
 const childDialog=document.createElement('dialog');
 childDialog.className='o-dialog';
@@ -53,6 +92,12 @@ childDialog.dataset.testid='live-child-dialog';
 childDialog.setAttribute('aria-labelledby','live-child-dialog-title');
 document.body.append(childDialog);
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const listValue=value=>{if(Array.isArray(value))return value;try{const parsed=JSON.parse(value||'[]');return Array.isArray(parsed)?parsed:[];}catch{return [];}};
+const guardianHealth=child=>[
+  child?.medical&&`Medical conditions: ${child.medical}`,
+  child?.medications&&`Medications and location: ${child.medications}`,
+  child?.allergies&&`Allergies: ${child.allergies}`,
+].filter(Boolean).join('\n')||'N/A';
 const localTimeInput=()=>{const now=new Date();return `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;};
 async function api(path,body) {
   const response=await fetch(path,{method:body?'POST':'GET',headers:body?{'content-type':'application/json'}:{},body:body?JSON.stringify(body):undefined,credentials:'same-origin'});
@@ -60,18 +105,49 @@ async function api(path,body) {
 }
 function showError(error){message.textContent=error.message||'The request could not be completed.';}
 function render(data) {
+  liveDashboard=data;
   currentUser=data.user;
+  const isInstructor=currentUser.role==='instructor';
+  const isDirector=currentUser.role==='director';
+  const isDesk=currentUser.role==='desk';
+  if(isDirector)liveInstructorTab='Alerts';
+  if(isDesk&&!['Radio reports','Alerts'].includes(liveInstructorTab))liveInstructorTab='Radio reports';
+  observeLiveFoundReports(data.reports||[]);
+  document.body.classList.toggle('live-instructor-view',isInstructor);
+  document.body.classList.toggle('live-director-view',isDirector);
+  document.body.classList.toggle('live-desk-view',isDesk);
+  document.querySelector('.navigation').hidden=!(isInstructor||isDirector||isDesk);
+  liveNav.replaceChildren();
+  if(isInstructor||isDirector||isDesk){
+    const navLabels=isInstructor?['Group roster','Alerts']:isDesk?['Radio reports','Alerts']:['Alerts'];
+    for(const label of navLabels){
+      const button=document.createElement('button');button.type='button';button.setAttribute('aria-label',label);
+      button.innerHTML=`<span class="nav-label-full">${label}</span>`;
+      if(label==='Alerts')button.dataset.testid=isDirector?'live-director-nav-alerts':isDesk?'live-desk-nav-alerts':'live-nav-alerts';
+      if(label===liveInstructorTab)button.setAttribute('aria-current','page');
+      button.addEventListener('click',()=>{liveInstructorTab=label;if(label==='Alerts')liveNotifications.forEach(item=>{item.read=true;});render(liveDashboard);});
+      liveNav.append(button);
+    }
+  }
+  if(isInstructor||isDirector||isDesk){
+    if(!liveRefreshTimer)liveRefreshTimer=setInterval(()=>refresh(true),20000);
+  }else if(liveRefreshTimer){clearInterval(liveRefreshTimer);liveRefreshTimer=null;}
   const instructorGroup=data.groups?.[0];
-  document.querySelector('#live-sign-in').textContent=`${currentUser.displayName} · Sign out`;
-  document.querySelector('#view-as').disabled=true;
+  if(liveSignIn){liveSignIn.hidden=false;liveSignIn.textContent=`${currentUser.displayName} · Sign out`;}
+  document.querySelector('[data-testid="account-menu"]').hidden=true;
   document.querySelector('#demo-banner').querySelector('strong').textContent='Live staff workspace';
   document.querySelector('#starter-panel').hidden=true;
   for(const id of ['director','operations','patrol','guardian']) document.querySelector('#'+id).hidden=true;
   workspace.hidden=false;
-  workspace.innerHTML=`<div class="o-heading"><div><h2>${escape(currentUser.role==='instructor'?instructorGroup?.label||'No group assigned':currentUser.role==='patrol'?'Active alerts':'Radio reports')}</h2><p>${escape(currentUser.displayName)} · ${currentUser.role==='instructor'?`Level ${escape(instructorGroup?.level??'not recorded')} · ${escape(instructorGroup?.meeting||'Meeting place not recorded')}`:'Live shared records'}</p></div><button class="o-button" data-testid="live-refresh">Refresh</button></div>${currentUser.role==='instructor'?instructor(data):reports(data)}`;
+  const heading=isDirector||liveInstructorTab==='Alerts'&&(isInstructor||isDesk)?'Alerts':isInstructor?instructorGroup?.label||'No group assigned':currentUser.role==='patrol'?'Active alerts':'Radio reports';
+  const onAlerts=isDirector||liveInstructorTab==='Alerts'&&(isInstructor||isDesk);
+  const content=isDirector?'<section class="i-alerts-page" data-testid="live-director-alerts" aria-label="Director alerts"></section>':isInstructor?(liveInstructorTab==='Alerts'?'<section class="i-alerts-page" data-testid="live-instructor-alerts" aria-label="Instructor alerts"></section>':instructor(data)):isDesk?(liveInstructorTab==='Alerts'?'<section class="i-alerts-page" data-testid="live-desk-alerts" aria-label="School desk alerts"></section>':reports(data)):reports(data);
+  workspace.innerHTML=`<div class="${onAlerts?'i-alerts-heading':'o-heading'}"><div><h2>${escape(heading)}</h2><p>${escape(currentUser.displayName)} · ${onAlerts?`${isInstructor?'Group':'School'} alerts`:isInstructor?`Level ${escape(instructorGroup?.level??'not recorded')} · ${escape(instructorGroup?.meeting||'Meeting place not recorded')}`:'Live shared records'}</p></div><button class="o-button" data-testid="live-refresh">Refresh</button></div>${content}`;
+  renderLiveNotifications();
   workspace.querySelector('[data-testid="live-refresh"]').onclick=refresh;
   workspace.querySelector('[data-testid="live-report-open"]')?.addEventListener('click',()=>report(data));
   workspace.querySelectorAll('[data-testid^="live-child-view-"]').forEach(button=>button.addEventListener('click',()=>showLiveChild(data,button.dataset.childId)));
+  workspace.querySelectorAll('[data-testid^="live-instructor-found-"]').forEach(button=>button.onclick=async()=>{button.disabled=true;try{await api('/api/live/reports/found',{id:button.dataset.reportId});await refresh();}catch(error){button.disabled=false;alert(error.message);}});
   workspace.querySelectorAll('[data-testid="live-found"]').forEach(button=>button.onclick=async()=>{try{await api('/api/live/reports/found',{id:button.dataset.id});await refresh();}catch(e){alert(e.message);}});
 }
 function instructor(data) {
@@ -80,14 +156,13 @@ function instructor(data) {
   const checkedIn=kids.filter(child=>child.status==='checked_in'&&!child.release);
   const notCheckedIn=kids.filter(child=>child.status!=='checked_in'||child.release);
   const medicalAlerts=checkedIn.filter(child=>child.medical);
-  const activeReports=new Set((data.reports||[]).map(report=>report.childRecordId));
   if(!group) return '<p class="o-empty">No group is assigned to your account. Ask the administrator to assign your group.</p>';
-  const cards=(children,inactive)=>children.map(child=>`<article class="o-roster-row live-child-row o-instructor-card${inactive?' is-not-checked-in-card':''}" data-testid="live-child"><div class="o-instructor-child${inactive?' is-not-checked-in':''}"><strong>${escape(child.displayName)}</strong><span class="bib">Bib ${escape(child.bib)}</span>${inactive&&child.release?'<span class="o-instructor-status">Released</span>':''}</div><div class="o-instructor-actions">${activeReports.has(child.id)?'<span class="o-instructor-alert" role="status">Alert Sent · Searching</span>':''}<button class="o-button o-instructor-view-child" type="button" data-testid="live-child-view-${escape(child.id)}" data-child-id="${escape(child.id)}" ${inactive?'disabled aria-label="View child unavailable until checked in"':''}>View child</button></div></article>`).join('');
+  const cards=(children,inactive)=>children.map(child=>{const report=(data.reports||[]).find(item=>item.childRecordId===child.id&&String(item.status||'').toLowerCase()!=='found');return `<article class="o-roster-row live-child-row o-instructor-card${inactive?' is-not-checked-in-card':''}" data-testid="live-child"><div class="o-instructor-child${inactive?' is-not-checked-in':''}"><strong>${escape(child.displayName)}</strong>${report?'<span class="o-missing-tag">Missing</span>':''}<span class="bib">Bib ${escape(child.bib)}</span>${inactive&&child.release?'<span class="o-instructor-status">Released</span>':''}</div><div class="o-instructor-actions">${report?`<span class="o-instructor-alert" role="status">Alert Sent · Searching</span><button class="o-button o-instructor-found" type="button" data-testid="live-instructor-found-${escape(child.id)}" data-report-id="${escape(report.id)}">Found child</button>`:''}<button class="o-button o-instructor-view-child" type="button" data-testid="live-child-view-${escape(child.id)}" data-child-id="${escape(child.id)}" ${inactive?'disabled aria-label="View child unavailable until checked in"':''}>View child</button></div></article>`;}).join('');
   return `<section class="o-medical-list" data-testid="live-medical-reminders"><header class="o-medical-header"><div><span class="o-medical-eyebrow">Safety overview</span><h3>Medical alerts</h3></div><span class="o-medical-count">${medicalAlerts.length?`${medicalAlerts.length} ${medicalAlerts.length===1?'alert':'alerts'}`:'None today'}</span></header>${medicalAlerts.map(child=>`<article class="o-medical-item"><div class="o-medical-item-heading"><span class="o-medical-mark" aria-hidden="true">!</span><strong>${escape(child.displayName)}</strong><span class="o-medical-tag">Medical alert</span></div><p>${escape(child.medical)}</p></article>`).join('')||'<p class="o-medical-clear">No medical alerts for children checked in today.</p>'}</section><section class="o-group-card" aria-label="Today’s Group"><div class="o-roster-heading"><h3>Today’s Group</h3><span>${checkedIn.length} checked in</span></div><div class="o-list">${cards(checkedIn,false)||'<p class="o-empty">No children are checked in yet.</p>'}</div></section><section class="o-group-card o-not-checked-card" aria-label="Not Checked In"><div class="o-roster-heading"><h3>Not Checked In</h3><span>${notCheckedIn.length}</span></div><div class="o-list">${cards(notCheckedIn,true)||'<p class="o-empty">All assigned children are checked in.</p>'}</div></section><div class="instructor-report-cta"><button class="o-button o-danger" type="button" data-testid="live-report-open" ${checkedIn.length?'':'disabled'}>Report missing child</button></div>`;
 }
 function reports(data) {
-  const rows=data.reports||[];
-  return `<p class="o-warning">Saved reports are shared live. Call by physical radio; this app does not transmit radio.</p>${rows.length?rows.map(r=>`<article class="o-incident" data-testid="live-report"><h3>${escape(r.childName)} · Bib ${escape(r.bib)}</h3><p><b>Reported:</b> ${escape(localTime(r.reportedAt||''))} · <b>Last seen:</b> ${escape(r.lastSeenTime||'N/A')} · <b>Place:</b> ${escape(r.lastSeenPlace||'N/A')}</p><p><b>Clothing:</b> ${escape(r.clothing||'N/A')} · <b>Equipment:</b> ${escape(r.equipment||'N/A')}</p><p><b>Injuries / concerns:</b> ${escape(r.injuries||'N/A')}</p><p>Reported by ${escape(r.reporterName)}</p>${currentUser.role==='patrol'?`<button class="o-button" data-testid="live-found" data-id="${escape(r.id)}">Mark found</button>`:''}</article>`).join(''):'<p class="o-empty">No active missing-child reports.</p>'}`;
+  const rows=(data.reports||[]).filter(report=>String(report.status||'active').toLowerCase()!=='found');
+  return `<p class="o-warning">Saved reports are shared live. Call by physical radio; this app does not transmit radio.</p>${rows.length?rows.map(r=>{const contacts=listValue(r.emergencyContacts);const adults=listValue(r.authorizedPickupAdults);return `<article class="o-incident" data-testid="live-report"><h3>${escape(r.childName)} · Bib ${escape(r.bib)}</h3><p><b>Reported:</b> ${escape(localTime(r.reportedAt||''))} · <b>Last seen:</b> ${escape(r.lastSeenTime||'N/A')} · <b>Place:</b> ${escape(r.lastSeenPlace||'N/A')}</p><p><b>Clothing:</b> ${escape(r.clothing||'N/A')} · <b>Equipment:</b> ${escape(r.equipment||'N/A')}</p><p><b>Injuries / concerns:</b> ${escape(r.injuries||'N/A')}</p><section class="o-report-guardian"><h4>Latest Guardian information</h4><p><b>Health:</b><br>${escape(r.medical||'N/A').replaceAll('\n','<br>')}</p><p><b>Consent:</b> ${escape(r.consentStatus||'Not recorded')} · <b>Updated:</b> ${escape(r.guardianUpdateDate||'Not recorded')}</p><p><b>Guardian and emergency contacts:</b> ${contacts.length?contacts.map(c=>`${escape(c.name||'Name not recorded')} (${escape(c.relationship||'Relationship not recorded')}) · ${escape(c.phone||'Phone not provided')}${c.email?` · ${escape(c.email)}`:''}`).join('<br>'):'N/A'}</p><p><b>Authorized pickup adults:</b> ${adults.length?adults.map(a=>`${escape(a.name)} (${escape(a.relationship||'Relationship not recorded')})`).join(', '):'N/A'}</p></section><p>Reported by ${escape(r.reporterName)}</p>${currentUser.role==='patrol'?`<button class="o-button" data-testid="live-found" data-id="${escape(r.id)}">Mark found</button>`:''}</article>`;}).join(''):'<p class="o-empty">No active missing-child reports.</p>'}`;
 }
 function localTime(value) { const date=new Date(value||''); return Number.isNaN(date.getTime())?value||'Not recorded':date.toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'}); }
 const clothingColor=(text,item)=>new RegExp(`([a-z]+)\\s+${item}`,'i').exec(text||'')?.[1]?.toLowerCase()||'';
@@ -129,12 +204,13 @@ function report(data) {
     reportDialog.querySelector('[data-testid="live-last-seen-place"]').value='';
     reportDialog.querySelector('[data-testid="live-clothing"]').value=child?.clothing||'N/A';
     reportDialog.querySelector('[data-testid="live-equipment"]').value=child?.equipment||'N/A';
-    reportDialog.querySelector('[data-testid="live-injuries"]').value=child?.medical ? `Medical: ${child.medical}` : 'N/A';
+    reportDialog.querySelector('[data-testid="live-injuries"]').value='';
   };
   reportDialog.showModal();
 }
-async function refresh(){try{render({user:currentUser,...await api('/api/live/dashboard')});}catch(error){alert(error.message);}}
+async function refresh(silent=false){try{render({user:currentUser,...await api('/api/live/dashboard')});}catch(error){if(!silent)alert(error.message);}}
 const liveSignIn=document.querySelector('[data-testid="live-sign-in"]');
+if(liveSignIn&&!document.body.hasAttribute('data-account-preview'))liveSignIn.hidden=false;
 if(liveSignIn) liveSignIn.onclick=async()=>{
   if(currentUser){try{await api('/api/live/sign-out',{});}catch{} currentUser=null;location.reload();return;}
   login.showModal();
@@ -146,7 +222,7 @@ reportDialog.querySelector('#live-report-form').onsubmit=async event=>{
   const values=Object.fromEntries(new FormData(event.currentTarget));
   const save=reportDialog.querySelector('[data-testid="live-report-save"]');
   const status=reportDialog.querySelector('[data-testid="live-report-status"]'); save.disabled=true;
-  try{const saved=await api('/api/live/reports',{...values,childRecordId});status.textContent=`${saved.childName} · Bib ${saved.bib}: ${saved.updated?'existing report updated':'report saved'} for Desk and Patrol. Report time: ${new Date(saved.reportedAt).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'})}. Call both by physical radio.`;setTimeout(()=>reportDialog.close(),1400);await refresh();}
+  try{const saved=await api('/api/live/reports',{...values,childRecordId});if(currentUser.role!=='desk')notifyLive(`${saved.updated?'Missing-child report updated':'Missing-child report saved'} for ${saved.childName}. Call Desk and Patrol by radio.`);status.textContent=`${saved.childName} · Bib ${saved.bib}: ${saved.updated?'existing report updated':'report saved'} for Desk and Patrol. Report time: ${new Date(saved.reportedAt).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'})}. Call both by physical radio.`;setTimeout(()=>reportDialog.close(),1400);await refresh();}
   catch(error){status.textContent=error.message;}
   finally{save.disabled=false;}
 };

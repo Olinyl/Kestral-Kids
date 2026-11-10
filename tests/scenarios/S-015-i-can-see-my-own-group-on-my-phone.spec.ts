@@ -8,6 +8,15 @@ test('S-015: role workflow', async ({page}) => {
   await expect(page.getByTestId('ops-detail')).toContainText('Peanut allergy');
   await expect(page.getByTestId('ops-detail')).toContainText('Green jacket, white helmet');
   await expect(page.getByTestId('ops-detail')).not.toContainText('604');
+  await page.getByTestId('checkin-jacket').selectOption('purple');
+  await page.getByTestId('checkin-helmet').selectOption('yellow');
+  await page.getByTestId('checkin-equipment').fill('Silver skis and black poles');
+  await page.getByTestId('checkin-save').click();
+  await expect(page.getByTestId('workspace-title')).toHaveText('Instructor workspace');
+  await expect(page.getByTestId('ops-open-demo-child-01')).toBeVisible();
+  await page.getByTestId('ops-open-demo-child-01').click();
+  await expect(page.getByTestId('ops-detail')).toContainText('purple jacket, yellow helmet');
+  await expect(page.getByTestId('ops-detail')).toContainText('Silver skis and black poles');
   await page.getByTestId('ops-close').click();
   await expect(page.getByTestId('roster-row')).toHaveCount(1);
   await expect(page.getByTestId('roster-row')).toContainText('Bib 214');
