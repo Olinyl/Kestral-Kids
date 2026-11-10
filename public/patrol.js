@@ -10,8 +10,6 @@ const icons = {
   place: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.3"/><path d="m16 16 4 4"/></svg>',
   people: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20v-1.5A4.5 4.5 0 0 1 7.5 14h3a4.5 4.5 0 0 1 4.5 4.5V20m1-12a3 3 0 0 1 0 5.8m1 2.5a4.5 4.5 0 0 1 4 4.5V20"/></svg>',
   ski: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 4 12 16M18 4 6 20M4 9l8 3 8-3M4 15l8-3 8 3"/></svg>',
-  visibility: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg>',
-  medical: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></svg>',
   scan: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7V4h3m10 0h3v3M20 17v3h-3M7 20H4v-3M7 12h10M12 7v10"/></svg>',
   bell: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9m-8 12h4"/></svg>',
 };
@@ -67,11 +65,9 @@ export function createPatrol(root, seed, { onSignOut }) {
             ${fact(icons.place, 'Last seen place', alert.lastSeenPlace)}
             ${fact(icons.people, 'Clothing', alert.clothing)}
             ${fact(icons.ski, 'Equipment', alert.equipment)}
-            ${fact(icons.visibility, 'Visibility', alert.visibility)}
-            ${fact(icons.medical, 'Injuries', alert.injuries)}
           </div>
-          <section class="p-detail-panel" style="--p-detail-columns:${alert.medical ? 2 : 1}" aria-label="Medical and lift scan details">
-            ${alert.medical ? `<div class="p-detail-item p-medical-fact"><h3>Medical information</h3><p>${escapeHtml(alert.medical)}</p>${alert.consentStatus || alert.guardianUpdateDate ? `<p class="p-guardian-record"><strong>Guardian record:</strong> ${escapeHtml(alert.consentStatus || 'Status not recorded')} · Updated ${escapeHtml(alert.guardianUpdateDate || 'date not recorded')}</p>` : ''}</div>` : ''}
+          <section class="p-detail-panel" style="--p-detail-columns:${alert.medical || alert.injuries ? 2 : 1}" aria-label="Medical and lift scan details">
+            ${alert.medical || alert.injuries ? `<div class="p-detail-item p-medical-fact"><h3>Medical information / injuries</h3>${alert.medical ? `<p>${escapeHtml(alert.medical)}</p>` : ''}${alert.injuries ? `<p class="p-injury-detail"><strong>Injuries:</strong> ${escapeHtml(alert.injuries)}</p>` : ''}${alert.consentStatus || alert.guardianUpdateDate ? `<p class="p-guardian-record"><strong>Guardian record:</strong> ${escapeHtml(alert.consentStatus || 'Status not recorded')} · Updated ${escapeHtml(alert.guardianUpdateDate || 'date not recorded')}</p>` : ''}</div>` : ''}
             <div class="p-detail-item p-scan-fact" data-testid="patrol-lift-scan"><h3>Latest lift ticket scan</h3><p data-testid="patrol-lift-scan-details" aria-live="polite">${escapeHtml(alert.liftScan ? `${alert.liftScan.pass} · ${alert.liftScan.time}` : 'Request lift scan if needed.')}</p></div>
           </section>
           </div>
