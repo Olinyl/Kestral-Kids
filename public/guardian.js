@@ -9,7 +9,6 @@ export function createGuardian(root, seed) {
   function render(tab) {
     const children = storeImport.filter(registration=>registration.accountHolder===accountHolder).map((registration,index)=>({id:registration.orderNumber,displayName:registration.child,birthDate:registration.birthDate,guardianId:'store-demo-account',consentStatus:index===0?'incomplete':'complete',consentUpdatedAt:index===0?'':'2026-11-06',storeRegistration:registration,medical:'',emergencyName:'',emergencyPhone:'',emergencyName2:'',emergencyPhone2:''}));
     const active = children.find(child => child.id === selected) || children[0];
-    const guardianName=accountHolder;
     const groupFor=child=>`Group ${child.storeRegistration.level}`;
     const nextLessonDate=child=>{const base=new Date(seed.lessonDate+'T00:00:00Z');const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];const target=days.findIndex(day=>child.storeRegistration.program.includes(day));const offset=(target-base.getUTCDay()+7)%7;base.setUTCDate(base.getUTCDate()+offset);return base;};
     const programs=[...new Map(children.map(child=>[child.storeRegistration.program,children.filter(item=>item.storeRegistration.program===child.storeRegistration.program)])).entries()];
