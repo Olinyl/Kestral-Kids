@@ -99,8 +99,8 @@ const guardianHealth=child=>[
   child?.allergies&&`Allergies: ${child.allergies}`,
 ].filter(Boolean).join('\n')||'N/A';
 const localTimeInput=()=>{const now=new Date();return `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;};
-async function api(path,body) {
-  const response=await fetch(path,{method:body?'POST':'GET',headers:body?{'content-type':'application/json'}:{},body:body?JSON.stringify(body):undefined,credentials:'same-origin'});
+async function api(path,body,method) {
+  const response=await fetch(path,{method:method||(body?'POST':'GET'),headers:body?{'content-type':'application/json'}:{},body:body?JSON.stringify(body):undefined,credentials:'same-origin'});
   const data=await response.json(); if(!response.ok) throw new Error(data.error||'Request failed.'); return data;
 }
 function showError(error){message.textContent=error.message||'The request could not be completed.';}
@@ -110,16 +110,17 @@ function render(data) {
   const isInstructor=currentUser.role==='instructor';
   const isDirector=currentUser.role==='director';
   const isDesk=currentUser.role==='desk';
+  const isGuardian=currentUser.role==='guardian';
   if(isDirector)liveInstructorTab='Alerts';
-  if(isDesk&&!['Radio reports','Alerts'].includes(liveInstructorTab))liveInstructorTab='Radio reports';
+  if(isDesk&&!['Roster','Alerts'].includes(liveInstructorTab))liveInstructorTab='Roster';
   observeLiveFoundReports(data.reports||[]);
   document.body.classList.toggle('live-instructor-view',isInstructor);
   document.body.classList.toggle('live-director-view',isDirector);
   document.body.classList.toggle('live-desk-view',isDesk);
-  document.querySelector('.navigation').hidden=!(isInstructor||isDirector||isDesk);
+  document.querySelector('.navigation').hidden=!(isInstructor||isDirector||isDesk||isGuardian);
   liveNav.replaceChildren();
-  if(isInstructor||isDirector||isDesk){
-    const navLabels=isInstructor?['Group roster','Alerts']:isDesk?['Radio reports','Alerts']:['Alerts'];
+  if(isInstructor||isDirector||isDesk||isGuardian){
+    const navLabels=isInstructor?['Group roster','Alerts']:isDesk?['Roster','Alerts']:isGuardian?['My children']:['Alerts'];
     for(const label of navLabels){
       const button=document.createElement('button');button.type='button';button.setAttribute('aria-label',label);
       button.innerHTML=`<span class="nav-label-full">${label}</span>`;
@@ -129,26 +130,61 @@ function render(data) {
       liveNav.append(button);
     }
   }
-  if(isInstructor||isDirector||isDesk){
+  if(isInstructor||isDirector||isDesk||isGuardian){
     if(!liveRefreshTimer)liveRefreshTimer=setInterval(()=>refresh(true),20000);
   }else if(liveRefreshTimer){clearInterval(liveRefreshTimer);liveRefreshTimer=null;}
   const instructorGroup=data.groups?.[0];
   if(liveSignIn){liveSignIn.hidden=false;liveSignIn.textContent=`${currentUser.displayName} · Sign out`;}
   document.querySelector('[data-testid="account-menu"]').hidden=true;
-  document.querySelector('#demo-banner').querySelector('strong').textContent='Live staff workspace';
+  document.querySelector('#demo-banner').querySelector('strong').textContent=isGuardian?'Live guardian workspace':'Live staff workspace';
   document.querySelector('#starter-panel').hidden=true;
   for(const id of ['director','operations','patrol','guardian']) document.querySelector('#'+id).hidden=true;
   workspace.hidden=false;
-  const heading=isDirector||liveInstructorTab==='Alerts'&&(isInstructor||isDesk)?'Alerts':isInstructor?instructorGroup?.label||'No group assigned':currentUser.role==='patrol'?'Active alerts':'Radio reports';
+  const heading=isGuardian?'My children':isDesk&&liveInstructorTab==='Roster'?'School desk':isDirector||liveInstructorTab==='Alerts'&&(isInstructor||isDesk)?'Alerts':isInstructor?instructorGroup?.label||'No group assigned':currentUser.role==='patrol'?'Active alerts':'Radio reports';
   const onAlerts=isDirector||liveInstructorTab==='Alerts'&&(isInstructor||isDesk);
-  const content=isDirector?'<section class="i-alerts-page" data-testid="live-director-alerts" aria-label="Director alerts"></section>':isInstructor?(liveInstructorTab==='Alerts'?'<section class="i-alerts-page" data-testid="live-instructor-alerts" aria-label="Instructor alerts"></section>':instructor(data)):isDesk?(liveInstructorTab==='Alerts'?'<section class="i-alerts-page" data-testid="live-desk-alerts" aria-label="School desk alerts"></section>':reports(data)):reports(data);
+  const content=isGuardian?guardianWorkspace(data):isDirector?'<section class="i-alerts-page" data-testid="live-director-alerts" aria-label="Director alerts"></section>':isInstructor?(liveInstructorTab==='Alerts'?'<section class="i-alerts-page" data-testid="live-instructor-alerts" aria-label="Instructor alerts"></section>':instructor(data)):isDesk?(liveInstructorTab==='Alerts'?'<section class="i-alerts-page" data-testid="live-desk-alerts" aria-label="School desk alerts"></section>':deskWorkspace(data)):reports(data);
   workspace.innerHTML=`<div class="${onAlerts?'i-alerts-heading':'o-heading'}"><div><h2>${escape(heading)}</h2><p>${escape(currentUser.displayName)} · ${onAlerts?`${isInstructor?'Group':'School'} alerts`:isInstructor?`Level ${escape(instructorGroup?.level??'not recorded')} · ${escape(instructorGroup?.meeting||'Meeting place not recorded')}`:'Live shared records'}</p></div><button class="o-button" data-testid="live-refresh">Refresh</button></div>${content}`;
   renderLiveNotifications();
   workspace.querySelector('[data-testid="live-refresh"]').onclick=refresh;
   workspace.querySelector('[data-testid="live-report-open"]')?.addEventListener('click',()=>report(data));
+  workspace.querySelectorAll('[data-testid^="live-consent-"]').forEach(button=>button.onclick=()=>guardianConsent(data.children.find(child=>child.id===button.dataset.childId)));
+  workspace.querySelectorAll('[data-testid^="live-desk-child-"]').forEach(button=>button.onclick=()=>deskChild(data.children.find(child=>child.id===button.dataset.childId)));
+  workspace.querySelector('[data-testid="live-desk-search"]')?.addEventListener('input',event=>{const query=event.target.value.trim().toLowerCase();workspace.querySelectorAll('.live-desk-child').forEach(card=>{card.hidden=!card.textContent.toLowerCase().includes(query);});});
   workspace.querySelectorAll('[data-testid^="live-child-view-"]').forEach(button=>button.addEventListener('click',()=>showLiveChild(data,button.dataset.childId)));
   workspace.querySelectorAll('[data-testid^="live-instructor-found-"]').forEach(button=>button.onclick=async()=>{button.disabled=true;try{await api('/api/live/reports/found',{id:button.dataset.reportId});await refresh();}catch(error){button.disabled=false;alert(error.message);}});
   workspace.querySelectorAll('[data-testid="live-found"]').forEach(button=>button.onclick=async()=>{try{await api('/api/live/reports/found',{id:button.dataset.id});await refresh();}catch(e){alert(e.message);}});
+}
+function guardianWorkspace(data){
+  const rows=data.children||[];
+  return `<section class="o-group-card"><div class="o-roster-heading"><h3>Your children</h3><span>${rows.length}</span></div>${rows.length?rows.map(child=>`<article class="o-roster-row"><div class="o-child"><strong>${escape(child.displayName)}</strong><span class="o-status">${child.consent?'Consent on file · updated '+escape(new Date(child.consent.updatedAt).toLocaleDateString()):'Consent form required'}</span><small>${escape(child.birthDate||'Date of birth not recorded')} · ${escape(child.program||'Program not recorded')}</small></div><button class="o-button o-primary" data-testid="live-consent-${escape(child.id)}" data-child-id="${escape(child.id)}">${child.consent?'Review or edit consent':'Fill consent form'}</button></article>`).join(''):'<p class="o-empty">No registrations are linked to your account.</p>'}</section>`;
+}
+const guardianRelationships=['Spouse','Partner/Significant Other','Parent','Child','Sibling','Grandparent','Aunt/Uncle','Cousin','Legal Guardian','Friend','Neighbour','Co-worker','Other'];
+const guardianRelationshipOptions=selected=>`<option value="">Choose relationship</option>${guardianRelationships.map(value=>`<option ${value===selected?'selected':''}>${escape(value)}</option>`).join('')}`;
+function guardianConsent(child){
+  if(!child)return;
+  const saved=child.consent||{};
+  const contacts=listValue(saved.emergencyContacts),adults=listValue(saved.authorizedPickupAdults);
+  const contactRow=(item,index)=>`<div class="g-contact live-emergency-row"><label>Contact ${index+1} name${index?' (optional)':''}<input data-contact-name value="${escape(item?.name||'')}" ${index?'':'required'}></label><label>Phone number<input type="tel" data-contact-phone value="${escape(item?.phone||'')}" ${index?'':'required'}></label><label>Relationship<select data-contact-relationship ${index?'':'required'}>${guardianRelationshipOptions(item?.relationship)}</select></label></div>`;
+  const adultRows=adults.map((item,index)=>`<div class="g-contact live-authorized-row"><label>Name<input data-adult-name value="${escape(item.name||'')}" required></label><label>Relationship<select data-adult-relationship required>${guardianRelationshipOptions(item.relationship)}</select></label><button type="button" class="d-button" data-remove-adult>Remove</button></div>`).join('');
+  childDialog.innerHTML=`<form id="live-guardian-consent" class="g-dialog-form g-form"><header class="d-dialog-heading"><div><p>Consent form</p><h2 id="live-child-dialog-title">${escape(child.displayName)}</h2></div><button type="button" class="d-close" data-testid="live-consent-close" aria-label="Close">×</button></header><div class="d-dialog-body"><div class="g-form-content"><div class="g-registration-note">These details come from registration and cannot be changed here.</div><div class="g-locked"><label>Child’s name<input value="${escape(child.displayName)}" readonly></label><label>Date of birth<input value="${escape(child.birthDate||'')}" readonly></label></div><h3>Emergency contacts</h3>${contactRow(contacts[0],0)}${contactRow(contacts[1],1)}<h3>Health information</h3><label>Medical conditions<textarea name="medicalConditions" required>${escape(saved.medicalConditions||'')}</textarea></label><label>Medications and where they are kept<textarea name="medicationsAndLocation" required>${escape(saved.medicationsAndLocation||'')}</textarea></label><label>Allergies<textarea name="allergies" required>${escape(saved.allergies||'')}</textarea></label><h3>Authorized pickup adults</h3><div data-authorized-adults>${adultRows}</div><div class="g-contact"><label>Name<input data-new-adult-name></label><label>Relationship<select data-new-adult-relationship>${guardianRelationshipOptions('')}</select></label><button type="button" class="d-button" data-add-adult>Add</button></div><h3>Consent</h3><aside class="g-use"><strong>How your child’s information is used</strong><p>Contact and health details help the school care for your child and release them only to an adult you authorize.</p></aside><label class="g-check"><input type="checkbox" name="confirmAccuracy" required ${saved.confirmAccuracy?'checked':''}> I confirm the information above is accurate</label><label class="g-check"><input type="checkbox" name="confirmMedicalSharing" required ${saved.confirmMedicalSharing?'checked':''}> I understand medical details are shared with staff and patrol who need them</label><label class="g-check"><input type="checkbox" name="photoConsent" ${saved.photoConsent?'checked':''}> I give permission for photos (optional)</label><label>Guardian signature<input name="signature" required value="${escape(saved.signature||'')}"></label><label>Date<input name="signedDate" type="date" required value="${escape(saved.signedDate||new Date().toISOString().slice(0,10))}"></label><p role="alert" data-testid="live-consent-error"></p></div></div><footer class="d-dialog-footer"><div><button class="d-button d-primary" type="submit" data-testid="live-consent-save">${saved.id?'Save changes':'Submit consent'}</button></div></footer></form>`;
+  childDialog.querySelector('[data-testid="live-consent-close"]').onclick=()=>childDialog.close();
+  const adultList=childDialog.querySelector('[data-authorized-adults]');
+  childDialog.querySelector('[data-add-adult]').onclick=()=>{const name=childDialog.querySelector('[data-new-adult-name]'),relationship=childDialog.querySelector('[data-new-adult-relationship]');if(!name.value.trim()||!relationship.value){name.reportValidity();relationship.reportValidity();return;}const row=document.createElement('div');row.className='g-contact live-authorized-row';row.innerHTML=`<label>Name<input data-adult-name required value="${escape(name.value.trim())}"></label><label>Relationship<select data-adult-relationship required>${guardianRelationshipOptions(relationship.value)}</select></label><button type="button" class="d-button" data-remove-adult>Remove</button>`;adultList.append(row);name.value='';relationship.value='';};
+  adultList.onclick=event=>{if(event.target.matches('[data-remove-adult]'))event.target.closest('.live-authorized-row').remove();};
+  childDialog.querySelector('#live-guardian-consent').onsubmit=async event=>{event.preventDefault();const form=event.currentTarget,fd=new FormData(form),error=form.querySelector('[data-testid="live-consent-error"]'),save=form.querySelector('[data-testid="live-consent-save"]');const parsedContacts=[...form.querySelectorAll('.live-emergency-row')].map(row=>({name:row.querySelector('[data-contact-name]').value.trim(),phone:row.querySelector('[data-contact-phone]').value.trim(),relationship:row.querySelector('[data-contact-relationship]').value})).filter(contact=>contact.name||contact.phone||contact.relationship);const parsedAdults=[...form.querySelectorAll('.live-authorized-row')].map(row=>({name:row.querySelector('[data-adult-name]').value.trim(),relationship:row.querySelector('[data-adult-relationship]').value}));save.disabled=true;try{await api('/api/live/guardian/consent',{childRecordId:child.id,emergencyContacts:parsedContacts,medicalConditions:fd.get('medicalConditions'),medicationsAndLocation:fd.get('medicationsAndLocation'),allergies:fd.get('allergies'),authorizedPickupAdults:parsedAdults,confirmAccuracy:fd.has('confirmAccuracy'),confirmMedicalSharing:fd.has('confirmMedicalSharing'),photoConsent:fd.has('photoConsent'),signature:fd.get('signature'),signedDate:fd.get('signedDate')},'PUT');childDialog.close();await refresh();}catch(e){error.textContent=e.message;}finally{save.disabled=false;}};
+  childDialog.showModal();
+}
+function deskWorkspace(data){
+  const children=data.children||[];
+  return `<section class="o-group-card"><div class="o-roster-heading"><h3>Lesson-day roster</h3><span>${children.length} children</span></div><label class="o-search">Find a child<input type="search" data-testid="live-desk-search" placeholder="Name, bib or group"></label><div class="o-list">${children.map(child=>{const att=child.attendance?.[0]||{},active=att.status==='checked_in'&&!att.release;return `<button class="o-roster-row live-desk-child" data-testid="live-desk-child-${escape(child.id)}" data-child-id="${escape(child.id)}"><span><strong>${escape(child.displayName)}</strong><small>${escape(att.group||child.program||'Group not recorded')} · Bib ${escape(att.bib||'unassigned')}</small></span><span class="o-status">${active?'Checked in':att.release?'Released':'Expected'}</span></button>`;}).join('')||'<p class="o-empty">No children are on the lesson-day roster.</p>'}</div></section>`;
+}
+function deskChild(child){
+  if(!child)return;const att=child.attendance?.[0]||{},active=att.status==='checked_in'&&!att.release,consent=child.consent,adults=listValue(consent?.authorizedPickupAdults);
+  childDialog.innerHTML=`<section class="g-dialog-form g-form"><header class="d-dialog-heading"><div><p>${escape(att.group||child.program||'Lesson day')}</p><h2 id="live-child-dialog-title">${escape(child.displayName)}</h2></div><button type="button" class="d-close" data-testid="live-desk-close" aria-label="Close">×</button></header><div class="d-dialog-body"><div class="g-form-content"><p>${escape(child.birthDate||'Date of birth not recorded')} · Bib ${escape(att.bib||'unassigned')}</p>${!consent?'<p class="o-warning">Guardian consent is required before check-in.</p>':`<h3>Emergency contacts</h3><p>${escape(consent.emergencyContacts)}</p><h3>Health information</h3><p>Medical conditions: ${escape(consent.medicalConditions)}</p><p>Medications and location: ${escape(consent.medicationsAndLocation)}</p><p>Allergies: ${escape(consent.allergies)}</p>`}<div data-testid="live-desk-action-form">${active?`<form id="live-release-form"><h3>Release child</h3><label>Authorized pickup adult<select name="adultName" required><option value="">Choose authorized adult</option>${adults.map(a=>`<option value="${escape(a.name)}">${escape(a.name)} (${escape(a.relationship)})</option>`).join('')}</select></label><label class="g-check"><input type="checkbox" name="identityVerified" required> I verified this adult’s identity</label><label class="g-check"><input type="checkbox" name="bibReturned"> Bib returned</label><button class="d-button d-primary" type="submit">Release</button></form>`:!att.release?`<form id="live-checkin-form"><h3>Check in</h3><label>Jacket colour<select name="jacket" required>${['Black','Blue','Brown','Green','Grey','Navy','Orange','Peach','Pink','Purple','Red','Teal','White','Yellow'].map(c=>`<option>${c}</option>`).join('')}</select></label><label>Helmet colour<select name="helmet" required>${['Black','Blue','Brown','Green','Grey','Navy','Orange','Peach','Pink','Purple','Red','Teal','White','Yellow'].map(c=>`<option>${c}</option>`).join('')}</select></label><label>Other clothing details (optional)<textarea name="clothingNotes"></textarea></label><label>Equipment<textarea name="equipment"></textarea></label><button class="d-button d-primary" type="submit" ${consent?'':'disabled'}>Check in</button></form>`:'<p>Child has been released.</p>'}</div><p role="alert" data-testid="live-desk-error"></p></div></div><footer class="d-dialog-footer"><div></div></footer></section>`;
+  childDialog.querySelector('[data-testid="live-desk-close"]').onclick=()=>childDialog.close();
+  childDialog.querySelector('#live-checkin-form')?.addEventListener('submit',async ev=>{ev.preventDefault();const fd=new FormData(ev.currentTarget),err=childDialog.querySelector('[data-testid="live-desk-error"]');try{await api('/api/live/desk/check-in',{childRecordId:child.id,jacket:fd.get('jacket'),helmet:fd.get('helmet'),clothingNotes:fd.get('clothingNotes'),equipment:fd.get('equipment')});childDialog.close();await refresh();}catch(e){err.textContent=e.message;}});
+  childDialog.querySelector('#live-release-form')?.addEventListener('submit',async ev=>{ev.preventDefault();const fd=new FormData(ev.currentTarget),err=childDialog.querySelector('[data-testid="live-desk-error"]');try{await api('/api/live/desk/release',{childRecordId:child.id,adultName:fd.get('adultName'),identityVerified:fd.has('identityVerified'),bibReturned:fd.has('bibReturned')});childDialog.close();await refresh();}catch(e){err.textContent=e.message;}});
+  childDialog.showModal();
 }
 function instructor(data) {
   const group=data.groups[0];
