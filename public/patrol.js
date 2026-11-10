@@ -40,6 +40,7 @@ export function createPatrol(root, seed, { onSignOut }) {
             <div class="p-child"><div class="p-child-heading-row"><span class="p-case">${escapeHtml(alert.caseNumber)}</span><span class="p-status">${escapeHtml(alert.status)}</span>${profileMeta({group:alert.group})}</div><h3>${escapeHtml(alert.childName)}</h3><div class="p-child-quick-meta"><span>Age ${escapeHtml(alert.age)}</span><span>Desk alert received ${escapeHtml(alert.receivedTime)}</span></div></div>
             ${alert.program ? `<div class="p-child-meta">${profileMeta({program:alert.program})}</div>` : ''}
           </div>
+          <div class="p-left-column">
           <div class="p-facts">
             ${fact(icons.clock, 'Last seen time', alert.lastSeenTime)}
             ${fact(icons.place, 'Last seen place', alert.lastSeenPlace)}
@@ -58,6 +59,8 @@ export function createPatrol(root, seed, { onSignOut }) {
             <p><strong>Location:</strong> ${escapeHtml(alert.liftScan.location)}</p>
             ` : `<p class="p-unavailable">No scan available. ${escapeHtml(alert.liftScanUnavailableReason || 'Pass details have not been recorded.')}</p>`}
           </section>
+          </div>
+          <div class="p-right-column">
           ${alert.medical ? `<section class="p-medical"><h3>Medical information</h3><p>${escapeHtml(alert.medical)}</p></section>` : ''}
           ${alert.emergencyContacts?.length ? `<section class="p-contacts"><h3>Emergency contacts for police handoff</h3>
             ${alert.emergencyContacts.map(contact => `<div class="p-contact"><div><strong>${escapeHtml(contact.name)}</strong><span>${escapeHtml(contact.relationship)}</span></div><div class="p-contact-phone"><a href="tel:${escapeHtml(contact.phone)}">${escapeHtml(contact.phone)}</a><span>${escapeHtml(contact.phoneStatus)}</span></div></div>`).join('')}
@@ -67,21 +70,22 @@ export function createPatrol(root, seed, { onSignOut }) {
             <h3>Actions</h3>
             <div class="p-action-buttons">
               <button class="p-action-button" type="button" data-testid="patrol-request-lift-scan" data-action="lift" data-alert-id="${escapeHtml(alert.id)}">Request lift scan</button>
-              <button class="p-action-button p-action-police" type="button" data-testid="patrol-call-police" data-action="police" data-alert-id="${escapeHtml(alert.id)}">Call police (1 hr)</button>
+              <button class="p-action-button p-action-found" type="button" data-testid="patrol-log-found-mobile" data-search-action="found" data-alert-id="${escapeHtml(alert.id)}">Found / Resolved</button>
               <button class="p-action-button p-action-copy" type="button" data-testid="patrol-copy-report" data-action="copy" data-alert-id="${escapeHtml(alert.id)}">Copy details for police report</button>
-              <button class="p-action-button p-action-found-mobile" type="button" data-testid="patrol-log-found-mobile" data-search-action="found" data-alert-id="${escapeHtml(alert.id)}">Found</button>
+              <button class="p-action-button p-action-police" type="button" data-testid="patrol-call-police" data-action="police" data-alert-id="${escapeHtml(alert.id)}">Call police (1 hr)</button>
             </div>
             <p class="p-family-note">Police lead family communication once engaged.</p>
             <p class="p-action-message" role="status" aria-live="polite" data-testid="patrol-action-message" hidden></p>
           </section>
           </div>
+          </div>
           <div class="p-patrol-logs" data-testid="patrol-logs">
-            <section class="p-log-panel" aria-labelledby="system-log-title">
+            <section class="p-log-panel p-system-log-panel" aria-labelledby="system-log-title">
               <div class="p-log-heading"><h3 id="system-log-title">System log</h3><span class="p-log-badge p-automatic">Automatic</span></div>
               <div class="p-log-entries">${logRows(alert.systemLog || [])}</div>
               <p class="p-log-note">App events only. Radio coordination is not captured.</p>
             </section>
-            <section class="p-log-panel" aria-labelledby="search-log-title">
+            <section class="p-log-panel p-search-log-panel" aria-labelledby="search-log-title">
               <div class="p-log-heading"><h3 id="search-log-title">Search log</h3><span class="p-log-badge p-patrol-entry">Patrol entry</span></div>
               <p class="p-search-log-intro">Tap to log key actions between radio calls.</p>
               <div class="p-log-actions">
