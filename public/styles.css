@@ -13,6 +13,85 @@ body { margin: 0; }
 button, select, input { font: inherit; color: inherit; }
 button, select { cursor: pointer; }
 :focus-visible { outline: 2px solid #167258; outline-offset: 3px; }
+
+/* Shared frame: brand, preview controls and work surfaces belong to one app. */
+body:has(#app-shell) { height:100dvh; display:block; overflow:hidden; padding:20px 16px; background:#eaf0ed; }
+#app-shell { display:grid; grid-template-rows:auto auto minmax(0,1fr) auto; max-width:1120px; height:calc(100dvh - 40px); min-height:0; margin:0 auto; border:1px solid #d8e4e0; border-radius:24px; background:#f7f9f8; overflow:hidden; }
+#app-shell > .top { background:#fff; }
+#app-shell .wrap { width:100%; max-width:none; margin:0; }
+#app-shell .brand { padding:16px 24px; min-height:72px; }
+#app-shell .demo-inner { padding-inline:24px; }
+#app-shell > main.wrap { position:relative; grid-row:3; display:block; min-height:0; overflow-y:auto; overscroll-behavior:contain; scrollbar-gutter:stable; padding:0 24px; }
+#app-shell .workspace { display:block; padding:24px 0; }
+#app-shell .workspace > h1 { margin:4px 0 24px; }
+#app-shell #operations { display:block; overflow:visible; }
+#app-shell .navigation { grid-row:4; position:static; width:100%; max-width:none; margin:0; border:0; border-top:1px solid #d8e4e0; border-radius:0; }
+#app-shell .navigation nav { width:100%; max-width:none; padding:8px 16px; }
+#app-shell .d-section, #app-shell .o-list, #app-shell .o-dialog.o-inline-detail,
+#app-shell .o-medical-list, #app-shell .g-section, #app-shell .g-form,
+#app-shell .o-heading, #app-shell .o-empty, #app-shell .o-incident { border:1px solid var(--line); border-radius:12px; background:#fff; }
+#app-shell .o-heading { padding:18px 20px; margin-bottom:20px; }
+#app-shell .d-totals { padding:20px; background:#fff; border:1px solid var(--line); border-radius:12px; margin-bottom:20px; }
+#app-shell .d-overview-grid { gap:20px; }
+#app-shell .d-spaced { margin-top:20px; }
+#app-shell .g-home { max-width:none; }
+#app-shell .g-section { margin-bottom:20px; padding:20px; }
+#app-shell .g-section > h2 { margin:0 0 16px; }
+#app-shell .g-schedule-card { margin:0; padding:0; background:transparent; border:0; }
+#app-shell .g-child-row { margin:0; padding:16px 0; }
+#app-shell .g-child-row:last-child { border-bottom:0; padding-bottom:0; }
+#app-shell .g-child-row:first-of-type { padding-top:0; }
+#app-shell .g-home:has(> .g-intro) { padding:20px; border:1px solid var(--line); border-radius:12px; background:#fff; }
+#app-shell .o-medical-list { padding:20px; margin:20px 0; }
+#app-shell .o-group-card { border:1px solid var(--line); border-radius:12px; background:#fff; overflow:hidden; }
+#app-shell .o-group-card .o-roster-heading { padding:18px 20px; margin:0; }
+#app-shell .o-group-card .o-list { border:0; border-top:1px solid var(--line); border-radius:0; }
+#app-shell .o-desk-roster { padding:18px; border:1px solid var(--line); border-radius:12px; background:#fff; }
+#app-shell .o-desk-layout { align-items:start; }
+#app-shell #operations .o-desk-layout { align-items:start; }
+#app-shell #desk-detail > .o-empty { border:0; border-radius:0; margin:0; }
+#app-shell .o-group-card .o-instructor-child { border:0; border-radius:0; }
+#app-shell .o-group-card .o-roster-row { margin:0; }
+#app-shell .o-group-card .o-roster-row + .o-roster-row { border-top:1px solid var(--line); }
+#app-shell .o-desk-roster .o-list { max-height:60dvh; }
+#app-shell #desk-detail { max-height:72dvh; }
+#app-shell .patrol-shell { border:0; border-radius:0; min-height:0; max-width:none; margin:0; background:transparent; overflow:visible; }
+#app-shell .p-topbar { border:1px solid var(--line); border-radius:12px; padding:18px 20px; margin-bottom:20px; }
+#app-shell .p-content { padding:0; }
+#app-shell .p-brand { color:var(--muted); }
+#app-shell .p-title { letter-spacing:-.03em; }
+@media(min-width:1024px) {
+  body.desk-view:has(#app-shell) { height:100dvh; overflow:hidden; }
+  .desk-view #app-shell { height:calc(100dvh - 40px); min-height:0; display:grid; }
+  .desk-view #app-shell > .top,.desk-view #app-shell > .demo { flex-shrink:0; }
+  .desk-view #app-shell > main.wrap { display:flex; min-height:0; overflow:hidden; scrollbar-gutter:auto; }
+  .desk-view #app-shell .workspace { display:flex; flex-direction:column; flex:1; min-height:0; padding-top:16px; padding-bottom:16px; }
+  .desk-view #app-shell .workspace > h1 { font-size:24px; margin-bottom:16px; flex-shrink:0; }
+  .desk-view #app-shell #operations { display:flex; flex-direction:column; flex:1; min-height:0; overflow:auto; }
+  .desk-view #app-shell .o-heading { flex-shrink:0; padding:14px 18px; margin-bottom:14px; }
+  .desk-view #app-shell #operations .o-desk-layout { flex:1; min-height:0; align-items:stretch; }
+  .desk-view #app-shell .o-desk-roster { display:flex; flex-direction:column; min-height:0; padding:14px; }
+  .desk-view #app-shell .o-desk-roster .o-list { flex:1; min-height:0; max-height:none; overflow:auto; }
+  .desk-view #app-shell #desk-detail { height:100%; min-height:0; max-height:none; overflow:auto; }
+}
+@media(max-width:650px) {
+  body:has(#app-shell) { padding:8px; }
+  #app-shell { height:calc(100dvh - 16px); min-height:0; border-radius:16px; }
+  #app-shell .brand { padding:14px 16px; flex-wrap:nowrap; }
+  #app-shell .brand-detail { margin-left:auto; font-size:12px; }
+  #app-shell .demo-inner { padding-inline:16px; }
+  #app-shell > main.wrap { padding:0 12px; }
+  #app-shell .workspace { padding-top:20px; }
+  #app-shell .workspace > h1 { font-size:25px; margin-bottom:20px; }
+  #app-shell .navigation { width:100%; border-radius:0; }
+  #app-shell .navigation nav { padding-inline:4px; gap:2px; }
+  #app-shell .g-section, #app-shell .o-medical-list, #app-shell .o-heading { padding:16px; }
+  #app-shell .o-desk-roster { padding:12px; }
+  #app-shell .g-child-row { flex-wrap:wrap; gap:10px; }
+  #app-shell .g-child { flex-basis:100%; }
+  #app-shell .g-review { width:100%; min-height:44px; }
+  #app-shell .p-topbar { padding:16px; gap:8px; }
+}
 .wrap { width: min(100% - 32px, 960px); margin-inline: auto; }
 .top, .navigation { background: white; border-bottom: 1px solid var(--line); }
 .brand { min-height: 62px; display: flex; align-items: center; gap: 10px; }

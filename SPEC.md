@@ -56,6 +56,11 @@ All records are fictional and come from demo-fixture.json. There is no database 
 
 ## Acceptance Scenarios
 
+### S-031: Every workspace has the same frame and clear sections
+Given I open any of the five preview roles on a phone or desktop.
+When I switch roles and use the workspace navigation.
+Then the logo and top bar sit inside one shared outer card, sections have separate cards, and the content and navigation fit the screen.
+
 ### S-001: I can preview the Patrol workspace
 covers: R-001
 Given the shared demo is open in the Desk workspace with fictional data.

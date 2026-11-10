@@ -188,6 +188,14 @@ export function createOperations(root, seed, {onChange}) {
       panel.innerHTML='<p class="o-empty">Select a child from the roster to review their details.</p>';
       layout.append(rail,panel);root.insertBefore(layout,root.querySelector('.o-footer'));
     }
+    if(role==='instructor') {
+      const groupCard=document.createElement('section');
+      groupCard.className='o-group-card';
+      groupCard.setAttribute('aria-label','Today’s group');
+      const heading=root.querySelector('.o-roster-heading');
+      heading.before(groupCard);
+      groupCard.append(heading,root.querySelector('#ops-list'));
+    }
     list();
   }
   return {render, clear(){root.replaceChildren();query='';groupFilter='';statusFilter='all';page=0;close();}};

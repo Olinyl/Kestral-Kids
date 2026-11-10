@@ -15,6 +15,19 @@ export function createGuardian(root, seed) {
     root.innerHTML = `<section class="g-home">${tab === 'Messages' ? `<h2>Messages</h2><p class="g-intro">No messages yet.</p>` : `<h2>Next lessons</h2><article class="g-schedule-card"><div class="g-shared-times"><span>Check-in <strong>8:30–9:15 AM</strong></span><span>Lessons start <strong>9:30 AM</strong></span></div>${programs.map(([program,members])=>`<div class="g-program-row"><strong>${esc(program.replace('Kestrel Kids, ',''))}</strong><span>${new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',timeZone:'UTC'}).format(nextLessonDate(members[0]))}</span><span>${members.map(child=>esc(child.displayName)).join(', ')}</span></div>`).join('')}</article><h2 class="g-children-heading">My children</h2>`}
       ${tab === 'My children' ? children.map(child => `<div class="g-child-row"><button class="g-child ${active?.id===child.id?'selected':''}" data-child="${esc(child.id)}"><span class="g-child-name"><span class="g-child-title"><strong>${esc(child.displayName)}</strong><span class="g-group-tag">${esc(groupFor(child))}</span></span><small>${esc(child.storeRegistration.program)} · Born ${esc(child.birthDate)}</small>${child.consentStatus==='complete'?`<small>Consent on file. Last updated: ${esc(updatedDate(child))}</small>`:`<span class="g-alert-inline">Consent form required</span>`}</span></button><button class="g-button secondary g-review" data-consent="${esc(child.id)}">${child.consentStatus==='complete'?'Review or edit consent':'Fill consent form'}</button></div>`).join('') : ''}
       </section>`;
+    if (tab === 'My children') {
+      const home = root.querySelector('.g-home');
+      const lessons = document.createElement('section');
+      lessons.className = 'g-section';
+      lessons.setAttribute('aria-label', 'Next lessons');
+      home.prepend(lessons);
+      lessons.append(home.querySelector('h2'), home.querySelector('.g-schedule-card'));
+      const profiles = document.createElement('section');
+      profiles.className = 'g-section';
+      profiles.setAttribute('aria-label', 'My children');
+      home.append(profiles);
+      profiles.append(home.querySelector('.g-children-heading'), ...home.querySelectorAll('.g-child-row'));
+    }
     root.querySelectorAll('[data-child]').forEach(button => button.onclick=()=>{selected=button.dataset.child;render(tab)});
     root.querySelectorAll('[data-consent]').forEach(button=>{button.onclick=event=>{event.stopPropagation();consent(children.find(child=>child.id===button.dataset.consent));};button.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();event.stopPropagation();consent(children.find(child=>child.id===button.dataset.consent));}}});
   }

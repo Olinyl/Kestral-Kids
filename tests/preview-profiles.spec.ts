@@ -1,0 +1,35 @@
+import {expect, test} from '@playwright/test';
+
+test('large preview has editable child, guardian, instructor and group profiles', async ({page}) => {
+  await page.goto('/prototype?data=1000&view=director');
+  await page.getByTestId('director-nav-children').click();
+  await page.getByTestId('director-search').fill('Zara Winters');
+  await page.getByTestId('child-open-prototype-child-1000').click();
+  await expect(page.getByTestId('child-birthdate')).not.toHaveValue('');
+  await expect(page.getByTestId('child-emergency-name')).toHaveValue('Guardian 1000');
+  await expect(page.getByTestId('child-emergency-name2')).not.toHaveValue('');
+  await page.getByTestId('child-name').fill('Zara Preview');
+  await page.getByTestId('child-save').click();
+  await page.getByTestId('director-search').fill('Zara Preview');
+  await expect(page.getByTestId('director-child-row')).toContainText('Zara Preview');
+  await page.getByTestId('director-nav-guardians').click();
+  await page.getByTestId('director-search').fill('guardian1000@example.test');
+  await page.getByTestId('guardian-open-prototype-guardian-999').click();
+  await page.getByTestId('guardian-name').fill('Guardian Preview');
+  await page.getByTestId('guardian-save').click();
+  await expect(page.getByTestId('director-guardian-row')).toContainText('Guardian Preview');
+  await page.getByTestId('director-nav-instructors').click();
+  await page.getByTestId('director-search').fill('Instructor 34');
+  await page.getByTestId('instructor-open-prototype-instructor-33').click();
+  await expect(page.getByTestId('instructor-qualification')).not.toHaveValue('');
+  await page.getByTestId('instructor-name').fill('Instructor Preview');
+  await page.getByTestId('instructor-save').click();
+  await page.getByTestId('director-search').fill('Instructor Preview');
+  await expect(page.getByTestId('director-instructor-row')).toContainText('Instructor Preview');
+  await page.getByTestId('director-nav-groups').click();
+  await page.getByTestId('director-search').fill('Group 034');
+  await page.getByTestId('group-open-prototype-group-33').click();
+  await page.getByTestId('group-meeting').fill('Preview meeting flag');
+  await page.getByTestId('group-save').click();
+  await expect(page.getByTestId('director-group-row')).toContainText('Preview meeting flag');
+});
