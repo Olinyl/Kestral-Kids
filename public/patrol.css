@@ -131,7 +131,12 @@ body.patrol-view { background:#f5f8f7; color:#173f39; }
  .p-topbar { padding:14px 18px; }
  .p-content { padding:18px; }
  .p-alert-head { padding:16px 18px 14px; }
- .p-facts { padding-inline:18px; }
+ .p-facts { grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:10px; padding:5px 12px 10px; }
+ .p-fact { grid-template-columns:24px minmax(0,1fr); gap:7px; padding:9px 0; }
+ .p-icon-soft { width:24px; height:24px; border-radius:7px; }
+ .p-icon-soft svg { width:14px; height:14px; }
+ .p-fact h3 { font-size:9px; letter-spacing:.08em; }
+ .p-fact p { font-size:12px; line-height:1.4; }
  .p-scan { padding-inline:18px; }
  .p-medical,.p-search-context,.p-contacts,.p-escalation { padding-inline:18px; }
  .p-actions-panel { padding-inline:12px; }
