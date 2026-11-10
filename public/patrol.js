@@ -26,13 +26,7 @@ export function createPatrol(root, seed, { onSignOut }) {
   function render() {
     const alerts = (seed.patrolAlerts ?? []).filter(alert => ['School desk', 'Instructor'].includes(alert.source) && alert.active !== false);
     root.innerHTML = `<section class="patrol-shell" aria-label="Patrol workspace">
-      <header class="p-topbar">
-        <div><p class="p-brand">Patrol workspace</p><h2>Active alerts</h2></div>
-      </header>
       <div class="p-content">
-        <p class="p-eyebrow">Patrol response board</p>
-        <h2 class="p-title">Alerted missing children</h2>
-        <p class="p-intro">Active alerts from the school desk and instructors are shown.</p>
         ${alerts.length ? `<div class="p-alert-carousel" data-testid="patrol-alert-carousel">
           ${alerts.length > 1 ? `<div class="p-carousel-controls p-carousel-controls-desktop" aria-label="Alert navigation">
             <button type="button" data-testid="patrol-alert-previous" aria-label="Previous alert" disabled>‹ Previous</button>
