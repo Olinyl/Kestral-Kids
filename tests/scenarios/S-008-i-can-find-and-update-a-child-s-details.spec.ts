@@ -2,7 +2,8 @@
 import { expect, test } from '@playwright/test';
 test('S-008: I can find and update a child', async ({ page }) => {
   await page.goto('/');
-  await page.getByTestId('view-as').selectOption('director');
+  await page.getByTestId('account-menu').click();
+      await page.getByTestId('account-choice-'+'director').click();
   await page.getByTestId('director-nav-children').click();
   await page.getByTestId('director-search').fill('Noah');
   await expect(page.getByTestId('director-child-row')).toHaveCount(1);

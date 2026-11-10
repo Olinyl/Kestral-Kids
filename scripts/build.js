@@ -14,7 +14,7 @@ await writeFile(new URL('package.json', output), JSON.stringify({
 }, null, 2) + '\n');
 console.log('Demo build saved to build/runtime');
 await mkdir(preview, { recursive: true });
-for (const name of ['index.html', 'workspace.js', 'live.js', 'styles.css', 'director.js', 'director.css', 'operations.js', 'operations.css', 'patrol.js', 'patrol.css', 'grouping.js', 'guardian.js', 'store-import.js']) {
+for (const name of ['index.html', 'workspace.js', 'live.js', 'styles.css', 'director.js', 'director.css', 'operations.js', 'operations.css', 'patrol.js', 'patrol.css', 'grouping.js', 'guardian.js', 'store-import.js', 'profile-ui.js']) {
   await cp(new URL('public/' + name, root), new URL(name, preview));
 }
 await cp(new URL('node_modules/@piezas/sdk/dist/report-problem/widget.js', root), new URL('report-problem-widget.js', preview));

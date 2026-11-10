@@ -2,12 +2,13 @@ import { mountReportProblem } from './report-problem-widget.js';
 function reportProblemPosition() {
   const brand=document.querySelector('.top .brand');
   const button=document.querySelector('#piezas-report-problem')?.shadowRoot?.querySelector('.button');
+  if(button) Object.assign(button.style,{minHeight:'44px',height:'44px',fontSize:'14px',fontWeight:'600',borderRadius:'8px',border:'1px solid #bdcbc5',background:'#fff',color:'#173f39',boxShadow:'none'});
   const width=button?.offsetWidth||135;
-  const buttonHeight=button?.offsetHeight||32;
   const brandRect=brand?.getBoundingClientRect();
   const left=brandRect ? brandRect.right-width-8 : window.innerWidth-width-16;
-  const top=brandRect ? brandRect.top+(brandRect.height-buttonHeight)/2 : 16;
-  const position={left:Math.max(12,Math.min(left,window.innerWidth-width-12)),bottom:Math.max(12,window.innerHeight-top-buttonHeight)};
+  const navigation=document.querySelector('.navigation');
+  const navTop=navigation&&!navigation.hidden?navigation.getBoundingClientRect().top:window.innerHeight;
+  const position={left:Math.max(12,Math.min(left,window.innerWidth-width-12)),bottom:Math.max(16,window.innerHeight-navTop+12)};
   try { localStorage.setItem('piezas-report-problem-position',JSON.stringify(position)); } catch {}
   if(button){button.style.left=`${position.left}px`;button.style.bottom=`${position.bottom}px`;}
 }
@@ -22,6 +23,10 @@ queueReportProblemPosition();
 window.addEventListener('resize',queueReportProblemPosition,{passive:true});
 window.addEventListener('orientationchange',queueReportProblemPosition,{passive:true});
 window.visualViewport?.addEventListener('resize',queueReportProblemPosition,{passive:true});
+window.addEventListener('kestrel:account-view',queueReportProblemPosition);
+new MutationObserver(records=>{
+  if(records.some(record=>[...record.addedNodes].some(node=>node.id==='piezas-report-problem'))) queueReportProblemPosition();
+}).observe(document.body,{childList:true});
 
 const login=document.querySelector('#staff-dialog');
 const message=login.querySelector('[data-testid="staff-message"]');
@@ -79,7 +84,8 @@ function report(data) {
   reportDialog.showModal();
 }
 async function refresh(){try{render({user:currentUser,...await api('/api/live/dashboard')});}catch(error){alert(error.message);}}
-document.querySelector('[data-testid="live-sign-in"]').onclick=async()=>{
+const liveSignIn=document.querySelector('[data-testid="live-sign-in"]');
+if(liveSignIn) liveSignIn.onclick=async()=>{
   if(currentUser){try{await api('/api/live/sign-out',{});}catch{} currentUser=null;location.reload();return;}
   login.showModal();
 };
@@ -100,4 +106,4 @@ login.querySelector('#staff-sign-in').onsubmit=async event=>{
   try{let auth=await api('/api/live/sign-in',{email:form.get('email'),password:form.get('password')});if(auth.mfa){const code=prompt('Enter your verification code');if(!code)return;auth=await api('/api/live/mfa',{challengeToken:auth.challengeToken,code});}login.close();render({user:auth.user,...await api('/api/live/dashboard')});}
   catch(error){showError(error);}
 };
-api('/api/live/me').then(async result=>{if(result.user)render({user:result.user,...await api('/api/live/dashboard')});}).catch(()=>{});
+if(!document.body.hasAttribute('data-account-preview')) api('/api/live/me').then(async result=>{if(result.user)render({user:result.user,...await api('/api/live/dashboard')});}).catch(()=>{});

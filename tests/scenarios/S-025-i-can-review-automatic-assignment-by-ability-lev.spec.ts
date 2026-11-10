@@ -40,7 +40,7 @@ test('S-025: No matching level stays unassigned and preview does not save',async
   await page.getByTestId('group-autoassign').click();
   await expect(page.getByTestId('autoassign-preview')).toContainText('No matching group with an instructor');
   await expect(page.getByTestId('autoassign-apply')).toBeDisabled();
-  await page.getByTestId('close').click();
+  await page.getByTestId('autoassign-close').click();
   await page.getByTestId('director-nav-children').click();
   await page.getByTestId('director-search').fill('Level Six Learner');
   await expect(page.getByTestId('director-child-row')).toContainText('Unassigned');

@@ -163,6 +163,14 @@
     },
     "S-016": {
       "checks": [
+        "expect(page.getByTestId('radio-time-auto')).toBeVisible()",
+        "expect(page.getByTestId('radio-alert-status')).toContainText('Report saved for Desk and Patrol')",
+        "expect(page.getByTestId('ops-detail')).toContainText('Maya Chen')",
+        "expect(page.getByTestId('ops-detail')).toContainText('214')",
+        "expect(page.getByTestId('ops-detail')).toContainText('Green run junction')",
+        "expect(page.getByTestId('ops-detail')).toContainText('Blue skis')",
+        "expect(page.getByTestId('ops-detail')).toContainText('None observed')",
+        "expect(page.getByTestId('ops-detail')).toContainText('No radio message was sent')",
         "expect(page.getByTestId('radio-checklist')).toContainText('Maya Chen')",
         "expect(page.getByTestId('radio-checklist')).toContainText('214')",
         "expect(page.getByTestId('radio-checklist')).toContainText('Green run junction')",
@@ -170,11 +178,12 @@
         "expect(page.getByTestId('radio-checklist')).toContainText('None observed')",
         "expect(page.getByTestId('radio-checklist')).toContainText('Not sent')"
       ],
-      "scenarioFingerprint": "5b3d5c3482b6",
+      "scenarioFingerprint": "d43b3732dedb",
       "files": [
         "tests/scenarios/S-016-i-can-prepare-a-clear-radio-handoff.spec.ts"
       ],
-      "recordedAt": "2026-11-08T03:28:21.949Z"
+      "recordedAt": "2026-11-08T03:28:21.949Z",
+      "updatedAt": "2026-11-10T06:33:17.269Z"
     },
     "S-017": {
       "checks": [
@@ -302,12 +311,12 @@
         "expect(page.getByTestId('form-error')).toContainText('six children')",
         "expect(page.getByTestId('group-members').locator('[data-group-remove]')).toHaveCount(6)"
       ],
-      "scenarioFingerprint": "860bcbe2f520",
+      "scenarioFingerprint": "af14120c9b38",
       "files": [
         "tests/scenarios/S-024-i-can-manage-children-from-lesson-groups.spec.ts"
       ],
       "recordedAt": "2026-11-08T04:25:12.922Z",
-      "updatedAt": "2026-11-08T04:30:46.196Z"
+      "updatedAt": "2026-11-10T05:56:53.472Z"
     },
     "S-025": {
       "checks": [
@@ -402,6 +411,143 @@
       ],
       "recordedAt": "2026-11-08T15:23:36.138Z",
       "updatedAt": "2026-11-08T15:25:51.373Z"
+    },
+    "S-032": {
+      "checks": [
+        "expect(page.getByTestId('director-missing-consent')).toContainText('Missing consent forms')",
+        "expect(page.getByTestId('director-medical-list').getByTestId('director-overview-profile').count()).toBeGreaterThan(5)",
+        "expect(page.getByTestId('parent-alert-dialog')).toContainText('No real messages')",
+        "expect(page.getByTestId('director-feedback')).toContainText('preview')",
+        "expect(page.getByTestId('director-notification-list')).toContainText('Consent reminders')"
+      ],
+      "scenarioFingerprint": "aff490ac2248",
+      "files": [
+        "tests/scenarios/S-032-i-can-remind-parents-about-missing-consent.spec.ts"
+      ],
+      "recordedAt": "2026-11-10T05:56:53.472Z"
+    },
+    "S-034": {
+      "checks": [
+        "expect(page.getByTestId('director-feedback')).toContainText('No real message')",
+        "expect(page.getByTestId('director-guardian-row').first()).toContainText('Saturday')",
+        "expect(page.getByTestId('director-guardian-row').first()).toContainText('Spruce 3')",
+        "expect(page.getByTestId('director-guardian-row').first()).not.toContainText('Born')",
+        "expect(page.getByTestId('director-back')).toHaveCount(0)",
+        "expect(page.getByTestId('director-search')).toHaveAttribute('placeholder','Child name,bib or group')",
+        "expect(page.getByTestId('instructor-qualification')).toHaveJSProperty('tagName','SELECT')",
+        "expect(page.getByTestId('director-instructor-row').first()).toContainText('CSIA Level 3')",
+        "expect(page.getByTestId('child-dialog')).not.toBeVisible()",
+        "expect(page.getByTestId('director-feedback')).toContainText('Maya Chen')"
+      ],
+      "scenarioFingerprint": "67e8f1833e9a",
+      "files": [
+        "tests/scenarios/S-034-i-can-edit-director-profiles-with-familiar-forms.spec.ts"
+      ],
+      "recordedAt": "2026-11-10T05:56:53.472Z",
+      "updatedAt": "2026-11-10T06:33:17.269Z"
+    },
+    "S-035": {
+      "checks": [
+        "expect(page.locator('.d-child-link')).toHaveCount(0)",
+        "expect(search).toHaveAttribute('role','combobox')",
+        "expect(page.getByTestId('group-dialog')).toBeVisible()",
+        "expect(page.getByTestId('group-members')).toContainText('Noah Singh')",
+        "expect(page.getByTestId('group-members')).not.toContainText('Noah Singh')"
+      ],
+      "scenarioFingerprint": "f9df3cbd905a",
+      "files": [
+        "tests/scenarios/S-035-i-can-find-and-add-a-child-without-accidentally.spec.ts"
+      ],
+      "recordedAt": "2026-11-10T05:56:53.472Z"
+    },
+    "S-036": {
+      "checks": [
+        "expect(page.getByTestId('director-notifications')).toContainText('(1)')",
+        "expect(page.getByTestId('director-notification-list')).toContainText('Priya Singh')",
+        "expect(page.getByTestId('director-notification-list')).toContainText('No new preview activity')"
+      ],
+      "scenarioFingerprint": "724bf8150a27",
+      "files": [
+        "tests/scenarios/S-036-i-can-see-new-preview-notifications-at-the-top.spec.ts"
+      ],
+      "recordedAt": "2026-11-10T05:56:53.472Z"
+    },
+    "S-037": {
+      "checks": [
+        "expect(page.getByTestId('autoassign-mode')).toHaveValue('unassigned')",
+        "expect(page.getByTestId('autoassign-preview')).toContainText('Every child already has a group')",
+        "expect(page.getByTestId('autoassign-apply')).toBeDisabled()",
+        "expect(page.getByTestId('autoassign-preview')).toContainText('Checked-in,released and missing children stay in place')",
+        "expect(page.getByTestId('autoassign-apply')).toBeEnabled()",
+        "expect(page.locator('#autoassign-rows')).not.toContainText('Owen Parr')",
+        "expect(page.getByTestId('director-feedback')).toContainText('assigned by recorded ability level')",
+        "expect(page.getByTestId('director-group-row').filter({hasText:'Spruce 3'})).toContainText('Owen Parr')"
+      ],
+      "scenarioFingerprint": "f16af1c29504",
+      "files": [
+        "tests/scenarios/S-037-i-can-choose-safe-automatic-assignment-or-previe.spec.ts"
+      ],
+      "recordedAt": "2026-11-10T05:56:53.472Z"
+    },
+    "S-031": {
+      "checks": [
+        "expect(page.locator('#app-shell >.top.brand')).toBeVisible()",
+        "expect(page.locator('#app-shell > main')).toBeVisible()",
+        "expect(page.getByTestId('workspace-nav')).toBeVisible()",
+        "expect(frame!.x).toBeGreaterThanOrEqual(0)",
+        "expect(frame!.x+frame!.width).toBeLessThanOrEqual(width)",
+        "expect(page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width)"
+      ],
+      "scenarioFingerprint": "a7daa9930b7c",
+      "files": [
+        "tests/scenarios/S-031-every-workspace-has-the-same-frame-and-clear-sec.spec.ts"
+      ],
+      "recordedAt": "2026-11-10T05:56:53.472Z"
+    },
+    "S-033": {
+      "checks": [
+        "expect(consent.getByTestId('director-overview-profile').count()).toBeGreaterThan(5)",
+        "expect(medical.getByTestId('director-overview-profile').count()).toBeGreaterThan(5)",
+        "expect(consent.getByTestId('director-overview-profile').last()).toBeInViewport()",
+        "expect(medical.getByTestId('director-overview-profile').last()).toBeInViewport()",
+        "expect(page.getByTestId('workspace-nav')).toBeInViewport()",
+        "expect(page.locator('#app-shell >.top')).toBeInViewport()"
+      ],
+      "scenarioFingerprint": "090bd085a93e",
+      "files": [
+        "tests/scenarios/S-033-i-can-review-every-overview-profile-on-my-phone.spec.ts"
+      ],
+      "recordedAt": "2026-11-10T05:58:14.341Z"
+    },
+    "S-038": {
+      "checks": [
+        "expect(page.getByText('Interactive demo',{exact:true})).toHaveCount(0)",
+        "expect(page.getByTestId('account-switcher').locator('[data-account-role]')).toHaveCount(5)",
+        "expect(page.getByTestId('workspace-title')).toHaveText('Instructor workspace')",
+        "expect(page.getByTestId('account-workspace')).toContainText('Choose an account')",
+        "expect(page.getByTestId('workspace-title')).toHaveText('Director workspace')"
+      ],
+      "scenarioFingerprint": "a35de50a821d",
+      "files": [
+        "tests/scenarios/S-038-i-can-switch-between-five-demo-accounts-without.spec.ts"
+      ],
+      "recordedAt": "2026-11-10T06:33:17.269Z"
+    },
+    "S-040": {
+      "checks": [
+        "expect(page.getByTestId('account-auth-dialog')).toContainText('No email was sent')",
+        "expect(page.getByTestId('workspace-title')).toHaveText('Hello,New Guardian')",
+        "expect(page.getByTestId('guardian')).toContainText('No registrations linked')",
+        "expect(page.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}))).not.toContain('Example-test-42')",
+        "expect(page.getByTestId('account-switcher')).toContainText('Preview account')",
+        "expect(page.getByTestId('account-auth-dialog')).toContainText('Sign in')",
+        "expect(page.getByTestId('workspace-title')).toHaveText('Patrol workspace')"
+      ],
+      "scenarioFingerprint": "51bd7d00b1a0",
+      "files": [
+        "tests/scenarios/S-040-i-can-preview-sign-up-and-sign-in-without-creati.spec.ts"
+      ],
+      "recordedAt": "2026-11-10T06:33:17.269Z"
     }
   },
   "history": []

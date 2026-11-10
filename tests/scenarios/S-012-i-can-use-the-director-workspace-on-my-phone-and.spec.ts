@@ -3,7 +3,8 @@ import { expect, test } from '@playwright/test';
 test('S-012: Director works on phone and keyboard', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
-  await page.getByTestId('view-as').selectOption('director');
+  await page.getByTestId('account-menu').click();
+      await page.getByTestId('account-choice-'+'director').click();
   await page.getByTestId('director-nav-children').click();
   await page.getByTestId('director-search').fill('Nobody Matches');
   await expect(page.getByTestId('director-empty')).toContainText('No children match');

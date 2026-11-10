@@ -18,7 +18,7 @@ The original product plan, future feature scenarios S-003 through S-006, role re
 - R-006: The director can add and edit instructors and lesson groups, assign a child to a group, and is prevented from exceeding six children per instructor across groups. (Team notes: manage instructors and groups; each instructor teaches at most six children.)
 - R-007: Director edits update the demo's related views, remain during role switching, and reset on reload with a visible fictional-data notice. (Owner request: whole director screen for the development team; milestone 0 constraint.)
 - R-008: The director workspace works on a narrow phone and desktop, with labelled inputs, keyboard-operable dialogs and clear empty results. (Preview usability assumption.)
-- R-009: Readiness checks both emergency contacts, guardian consent, recorded medical information and a currently authorized pickup adult. Profiles show one stable child ID and alternate registration/consent name. Phone fields reject incomplete numbers. (Case PDF, sections 3–5 and Exhibits 4–5.)
+- R-009: Readiness checks at least one complete emergency contact (a second is optional), guardian consent, recorded medical information and a currently authorized pickup adult. Profiles show one stable child ID and alternate registration/consent name. Phone fields reject incomplete numbers. (Case PDF, sections 3–5 and Exhibits 4–5.)
 - R-010: Directors can record a pickup adult's relationship and date-limited authorization, and use ability levels 1–6 for lesson groups. Expired or future pickup permissions are not shown as currently authorized. (Case PDF, sections 2–4, Exhibit 5B; date bounds assumed inclusive.)
 
 ## Data
@@ -32,6 +32,7 @@ All records are fictional and come from demo-fixture.json. There is no database 
 - Child profile details: birth date, emergency contact and phone, medical notes, pickup adults, guardian ID and guardian-provided consent status.
 - Case detail additions: second emergency contact and phone, alternate name, structured pickup adults with relationship and inclusive valid-from/valid-until dates. Empty medical notes mean information is missing; an explicit no-conditions statement counts as recorded.
 - Instructor: ID, name, email, phone and qualification.
+- Preview parent alert: guardian ID/name, child references, text and creation time; fictional browser-memory activity only, never real delivery.
 - Patrol alert: case number, stable child ID, registration and consent names, age, group and level, active status, issuing desk, last-seen time and place, visibility, reported clothing and its confidence, equipment, injuries, medical alert, optional lift scan, emergency contacts and escalation guidance.
 - Lesson group details: ID, label, level, meeting place and instructor ID. Attendance links children to groups for the seeded lesson day.
 
@@ -48,13 +49,58 @@ All records are fictional and come from demo-fixture.json. There is no database 
 - R-016: Desk and director lists support 200 or more children with full-roster search, visible result counts and pages of 25; desk also has group/status filters. A local-only prototype offers demo, 200, 1,000, worst-case, empty and one-child data; every instructor still has at most six children. (Owner scale concern; page size is an implementation assumption.)
 - R-017: Every role uses the same fixed bottom navigation style with safe-area padding and content clear of controls. Desk tabs are Roster and Incidents, with drop-off and verified pickup in each child's details; director tabs are Overview, Children, Guardians, Instructors and Lesson groups. The same layout works on phones, tablets and desktops. (Owner's explicit navigation requests; Figma desk frame 2:101.)
 - R-018: Every role keeps the owner's green palette, using Figma only for layout inspiration: compact phone rosters and visible group medical reminders. Keep readable touch controls and real data-driven identities; do not claim offline functionality. (Owner's design ideas, Figma frames 2:45 and 2:101, file CDfKgyYvSobrwn8xAfzuEr.)
-- R-019: Directors manage group membership directly in Lesson groups: add, remove or move a child, and open a child's details to edit. Membership changes are staged until the group is saved, respect the six-child limit per instructor, and show a warning for a manual placement at a different recorded ability level. (Owner clarification.)
+- R-019: Directors manage group membership directly in Lesson groups: add, remove or move a child. Child details are edited from Children, not from group membership. Membership changes are staged until the group is saved, respect the six-child limit per instructor, and show a warning for a manual placement at a different recorded ability level. (Owner clarification.)
 - R-020: Directors can preview and apply automatic assignment of unassigned children to existing groups with matching recorded ability levels. Preserve existing assignments and respect the six-child limit per instructor across groups. Explain children left unassigned for missing ability level, missing matching group or capacity. Never guess a child's level. (Owner agreed to recorded ability levels, 2026-11-07.)
 - R-021: Desktop desk check-in keeps a searchable child list on the left and selected child's details on the right. Clothing entry, consent gating and contacts remain visible in that panel. Phones use a single list with a details dialog. (Owner's desktop reference at the bottom left of Figma, visually inspected after connector rate limit.)
 - R-022: Patrol sees active missing-child alerts issued by the school desk, with stable identity across registration and consent names, age, group and level, last-seen details, visibility, reported clothing with confidence, equipment, injuries, medical alerts, emergency contacts, escalation guidance and the latest lift scan when available. Unknown or conflicting details stay labelled as unknown or unverified; unavailable scans explain that the pass number is not linked. Patrol can request a lift scan, call police after the protocol threshold, and copy a police report. In this fictional-data preview, those actions never contact external services; feedback explains the limitation, while report details can be copied locally. Police lead family communication. (Patrol.png and Pending Chaos at Kestrel Kids case.)
 
 
 ## Acceptance Scenarios
+
+### S-038: I can switch between five demo accounts without the demo bar
+Given the preview has a signed-in sample account for every role.
+When I open Accounts, switch to another profile, sign out and continue with another account.
+Then the selected role's workspace appears, signing out shows the account chooser, the old Interactive demo bar is absent, and the accounts are clearly labelled as fictional.
+
+### S-039: Buttons look and behave consistently on every device
+Given I open each role on phone, tablet and desktop.
+When I use its actions and open its forms.
+Then text actions use 44-pixel minimum targets, 14-pixel type, consistent eight-pixel corners, natural single-action widths, clear primary/secondary/danger styles, and paired lesson-group actions share a row on phones.
+
+### S-040: I can preview sign-up and sign-in without creating real accounts
+Given I open Create account in the account chooser.
+When I enter a name, email and matching passwords and preview email verification.
+Then I see that no real account or email was created, the new preview profile is a Guardian with no linked children, no password is stored, and the sign-in screen can resume a demo account without granting staff access.
+
+### S-032: I can remind parents about missing consent
+Given I am in the Director preview with children whose consent is incomplete.
+When I open Missing consent forms on Overview and preview reminders, or alert a parent from Children.
+Then I can review the recipients and text, create a fictional alert, and see clear confirmation that no real message was sent.
+
+### S-033: I can review every overview profile on my phone
+Given the Director preview has more than five medical alerts and missing consent forms.
+When I scroll either overview list.
+Then every matching child is available, only incomplete consent appears in Missing consent forms, and the fixed header and tabs remain visible.
+
+### S-034: I can edit Director profiles with familiar forms and navigation
+Given I use Director Children, Guardians and Instructors.
+When I open and close forms and navigate back.
+Then the forms follow Guardian styling, popups have X buttons, peer tabs have no Back button, nested pages use an arrow beside the title, guardian cards show program and group instead of birthday, qualifications use a dropdown, and one complete emergency contact is enough.
+
+### S-035: I can find and add a child without accidentally saving a group
+Given I edit a lesson group in Director.
+When I search by child name or bib, use the combobox results and press Enter.
+Then a matching child is selected or added, the popup stays open until Save, membership changes remain staged, capacity checks still work, and the group list has no child-edit buttons.
+
+### S-036: I can see new preview notifications at the top
+Given I am in Director preview.
+When I create a parent alert or a child profile changes.
+Then the top notification count and list update immediately, I can read and dismiss them, and they are clearly labelled as preview activity.
+
+### S-037: I can choose safe automatic assignment or preview rebalancing
+Given I manage groups with recorded ability levels and no more than six children per instructor.
+When I choose Assign ungrouped children or Rebalance groups before check-in and review the proposed changes.
+Then the first mode preserves current assignments, the second can move eligible expected children, checked-in, released and actively missing children stay in place, known program days match, capacity is respected, and nothing changes until Apply.
 
 ### S-031: Every workspace has the same frame and clear sections
 Given I open any of the five preview roles on a phone or desktop.
@@ -181,7 +227,7 @@ Then only my six assigned children appear, group medical reminders are visible, 
 covers: R-019
 Given I am in the director's Lesson groups view.
 When I open Spruce 3, remove Maya, add Noah from Cedar 1, and save.
-Then Spruce 3 contains Noah and no Maya, Cedar 1 no longer contains Noah, and I can edit Noah's details directly from the group list.
+Then Spruce 3 contains Noah and no Maya, Cedar 1 no longer contains Noah, and child details remain editable from Children rather than group membership.
 
 ### S-025: I can review automatic assignment by ability level
 covers: R-020

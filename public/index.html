@@ -11,24 +11,16 @@
   <link rel="stylesheet" href="/patrol.css">
   <script type="module" src="/workspace.js"></script>
 </head>
-<body>
+<body data-account-preview>
   <div id="app-shell">
   <header class="top">
     <div class="wrap brand">
       <span class="brand-mark" aria-hidden="true">▲</span>
-      <strong>Kestrel Kids</strong>
+      <div class="brand-identity"><strong>Kestrel Kids</strong><small id="demo-banner" data-testid="demo-banner"><strong>Preview</strong></small></div>
       <span class="brand-detail">Safety Desk</span>
+      <div class="brand-actions"><button type="button" class="account-menu-button" data-testid="account-menu" aria-haspopup="dialog"><span class="account-avatar" aria-hidden="true">D</span><span data-current-role>Account</span></button></div>
     </div>
   </header>
-  <section class="demo" aria-label="Demo controls" data-testid="demo-banner">
-    <div class="wrap demo-inner">
-      <div><strong>Interactive demo</strong></div>
-      <label for="view-as">View as
-        <select id="view-as" data-testid="view-as" disabled></select>
-      </label>
-      <button class="live-sign-in" type="button" data-testid="live-sign-in">Staff sign in</button>
-    </div>
-  </section>
   <div class="navigation">
     <nav class="wrap" aria-label="Workspace" data-testid="workspace-nav"></nav>
   </div>
@@ -41,6 +33,7 @@
       <div id="patrol" hidden data-testid="patrol"></div>
       <div id="guardian" hidden data-testid="guardian"></div>
       <section id="live-workspace" hidden aria-live="polite"></section>
+      <section id="account-workspace" hidden data-testid="account-workspace"></section>
       <section id="starter-panel" class="panel" aria-labelledby="section-title">
         <div class="panel-head">
           <h2 id="section-title"></h2>
@@ -61,6 +54,8 @@
       <span class="status"></span>
     </li>
   </template>
+  <dialog id="account-switcher" class="d-dialog" data-testid="account-switcher" aria-labelledby="account-switcher-title"></dialog>
+  <dialog id="account-auth-dialog" class="d-dialog" data-testid="account-auth-dialog" aria-labelledby="account-auth-title"></dialog>
   <dialog id="staff-dialog" class="o-dialog" aria-labelledby="staff-dialog-title">
     <header><div><p>Secure staff access</p><h2 id="staff-dialog-title">Staff sign in</h2></div><button type="button" class="o-dialog-close" data-testid="staff-close" aria-label="Close form">×</button></header>
     <form id="staff-sign-in" class="o-dialog-body"><label>Email<input name="email" type="email" autocomplete="username" required></label><label>Password<input name="password" type="password" autocomplete="current-password" required></label><button class="o-button o-primary" type="submit" data-testid="staff-submit">Sign in</button><p class="o-note" role="status" data-testid="staff-message">Use an account created for this app by the administrator.</p></form>

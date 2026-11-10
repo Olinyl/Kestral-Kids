@@ -18,4 +18,10 @@ test('S-016: I can prepare a clear radio handoff', async ({page}) => {
   await expect(page.getByTestId('ops-detail')).toContainText('Blue skis');
   await expect(page.getByTestId('ops-detail')).toContainText('None observed');
   await expect(page.getByTestId('ops-detail')).toContainText('No radio message was sent');
+  await expect(page.getByTestId('radio-checklist')).toContainText('Maya Chen');
+  await expect(page.getByTestId('radio-checklist')).toContainText('214');
+  await expect(page.getByTestId('radio-checklist')).toContainText('Green run junction');
+  await expect(page.getByTestId('radio-checklist')).toContainText('Blue skis');
+  await expect(page.getByTestId('radio-checklist')).toContainText('None observed');
+  await expect(page.getByTestId('radio-checklist')).toContainText('Not sent');
 });

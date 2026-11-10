@@ -4,7 +4,8 @@ import {expect,test} from '@playwright/test';
 test('S-020: role requirement',async({page})=>{
   await page.goto('/');
   await page.getByTestId('ops-open-demo-child-02').click();
-  await page.getByTestId('checkin-clothing').fill('Blue jacket, black helmet');
+  await page.getByTestId('checkin-jacket').selectOption('blue');
+  await page.getByTestId('checkin-helmet').selectOption('black');
   await expect(page.getByTestId('checkin-save')).toBeDisabled();
   await expect(page.getByTestId('ops-detail')).toContainText('Guardian consent is required before check-in');
   await page.getByTestId('ops-close').click();

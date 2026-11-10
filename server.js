@@ -9,6 +9,7 @@ const routes = new Map([
   ['/live.js', ['public/live.js', 'text/javascript; charset=utf-8']],
   ['/report-problem-widget.js', ['node_modules/@piezas/sdk/dist/report-problem/widget.js', 'text/javascript; charset=utf-8']],
   ['/guardian.js', ['public/guardian.js', 'text/javascript; charset=utf-8']],
+  ['/profile-ui.js', ['public/profile-ui.js', 'text/javascript; charset=utf-8']],
   ['/styles.css', ['public/styles.css', 'text/css; charset=utf-8']],
   ['/director.js', ['public/director.js', 'text/javascript; charset=utf-8']],
   ['/grouping.js', ['public/grouping.js', 'text/javascript; charset=utf-8']],

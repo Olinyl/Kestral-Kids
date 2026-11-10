@@ -8,7 +8,7 @@ test('S-023: role requirement',async({page})=>{
   await expect(page.getByTestId('instructor-medical')).toContainText('Peanut allergy');
   await expect(page.getByTestId('operations')).not.toContainText('Roster saved for offline use');
   await page.getByTestId('ops-open-demo-child-01').click();
-  await expect(page.getByTestId('ops-dialog')).toContainText('Maya');
+  await expect(page.getByTestId('ops-dialog')).toContainText('Owen Parr');
   await page.getByTestId('ops-close').click();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
 });

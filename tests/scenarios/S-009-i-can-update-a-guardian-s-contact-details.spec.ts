@@ -2,7 +2,8 @@
 import { expect, test } from '@playwright/test';
 test('S-009: I can update a guardian contact', async ({ page }) => {
   await page.goto('/');
-  await page.getByTestId('view-as').selectOption('director');
+  await page.getByTestId('account-menu').click();
+      await page.getByTestId('account-choice-'+'director').click();
   await page.getByTestId('director-nav-guardians').click();
   await page.getByTestId('guardian-open-demo-guardian-01').click();
   await expect(page.getByTestId('guardian-dialog')).toContainText('Maya Chen');

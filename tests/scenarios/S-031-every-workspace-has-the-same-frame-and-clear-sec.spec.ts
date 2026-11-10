@@ -6,7 +6,8 @@ for (const width of [390,1440]) {
     await page.setViewportSize({width,height:900});
     await page.goto('/?view=director');
     for (const role of ['director','guardian','desk','instructor','patrol']) {
-      await page.getByTestId('view-as').selectOption(role);
+      await page.getByTestId('account-menu').click();
+      await page.getByTestId('account-choice-'+role).click();
       await expect(page.locator('#app-shell > .top .brand')).toBeVisible();
       await expect(page.locator('#app-shell > main')).toBeVisible();
       await expect(page.getByTestId('workspace-nav')).toBeVisible();

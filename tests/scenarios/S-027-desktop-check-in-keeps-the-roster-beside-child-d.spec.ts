@@ -25,9 +25,10 @@ test('S-027: Desktop check-in keeps both panes visible',async({page})=>{
   const details=await page.getByTestId('desk-detail').boundingBox();
   expect(roster.x+roster.width).toBeLessThanOrEqual(details.x);
   await page.getByTestId('ops-open-demo-child-01').click();
-  await page.getByTestId('checkin-clothing').fill('Red jacket, blue helmet');
+  await page.getByTestId('checkin-jacket').selectOption('red');
+  await page.getByTestId('checkin-helmet').selectOption('blue');
   await page.getByTestId('checkin-save').click();
-  await expect(page.getByTestId('desk-detail')).toContainText('Red jacket, blue helmet');
+  await expect(page.getByTestId('desk-detail')).toContainText('red jacket, blue helmet');
   await expect(page.getByTestId('roster-row')).toHaveCount(2);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
 });

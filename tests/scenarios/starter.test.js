@@ -27,7 +27,7 @@ test('S-001: switching to Patrol changes the title and navigation', async () => 
   const page = await browser.newPage();
   try {
     assert.equal((await page.goto(url)).status(), 200);
-    await page.getByTestId('view-as').selectOption('patrol', { timeout: 2500 });
+    await page.getByTestId('account-menu').click(); await page.getByTestId('account-choice-patrol').click();
     assert.equal(await page.getByTestId('workspace-title').textContent(), 'Patrol workspace');
     assert.equal(await page.getByTestId('workspace-nav').textContent(), 'Active alerts');
     assert.ok(await page.getByTestId('demo-banner').isVisible());
@@ -43,7 +43,7 @@ test('S-002: Desk and Instructor share the same seeded child and bib', async () 
     assert.equal(await rows.count(), 1);
     assert.equal(await rows.first().locator('strong').textContent(), 'Maya Chen');
     assert.equal(await rows.first().locator('.bib').textContent(), 'Bib 214');
-    await page.getByTestId('view-as').selectOption('instructor');
+    await page.getByTestId('account-menu').click(); await page.getByTestId('account-choice-instructor').click();
     await rows.first().waitFor({ state: 'visible', timeout: 2500 });
     assert.equal(await rows.count(), 1);
     assert.equal(await rows.first().locator('strong').textContent(), 'Maya Chen');

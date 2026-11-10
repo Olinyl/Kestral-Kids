@@ -1,0 +1,7 @@
+# Account switching and button system
+
+The account menu and Account tab replace the full Interactive demo bar. Five fictional signed-in profiles cover Guardian, Director, School desk, Instructor and Patrol. Sign out removes the current profile from the cached signed-in set and returns to a chooser. Other signed-in demo profiles can be resumed immediately. This state is browser memory only and resets on reload.
+
+Create account previews name/email/password validation and the verification-email step. Password fields are cleared immediately and never enter storage or profile data. Verification is explicitly simulated; no real account or email is created. New preview profiles are Guardians, have no linked registrations and cannot grant themselves staff access. Real signup, verification, sessions, signout and secure account switching must use Piezas Users after owner approval of the preview. Staff roles must be assigned server-side by the school, never accepted from a public signup form.
+
+Buttons share minimum 44px targets, 14px text, 600 weight, 8px corners and consistent horizontal/vertical padding. Single card actions fill the card width; two card actions split the available width evenly. Toolbar actions use natural widths. Bottom navigation remains an equal-width pattern. Popup close and nested-page back controls are 44px icon buttons. Green indicates primary, outlined white indicates secondary, and red is reserved for urgent or destructive actions. No standalone Back button appears on peer tab pages.

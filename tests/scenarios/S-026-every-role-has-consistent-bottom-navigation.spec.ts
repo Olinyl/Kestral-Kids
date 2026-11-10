@@ -6,9 +6,10 @@ test('S-026: director workflow',async({page})=>{
     await page.setViewportSize({width,height:900});
     await page.goto('/');
     for(const role of ['director','desk','guardian','instructor','patrol']) {
-      await page.getByTestId('view-as').selectOption(role);
+      await page.getByTestId('account-menu').click();
+      await page.getByTestId('account-choice-'+role).click();
       const tabs=page.getByTestId('workspace-nav').getByRole('button');
-      if(role==='director') await expect(tabs).toHaveCount(5);
+      if(role==='director') await expect(tabs).toHaveCount(6);
       for(const tab of await tabs.all()) {
         await tab.click();
         await expect(tab).toHaveAttribute('aria-current','page');

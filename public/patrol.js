@@ -1,3 +1,5 @@
+import {profileMeta} from './profile-ui.js';
+
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
 }[char]));
@@ -26,10 +28,6 @@ export function createPatrol(root, seed, { onSignOut }) {
     root.innerHTML = `<section class="patrol-shell" aria-label="Patrol workspace">
       <header class="p-topbar">
         <div><p class="p-brand">Patrol workspace</p><h2>Active alerts</h2></div>
-        <div class="p-actions">
-          <button class="p-icon-button" type="button" aria-label="Notifications" title="Notifications">${icons.bell}</button>
-          <button class="p-signout" type="button" data-testid="patrol-sign-out">Sign out</button>
-        </div>
       </header>
       <div class="p-content">
         <p class="p-eyebrow">Patrol response board</p>
@@ -41,7 +39,7 @@ export function createPatrol(root, seed, { onSignOut }) {
             <span class="p-icon p-alert-icon">${icons.alert}</span>
             <div class="p-child"><span class="p-case">${escapeHtml(alert.caseNumber)}</span><h3>${escapeHtml(alert.childName)}</h3><p class="p-alias">Consent form: ${escapeHtml(alert.alternateName)}</p></div>
             <span class="p-status">${escapeHtml(alert.status)}</span>
-            <div class="p-child-meta"><span>Child ID <strong>${escapeHtml(alert.childId)}</strong></span><span>Age ${escapeHtml(alert.age)}</span><span>${escapeHtml(alert.group)}</span><span>Desk alert received ${escapeHtml(alert.receivedTime)}</span></div>
+            <div class="p-child-meta"><span>Child ID <strong>${escapeHtml(alert.childId)}</strong></span><span>Age ${escapeHtml(alert.age)}</span>${profileMeta({group:alert.group,...(alert.program?{program:alert.program}:{})})}<span>Desk alert received ${escapeHtml(alert.receivedTime)}</span></div>
             <div class="p-radio-channel" data-testid="patrol-radio-channel"><span>Radio</span><strong>${escapeHtml(alert.radioChannel || 'Not assigned')}</strong></div>
           </div>
           <div class="p-facts">
@@ -101,7 +99,6 @@ export function createPatrol(root, seed, { onSignOut }) {
         </article>`).join('')}</div>` : '<p class="p-empty" data-testid="patrol-empty">No active alerts from the school desk.</p>'}
       </div>
     </section>`;
-    root.querySelector('[data-testid="patrol-sign-out"]').addEventListener('click', onSignOut);
     root.querySelectorAll('[data-action]').forEach(button => button.addEventListener('click', async () => {
       const selectedAlert = alerts.find(item => item.id === button.dataset.alertId);
       if (!selectedAlert) return;

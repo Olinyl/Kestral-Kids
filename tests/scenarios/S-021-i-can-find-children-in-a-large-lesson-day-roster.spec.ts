@@ -18,7 +18,8 @@ test('S-021: role requirement',async({page})=>{
     await page.getByTestId('roster-status').selectOption('all');
     await page.getByTestId('roster-group').selectOption('spruce-3');
     await expect(page.getByTestId('roster-row')).toHaveCount(6);
-    await page.getByTestId('view-as').selectOption('director');
+    await page.getByTestId('account-menu').click();
+      await page.getByTestId('account-choice-'+'director').click();
     await page.getByTestId('director-nav-children').click();
     await expect(page.getByTestId('director-child-row')).toHaveCount(25);
     await page.getByTestId('director-search').fill('Zara Winters');

@@ -2,7 +2,8 @@
 import { expect, test } from '@playwright/test';
 test('S-010: I can manage groups without overloading an instructor', async ({ page }) => {
   await page.goto('/');
-  await page.getByTestId('view-as').selectOption('director');
+  await page.getByTestId('account-menu').click();
+      await page.getByTestId('account-choice-'+'director').click();
   await page.getByTestId('director-nav-instructors').click();
   await page.getByTestId('director-add').click();
   await page.getByTestId('instructor-name').fill('Taylor Reed');
