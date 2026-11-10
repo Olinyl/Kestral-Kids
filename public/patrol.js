@@ -94,7 +94,7 @@ export function createPatrol(root, seed, { onSignOut }) {
                 <button type="button" class="p-log-button" data-testid="patrol-log-lift-scan" data-search-action="lift-scan" data-alert-id="${escapeHtml(alert.id)}">+ Lift scan</button>
                 <button type="button" class="p-log-button" data-testid="patrol-log-found" data-search-action="found" data-alert-id="${escapeHtml(alert.id)}">+ Found</button>
               </div>
-              <div class="p-log-entries" data-testid="patrol-search-log-entries" id="patrol-search-log-${escapeHtml(alert.id)}">${logRows(localSearchLogs.get(alert.id) || alert.searchLog || [])}</div>
+              <div class="p-log-entries p-search-log-entries" data-testid="patrol-search-log-entries" id="patrol-search-log-${escapeHtml(alert.id)}" tabindex="0" aria-label="Search log entries">${logRows(localSearchLogs.get(alert.id) || alert.searchLog || [])}</div>
               <p class="p-log-note">Entries are demo-only; radio messages are not sent or recorded.</p>
             </section>
           </div>

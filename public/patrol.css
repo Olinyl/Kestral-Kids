@@ -78,6 +78,8 @@ body.patrol-view { background:#f5f8f7; color:#173f39; }
 .p-automatic { background:#e5f4ff; color:#155779; }
 .p-patrol-entry { background:#f3e8ff; color:#7035a5; }
 .p-log-entries { display:grid; }
+.p-search-log-entries { max-height:min(38dvh,320px); overflow-y:auto; overscroll-behavior-y:contain; scrollbar-width:thin; scrollbar-color:#b8cbc5 #eef3f1; }
+.p-search-log-entries:focus-visible { outline:2px solid #205d46; outline-offset:2px; }
 .p-log-row { display:grid; grid-template-columns:72px minmax(0,1fr) minmax(110px,auto); align-items:center; gap:14px; min-height:44px; border-bottom:1px dashed #dce5ee; color:#43546b; font-size:14px; }
 .p-log-row time { color:#303f55; font-weight:750; font-variant-numeric:tabular-nums; }
 .p-log-row strong { color:#91a2b8; text-align:right; font-size:13px; }
