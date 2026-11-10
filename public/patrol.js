@@ -26,29 +26,27 @@ export function createPatrol(root, seed, { onSignOut }) {
   function render() {
     const alerts = (seed.patrolAlerts ?? []).filter(alert => ['School desk', 'Instructor'].includes(alert.source) && alert.active !== false);
     root.innerHTML = `<section class="patrol-shell" aria-label="Patrol workspace">
-      <header class="p-topbar">
-        <div><p class="p-brand">Patrol workspace</p><h2>Active alerts</h2></div>
-      </header>
       <div class="p-content">
-        <p class="p-eyebrow">Patrol response board</p>
-        <h2 class="p-title">Alerted missing children</h2>
-        <p class="p-intro">Active alerts from the school desk and instructors are shown.</p>
-        ${alerts.length ? `<div class="p-alert-list">${alerts.map(alert => `<article class="p-alert-card" data-testid="patrol-alert" data-alert-id="${escapeHtml(alert.id)}">
+        ${alerts.length ? `<div class="p-alert-carousel" data-testid="patrol-alert-carousel">
+          ${alerts.length > 1 ? `<div class="p-carousel-controls p-carousel-controls-desktop" aria-label="Alert navigation">
+            <button type="button" data-testid="patrol-alert-previous" aria-label="Previous alert" disabled>‹ Previous</button>
+            <span data-testid="patrol-alert-position-desktop" aria-live="polite">Alert 1 of ${alerts.length}</span>
+            <button type="button" data-testid="patrol-alert-next" aria-label="Next alert">Next ›</button>
+          </div>` : ''}
+          <div class="p-alert-list" data-testid="patrol-alert-list" aria-label="Active missing child alerts" tabindex="0">${alerts.map(alert => `<article class="p-alert-card" data-testid="patrol-alert" data-alert-id="${escapeHtml(alert.id)}">
           <div class="p-alert-main">
           <div class="p-alert-head">
             <span class="p-icon p-alert-icon">${icons.alert}</span>
-            <div class="p-child"><span class="p-case">${escapeHtml(alert.caseNumber)}</span><h3>${escapeHtml(alert.childName)}</h3><p class="p-alias">Consent form: ${escapeHtml(alert.alternateName)}</p></div>
-            <span class="p-status">${escapeHtml(alert.status)}</span>
-            <div class="p-child-meta"><span>Child ID <strong>${escapeHtml(alert.childId)}</strong></span><span>Age ${escapeHtml(alert.age)}</span>${profileMeta({group:alert.group,...(alert.program?{program:alert.program}:{})})}<span>Desk alert received ${escapeHtml(alert.receivedTime)}</span></div>
-            <div class="p-radio-channel" data-testid="patrol-radio-channel"><span>Radio</span><strong>${escapeHtml(alert.radioChannel || 'Not assigned')}</strong></div>
+            <div class="p-child"><div class="p-child-heading-row"><span class="p-case">${escapeHtml(alert.caseNumber)}</span><span class="p-status">${escapeHtml(alert.status)}</span>${profileMeta({group:alert.group})}</div><h3>${escapeHtml(alert.childName)}</h3><div class="p-child-quick-meta"><span>Age ${escapeHtml(alert.age)}</span><span>Desk alert received ${escapeHtml(alert.receivedTime)}</span></div></div>
+            ${alert.program ? `<div class="p-child-meta">${profileMeta({program:alert.program})}</div>` : ''}
           </div>
+          <div class="p-left-column">
           <div class="p-facts">
             ${fact(icons.clock, 'Last seen time', alert.lastSeenTime)}
             ${fact(icons.place, 'Last seen place', alert.lastSeenPlace)}
             ${fact(icons.people, 'Clothing', alert.clothing)}
             ${fact(icons.ski, 'Equipment', alert.equipment)}
           </div>
-          ${alert.medical ? `<section class="p-medical"><h3>Medical information</h3><p>${escapeHtml(alert.medical)}</p></section>` : ''}
           <section class="p-search-context"><h3>Search details</h3>
             <p><strong>Visibility:</strong> ${escapeHtml(alert.visibility || 'Not recorded')}</p>
             <p><strong>Injuries:</strong> ${escapeHtml(alert.injuries || 'Not recorded')}</p>
@@ -61,6 +59,9 @@ export function createPatrol(root, seed, { onSignOut }) {
             <p><strong>Location:</strong> ${escapeHtml(alert.liftScan.location)}</p>
             ` : `<p class="p-unavailable">No scan available. ${escapeHtml(alert.liftScanUnavailableReason || 'Pass details have not been recorded.')}</p>`}
           </section>
+          </div>
+          <div class="p-right-column">
+          ${alert.medical ? `<section class="p-medical"><h3>Medical information</h3><p>${escapeHtml(alert.medical)}</p></section>` : ''}
           ${alert.emergencyContacts?.length ? `<section class="p-contacts"><h3>Emergency contacts for police handoff</h3>
             ${alert.emergencyContacts.map(contact => `<div class="p-contact"><div><strong>${escapeHtml(contact.name)}</strong><span>${escapeHtml(contact.relationship)}</span></div><div class="p-contact-phone"><a href="tel:${escapeHtml(contact.phone)}">${escapeHtml(contact.phone)}</a><span>${escapeHtml(contact.phoneStatus)}</span></div></div>`).join('')}
           </section>` : ''}
@@ -69,21 +70,22 @@ export function createPatrol(root, seed, { onSignOut }) {
             <h3>Actions</h3>
             <div class="p-action-buttons">
               <button class="p-action-button" type="button" data-testid="patrol-request-lift-scan" data-action="lift" data-alert-id="${escapeHtml(alert.id)}">Request lift scan</button>
-              <button class="p-action-button p-action-police" type="button" data-testid="patrol-call-police" data-action="police" data-alert-id="${escapeHtml(alert.id)}">Call police (1 hr)</button>
+              <button class="p-action-button p-action-found" type="button" data-testid="patrol-log-found-mobile" data-search-action="found" data-alert-id="${escapeHtml(alert.id)}">Found / Resolved</button>
               <button class="p-action-button p-action-copy" type="button" data-testid="patrol-copy-report" data-action="copy" data-alert-id="${escapeHtml(alert.id)}">Copy details for police report</button>
-              <button class="p-action-button p-action-found-mobile" type="button" data-testid="patrol-log-found-mobile" data-search-action="found" data-alert-id="${escapeHtml(alert.id)}">Found</button>
+              <button class="p-action-button p-action-police" type="button" data-testid="patrol-call-police" data-action="police" data-alert-id="${escapeHtml(alert.id)}">Call police (1 hr)</button>
             </div>
             <p class="p-family-note">Police lead family communication once engaged.</p>
             <p class="p-action-message" role="status" aria-live="polite" data-testid="patrol-action-message" hidden></p>
           </section>
           </div>
+          </div>
           <div class="p-patrol-logs" data-testid="patrol-logs">
-            <section class="p-log-panel" aria-labelledby="system-log-title">
+            <section class="p-log-panel p-system-log-panel" aria-labelledby="system-log-title">
               <div class="p-log-heading"><h3 id="system-log-title">System log</h3><span class="p-log-badge p-automatic">Automatic</span></div>
               <div class="p-log-entries">${logRows(alert.systemLog || [])}</div>
               <p class="p-log-note">App events only. Radio coordination is not captured.</p>
             </section>
-            <section class="p-log-panel" aria-labelledby="search-log-title">
+            <section class="p-log-panel p-search-log-panel" aria-labelledby="search-log-title">
               <div class="p-log-heading"><h3 id="search-log-title">Search log</h3><span class="p-log-badge p-patrol-entry">Patrol entry</span></div>
               <p class="p-search-log-intro">Tap to log key actions between radio calls.</p>
               <div class="p-log-actions">
@@ -92,13 +94,45 @@ export function createPatrol(root, seed, { onSignOut }) {
                 <button type="button" class="p-log-button" data-testid="patrol-log-lift-scan" data-search-action="lift-scan" data-alert-id="${escapeHtml(alert.id)}">+ Lift scan</button>
                 <button type="button" class="p-log-button" data-testid="patrol-log-found" data-search-action="found" data-alert-id="${escapeHtml(alert.id)}">+ Found</button>
               </div>
-              <div class="p-log-entries" data-testid="patrol-search-log-entries" id="patrol-search-log-${escapeHtml(alert.id)}">${logRows(localSearchLogs.get(alert.id) || alert.searchLog || [])}</div>
+              <div class="p-log-entries p-search-log-entries" data-testid="patrol-search-log-entries" id="patrol-search-log-${escapeHtml(alert.id)}" tabindex="0" aria-label="Search log entries">${logRows(localSearchLogs.get(alert.id) || alert.searchLog || [])}</div>
               <p class="p-log-note">Entries are demo-only; radio messages are not sent or recorded.</p>
             </section>
           </div>
-        </article>`).join('')}</div>` : '<p class="p-empty" data-testid="patrol-empty">No active alerts from the school desk.</p>'}
+        </article>`).join('')}</div>
+          ${alerts.length > 1 ? `<div class="p-carousel-pagination-mobile" aria-label="Alert pages">
+            <span data-testid="patrol-alert-position-mobile" aria-live="polite">Alert 1 of ${alerts.length}</span>
+            <div class="p-carousel-dots">${alerts.map((alert,index) => `<button type="button" class="p-carousel-dot" data-testid="patrol-alert-dot-${index + 1}" data-alert-index="${index}" aria-label="Show alert ${index + 1} of ${alerts.length}" aria-current="${index === 0 ? 'true' : 'false'}"></button>`).join('')}</div>
+          </div>` : ''}
+        </div>` : '<p class="p-empty" data-testid="patrol-empty">No active alerts from the school desk.</p>'}
       </div>
     </section>`;
+    const alertTrack = root.querySelector('[data-testid="patrol-alert-list"]');
+    if (alertTrack && alerts.length > 1) {
+      const previous = root.querySelector('[data-testid="patrol-alert-previous"]');
+      const next = root.querySelector('[data-testid="patrol-alert-next"]');
+      const desktopPosition = root.querySelector('[data-testid="patrol-alert-position-desktop"]');
+      const mobilePosition = root.querySelector('[data-testid="patrol-alert-position-mobile"]');
+      const dots = [...root.querySelectorAll('.p-carousel-dot')];
+      const scrollStep = () => alertTrack.clientWidth + (parseFloat(getComputedStyle(alertTrack).columnGap) || 0);
+      const updatePosition = () => {
+        const index = Math.max(0, Math.min(alerts.length - 1, Math.round(alertTrack.scrollLeft / scrollStep())));
+        const label = `Alert ${index + 1} of ${alerts.length}`;
+        if (desktopPosition) desktopPosition.textContent = label;
+        if (mobilePosition) mobilePosition.textContent = label;
+        dots.forEach((dot,dotIndex) => dot.setAttribute('aria-current', String(dotIndex === index)));
+        previous.disabled = index === 0;
+        next.disabled = index === alerts.length - 1;
+      };
+      previous.addEventListener('click', () => alertTrack.scrollBy({left:-scrollStep(), behavior:'smooth'}));
+      next.addEventListener('click', () => alertTrack.scrollBy({left:scrollStep(), behavior:'smooth'}));
+      dots.forEach(dot => dot.addEventListener('click', () => {
+        const targetIndex = Number(dot.dataset.alertIndex);
+        const currentIndex = Math.round(alertTrack.scrollLeft / scrollStep());
+        alertTrack.scrollBy({left:(targetIndex - currentIndex) * scrollStep(), behavior:'smooth'});
+      }));
+      alertTrack.addEventListener('scroll', () => requestAnimationFrame(updatePosition), {passive:true});
+      updatePosition();
+    }
     root.querySelectorAll('[data-action]').forEach(button => button.addEventListener('click', async () => {
       const selectedAlert = alerts.find(item => item.id === button.dataset.alertId);
       if (!selectedAlert) return;
