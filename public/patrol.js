@@ -33,12 +33,13 @@ function patrolGroupMeta(value, bib) {
 }
 
 function patrolBib(alert, seed) {
-  if (alert.bib) return alert.bib;
+  if (alert.bib) return /^not assigned$/i.test(String(alert.bib).trim()) ? 'N/A' : alert.bib;
   const child = (seed.children ?? []).find(record =>
     [record.id, record.stableId].includes(alert.childId) ||
     [record.displayName, record.alternateName].some(name => name && [alert.childName, alert.alternateName].includes(name))
   );
-  return (seed.attendance ?? []).find(row => row.childId === (child?.id ?? alert.childId))?.bib ?? '';
+  const bib = (seed.attendance ?? []).find(row => row.childId === (child?.id ?? alert.childId))?.bib;
+  return bib && !/^not assigned$/i.test(String(bib).trim()) ? bib : 'N/A';
 }
 
 function contactRelationship(value) {
@@ -302,7 +303,7 @@ export function createPatrol(root, seed, { onSignOut }) {
       if (!selectedAlert) return;
       const entries = localSearchLogs.get(selectedAlert.id) || [...(selectedAlert.searchLog || [])];
       const clickedAt = new Date();
-      const time = `${clickedAt.getHours() % 12 || 12}:${String(clickedAt.getMinutes()).padStart(2, '0')}`;
+      const time = clickedAt.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
       const actionLabels = {
         dispatched: 'Dispatched (4)',
         broadcast: 'Description broadcast',
