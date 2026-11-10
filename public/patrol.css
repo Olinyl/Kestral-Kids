@@ -57,7 +57,9 @@ body.patrol-view { background:#f5f8f7; color:#173f39; }
 .p-search-context { background:#fff; }
 .p-search-context p { margin:4px 0; color:#315a52; font-size:13px; line-height:1.45; }
 .p-contacts { background:#fff; }
-.p-contact { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; padding:9px 0; border-top:1px solid #edf1ef; font-size:12px; }
+.p-contacts { display:grid; grid-template-columns:repeat(var(--p-contact-columns,1),minmax(0,1fr)); column-gap:14px; }
+.p-contacts h3 { grid-column:1/-1; }
+.p-contact { display:grid; grid-template-columns:minmax(0,1fr); align-content:start; gap:2px; min-width:0; padding:9px 0; border-top:1px solid #edf1ef; font-size:12px; }
 .p-contact>div { display:grid; align-content:start; gap:2px; min-width:0; }
 .p-contact span { color:#687f79; font-size:11px; line-height:1.4; }
 .p-contact-phone a { color:#245e50; font-weight:700; }
@@ -114,7 +116,6 @@ body.patrol-view { background:#f5f8f7; color:#173f39; }
  .patrol-view .p-fact h3 { font-size:9px; letter-spacing:.1em; }
  .patrol-view .p-fact p { font-size:13px; }
  .patrol-view .p-right-column > section { min-width:0; }
- .patrol-view .p-right-column .p-contact { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
  .patrol-view .p-patrol-logs { display:contents; }
  .patrol-view .p-search-log-panel { grid-column:1; grid-row:2; }
  .patrol-view .p-system-log-panel { grid-column:2; grid-row:2; }

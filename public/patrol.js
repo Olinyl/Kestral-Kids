@@ -60,7 +60,7 @@ export function createPatrol(root, seed, { onSignOut }) {
           </div>
           <div class="p-right-column">
           ${alert.medical ? `<section class="p-medical"><h3>Medical information</h3><p>${escapeHtml(alert.medical)}</p></section>` : ''}
-          ${alert.emergencyContacts?.length ? `<section class="p-contacts"><h3>Emergency contacts for police handoff</h3>
+          ${alert.emergencyContacts?.length ? `<section class="p-contacts" style="--p-contact-columns:${alert.emergencyContacts.length}"><h3>Emergency contacts for police handoff</h3>
             ${alert.emergencyContacts.map(contact => `<div class="p-contact"><div><strong>${escapeHtml(contact.name)}</strong><span>${escapeHtml(contact.relationship)}</span></div><div class="p-contact-phone"><a href="tel:${escapeHtml(contact.phone)}">${escapeHtml(contact.phone)}</a></div></div>`).join('')}
           </section>` : ''}
           <section class="p-actions-panel" data-testid="patrol-actions">
