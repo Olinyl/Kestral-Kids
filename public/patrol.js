@@ -91,7 +91,6 @@ export function createPatrol(root, seed, { onSignOut }) {
             </section>
             <section class="p-log-panel p-search-log-panel" aria-labelledby="search-log-title">
               <div class="p-log-heading"><h3 id="search-log-title">Search log</h3><span class="p-log-badge p-patrol-entry">Patrol entry</span></div>
-              <p class="p-search-log-intro">Tap to log key actions between radio calls.</p>
               <div class="p-log-actions">
                 <button type="button" class="p-log-button p-log-dispatched" data-testid="patrol-log-dispatched" data-search-action="dispatched" data-alert-id="${escapeHtml(alert.id)}">+ Dispatched</button>
                 <button type="button" class="p-log-button" data-testid="patrol-log-broadcast" data-search-action="broadcast" data-alert-id="${escapeHtml(alert.id)}">+ Broadcast</button>
@@ -210,17 +209,15 @@ export function createPatrol(root, seed, { onSignOut }) {
       const selectedAlert = alerts.find(item => item.id === button.dataset.alertId);
       if (!selectedAlert) return;
       const entries = localSearchLogs.get(selectedAlert.id) || [...(selectedAlert.searchLog || [])];
-      const [lastHour, lastMinute] = (entries.at(-1)?.time || '2:40').split(':').map(Number);
-      const nextMinuteTotal = lastHour * 60 + lastMinute + 1;
+      const clickedAt = new Date();
+      const time = `${clickedAt.getHours() % 12 || 12}:${String(clickedAt.getMinutes()).padStart(2, '0')}`;
       const actionLabels = {
         dispatched: 'Dispatched (4)',
         broadcast: 'Description broadcast',
         'lift-scan': 'Lift scan lookup blocked — pass number unavailable',
         found: 'Found marker — desk confirmation pending',
       };
-      const hour = Math.floor(nextMinuteTotal / 60) % 12 || 12;
-      const minute = String(nextMinuteTotal % 60).padStart(2, '0');
-      entries.push({ time: `${hour}:${minute}`, action: actionLabels[button.dataset.searchAction], actor: 'R. Fournier', type: button.dataset.searchAction });
+      entries.push({ time, action: actionLabels[button.dataset.searchAction], actor: 'R. Fournier', type: button.dataset.searchAction });
       localSearchLogs.set(selectedAlert.id, entries);
       if (button.dataset.searchAction === 'found') {
         selectedAlert.status = 'Found';

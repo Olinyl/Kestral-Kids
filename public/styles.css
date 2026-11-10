@@ -252,7 +252,7 @@ body :is(.d-dialog,.o-dialog) :is(.d-button,.o-button,.g-button) {
 }
 #app-shell :is(.d-primary,.o-primary,.g-button:not(.secondary)),
 body :is(.d-dialog,.o-dialog) :is(.d-primary,.o-primary,.g-button:not(.secondary)) { background:#205d46; border-color:#205d46; color:#fff; }
-#app-shell :is(.o-danger,.p-action-police,.p-log-dispatched) { background:#b91f1f; border-color:#b91f1f; color:#fff; }
+#app-shell :is(.o-danger,.p-action-police) { background:#b91f1f; border-color:#b91f1f; color:#fff; }
 #app-shell :is(.d-button,.o-button,.g-button,.p-action-button,.p-log-button):disabled { opacity:.55; cursor:not-allowed; }
 #app-shell .o-row-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:stretch; gap:8px; grid-column:1/-1; }
 #app-shell .o-row-actions .o-button { width:100%; min-width:0; white-space:normal; grid-column:auto; }
@@ -292,7 +292,7 @@ body.signed-out #app-shell .workspace { display:block; padding:24px 0; }
 @media(hover:hover) {
  #app-shell :is(.d-button,.o-button,.g-button,.p-action-button,.p-log-button):not(:disabled):hover { background:#edf5f2; }
  #app-shell :is(.d-primary,.o-primary,.g-button:not(.secondary)):not(:disabled):hover { background:#164632; }
- #app-shell :is(.o-danger,.p-action-police,.p-log-dispatched):not(:disabled):hover { background:#991b1b; }
+ #app-shell :is(.o-danger,.p-action-police):not(:disabled):hover { background:#991b1b; }
 }
 @media(max-width:650px) {
  #app-shell .brand { gap:8px; }
