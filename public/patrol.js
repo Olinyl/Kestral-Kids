@@ -61,10 +61,11 @@ export function createPatrol(root, seed, { onSignOut }) {
           </section>
           </div>
           <div class="p-right-column">
-          ${alert.medical ? `<section class="p-medical"><h3>Medical information</h3><p>${escapeHtml(alert.medical)}</p></section>` : ''}
+          ${alert.medical ? `<section class="p-medical"><h3>Medical information</h3><p>${escapeHtml(alert.medical)}</p>${alert.consentStatus||alert.guardianUpdateDate?`<p class="p-guardian-record"><strong>Guardian record:</strong> ${escapeHtml(alert.consentStatus||'Status not recorded')} · Updated ${escapeHtml(alert.guardianUpdateDate||'date not recorded')}</p>`:''}</section>` : ''}
           ${alert.emergencyContacts?.length ? `<section class="p-contacts"><h3>Emergency contacts for police handoff</h3>
             ${alert.emergencyContacts.map(contact => `<div class="p-contact"><div><strong>${escapeHtml(contact.name)}</strong><span>${escapeHtml(contact.relationship)}</span></div><div class="p-contact-phone"><a href="tel:${escapeHtml(contact.phone)}">${escapeHtml(contact.phone)}</a><span>${escapeHtml(contact.phoneStatus)}</span></div></div>`).join('')}
           </section>` : ''}
+          ${alert.authorizedPickupAdults?.length ? `<section class="p-contacts"><h3>Authorized pickup adults</h3>${alert.authorizedPickupAdults.map(adult=>`<div class="p-contact"><div><strong>${escapeHtml(adult.name)}</strong><span>${escapeHtml(adult.relationship||'Other')}</span></div></div>`).join('')}</section>` : ''}
           ${alert.escalation ? `<p class="p-escalation" data-testid="patrol-escalation">${escapeHtml(alert.escalation)}</p>` : ''}
           <section class="p-actions-panel" data-testid="patrol-actions">
             <h3>Actions</h3>

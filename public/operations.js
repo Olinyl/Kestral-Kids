@@ -33,6 +33,15 @@ export function createOperations(root, seed, {onChange}) {
     const {program,level,bib}=lessonDetails(seed,{...row,id:row.childId});
     return profileMeta({...(program?{program}:{}),...(level?{level}:{}),...(bib?{bib}:{})});
   };
+  const guardianHealth = child => [
+    child?.medical && `Medical conditions: ${child.medical}`,
+    child?.medications && `Medications and location: ${child.medications}`,
+    child?.allergies && `Allergies: ${child.allergies}`,
+  ].filter(Boolean).join('\n') || 'N/A';
+  const guardianContacts = child => [
+    {name:child?.emergencyName,relationship:child?.emergencyRelationship||'Emergency contact',phone:child?.emergencyPhone},
+    {name:child?.emergencyName2,relationship:child?.emergencyRelationship2||'Emergency contact',phone:child?.emergencyPhone2},
+  ].filter(contact=>contact.name).map(contact=>({...contact,phone:contact.phone||'Not provided',phoneStatus:contact.phone?'Verify before use':'Phone not provided'}));
   const own = () => rows().filter(r => role !== 'instructor' || r.group?.instructorId === 'demo-instructor-01');
   const programDay = row => {const program=String(row.program||row.storeRegistration?.program||row.group?.program||'').toLowerCase();return /\bsat(?:urday)?\b/.test(program)?'sat':/\bsun(?:day)?\b/.test(program)?'sun':'';};
   const activeAdults = child => (child.pickupAdults ?? []).filter(a => (!a.validFrom || a.validFrom <= seed.lessonDate) && (!a.validUntil || a.validUntil >= seed.lessonDate));
@@ -55,10 +64,12 @@ export function createOperations(root, seed, {onChange}) {
       lastSeenTime:report.time || 'Not provided', lastSeenPlace:report.place || 'Not provided',
       visibility:'Not recorded', clothing:report.clothing || row.clothing || 'Not recorded',
       clothingConfidence:report.clothing ? `${source} report · unverified` : 'Not confirmed',
-      equipment:report.equipment || 'Not recorded', injuries:report.injuries || 'Unknown', medical:row.medical || '',
+      equipment:report.equipment || 'Not recorded', injuries:report.injuries || 'Unknown', medical:guardianHealth(row),
+      guardianUpdateDate:row.consentUpdatedAt||'Not recorded',consentStatus:row.consentStatus||'Not recorded',
+      authorizedPickupAdults:(row.pickupAdults||[]).map(adult=>({name:adult.name,relationship:adult.relationship||'Other'})),
       liftScan:null, liftScanUnavailableReason:'Pass number is unknown and is not linked to the child.',
       systemLog:existing ? [...(existing.systemLog||[]),{time:clock,action:'Missing alert updated',actor:source}] : [{time:clock,action:'Missing alert sent',actor:source}], searchLog:existing?.searchLog||[],
-      emergencyContacts:[row.emergencyName && {name:row.emergencyName,relationship:'Emergency contact',phone:row.emergencyPhone || 'Not provided',phoneStatus:'Verify before use'},row.emergencyName2 && {name:row.emergencyName2,relationship:'Emergency contact',phone:row.emergencyPhone2 || 'Not provided',phoneStatus:'Verify before use'}].filter(Boolean),
+      emergencyContacts:guardianContacts(row),
       escalation:'Follow the school’s missing-child procedure. Verify details with the desk and patrol lead.',
     };
     if(existing) Object.assign(existing,alertRecord);
@@ -146,16 +157,17 @@ export function createOperations(root, seed, {onChange}) {
       place:'',
       clothing:child?.clothing||'N/A',
       equipment:child?.equipment||'N/A',
-      concerns:child?.medical ? `Medical: ${child.medical}` : 'N/A',
+      concerns:guardianHealth(child),
     });
     const initial=instructor ? prefill(row) : deskMissing ? {place:'',clothing:row?.clothing||'',equipment:row?.equipment||'',concerns:row?.medical ? `Medical: ${row.medical}` : ''} : {place:'',clothing:'',equipment:'',concerns:''};
     const currentTime=()=>{const now=new Date();return `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;};
     const roundedTime=()=>{const [hours,minutes]=currentTime().split(':').map(Number);return `${String(hours).padStart(2,'0')}:${String(Math.floor(minutes/10)*10).padStart(2,'0')}`;};
-    const lastSeenField=deskMissing?`<div class="o-time-stepper">${field('radio-time','Last seen time',roundedTime(),'time')}<button type="button" class="o-button" data-testid="radio-time-earlier">Earlier by 10 min</button></div>`:instructor?`<p class="o-note">Local report time · recorded automatically <strong data-testid="radio-time-auto"></strong></p>`:field('radio-time','Last seen time','','time');
+    const lastSeenField=deskMissing?`<div class="o-time-stepper">${field('radio-time','Last seen time',roundedTime(),'time')}<button type="button" class="o-button" data-testid="radio-time-earlier">Earlier by 10 min</button></div>`:instructor?`${field('radio-time','Last seen time',defaultTime,'time')}<p class="o-note">Defaults to local time; tap to edit. <strong data-testid="radio-time-auto">${e(formatTime12(defaultTime))}</strong></p>`:field('radio-time','Last seen time','','time');
     const reportTitle=instructor||deskMissing?'Report missing child':'Log a received radio report';
     const reportNote=instructor?'This prepares a demo report for Patrol. Call by radio; this app does not transmit radio.':deskMissing?'Review the details, add where and when the child was last seen, then save the report for Patrol. This does not send a radio message.':'Record the report received by the desk.';
-    show(reportTitle, `<p class="o-warning">${reportNote}</p><form id="radio-form">${(instructor||deskMissing)&&row ? `<p><strong>${e(row.displayName)}</strong> · Bib ${e(row.bib)} · ${e(row.group?.label||'Group not recorded')}</p>` : `<label>Child<select data-testid="radio-child" required><option value="">Choose a child</option>${(instructor ? own() : rows()).map(r=>`<option value="${e(r.childId)}">${e(r.displayName)} · Bib ${e(r.bib)}</option>`).join('')}</select></label>`}${lastSeenField}${deskMissing?'<p class="o-form-error" data-testid="radio-time-error" hidden>Last seen time cannot be in the future.</p>':''}${field('radio-place','Last seen place',initial.place)}${field('radio-clothing','Clothing',initial.clothing)}${field('radio-equipment','Skis, helmet and other equipment',initial.equipment)}${field('radio-injuries','Injuries or concerns',initial.concerns)}${instructor ? '' : field('radio-staff',deskMissing?'Reporting staff':'Receiving staff')}${deskMissing?'':`<button class="o-button o-primary" data-testid="radio-save">${instructor?'Save report for Desk and Patrol':'Save received report'}</button>`}</form>`, undefined, false, deskMissing ? 'report' : '');
+    show(reportTitle, `<p class="o-warning">${reportNote}</p><form id="radio-form">${(instructor||deskMissing)&&row ? `<p><strong>${e(row.displayName)}</strong> · Bib ${e(row.bib)} · ${e(row.group?.label||'Group not recorded')}</p>` : `<label>Child<select data-testid="radio-child" required><option value="">Choose a child</option>${(instructor ? own().filter(r=>r.status==='checked_in'&&!r.release) : rows()).map(r=>`<option value="${e(r.childId)}">${e(r.displayName)} · Bib ${e(r.bib)}</option>`).join('')}</select></label>`}${lastSeenField}${deskMissing?'<p class="o-form-error" data-testid="radio-time-error" hidden>Last seen time cannot be in the future.</p>':''}${field('radio-place','Last seen place',initial.place)}${field('radio-clothing','Clothing',initial.clothing)}${field('radio-equipment','Skis, helmet and other equipment',initial.equipment)}${field('radio-injuries','Injuries or concerns',initial.concerns)}${instructor ? '' : field('radio-staff',deskMissing?'Reporting staff':'Receiving staff')}${deskMissing?'':`<button class="o-button o-primary" data-testid="radio-save">${instructor?'Save report for Desk and Patrol':'Save received report'}</button>`}</form>`, undefined, false, deskMissing ? 'report' : '');
     if(deskMissing){const time=get('radio-time');time.max=currentTime();time.step=600;get('radio-time-earlier').onclick=()=>{const [hours,minutes]=time.value.split(':').map(Number);const total=Math.max(0,hours*60+minutes-10);time.value=`${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`;time.dispatchEvent(new Event('input',{bubbles:true}));};}
+    if(instructor)get('radio-time').addEventListener('input',event=>{get('radio-time-auto').textContent=formatTime12(event.target.value);});
     if (instructor && !row) {
       get('radio-child').addEventListener('change',event=>{
         const child=own().find(candidate=>candidate.childId===event.target.value);
@@ -169,12 +181,11 @@ export function createOperations(root, seed, {onChange}) {
     dialog.querySelector('#radio-form').onsubmit = event => {
       event.preventDefault();
       if(deskMissing&&value('radio-time')>currentTime()){get('radio-time-error').hidden=false;get('radio-time').setCustomValidity('Last seen time cannot be in the future.');get('radio-time').reportValidity();return;}
-      const child = instructor||deskMissing ? row : rows().find(r=>r.childId===value('radio-child'));
+      const child = instructor ? (row || own().find(r=>r.childId===value('radio-child'))) : deskMissing ? row : rows().find(r=>r.childId===value('radio-child'));
       if (!child) return;
       const report = {childId:child.childId, name:child.displayName,bib:child.bib,time:formatTime12(value('radio-time')),place:value('radio-place'),clothing:value('radio-clothing'),equipment:value('radio-equipment'),injuries:value('radio-injuries'),staff:instructor ? '' : value('radio-staff')};
       if (instructor||deskMissing) {
         sendPatrolAlert(child, report, instructor?'Instructor':'School desk');
-        onChange();
         if(deskMissing){close();render(role,tab);const status=document.createElement('p');status.className='o-alert-sent';status.setAttribute('role','status');status.textContent=`Missing-child report saved for Patrol for ${child.displayName}.`;root.prepend(status);return;}
         render(role, tab);
         show('Missing child report', `<p class="o-alert o-alert-sent" role="status" data-testid="radio-alert-status">Report saved for Desk and Patrol</p><section data-testid="radio-checklist">${reportBody(report)}<p class="o-note">Radio: <strong>Not sent</strong>. Call Desk and Patrol by physical radio. No radio message was sent.</p></section>`);
