@@ -34,7 +34,7 @@ body.patrol-view { background:#f5f8f7; color:#173f39; }
 .p-child-heading-row { display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:2px; }
 .p-child-heading-row .profile-meta { display:contents; }
 .p-status { justify-self:start; border-radius:20px; padding:6px 13px; background:#ffe3e2; color:#a92323; font-size:11px; font-weight:700; }
-.p-status.p-status-found { background:#2563eb; color:#fff; }
+.p-status.p-status-found { background:#e5f4ff; color:#155779; }
 .p-child-meta { grid-column:1/-1; display:flex; flex-wrap:wrap; gap:5px 14px; color:#536f69; font-size:11px; }
 .p-child-meta strong { color:#315a52; }
 .p-facts { display:grid; gap:0; padding:5px 20px 10px; }
@@ -67,7 +67,7 @@ body.patrol-view { background:#f5f8f7; color:#173f39; }
 .p-action-button { min-height:43px; padding:8px 10px; border:1px solid #d4dfec; border-radius:11px; background:white; color:#233b61; font-size:12px; line-height:1.3; font-weight:700; }
 .p-action-police { border-color:#b91c1c; background:#bf1e1e; color:#fff; }
 #app-shell .p-action-police:disabled { border-color:#cbd5e1; background:#e5e7eb; color:#64748b; opacity:1; cursor:not-allowed; }
-#app-shell .p-action-found:disabled { opacity:1; cursor:not-allowed; }
+#app-shell .p-action-found:disabled { border-color:#cbd5e1; background:#e5e7eb; color:#64748b; opacity:1; cursor:not-allowed; }
 .p-police-confirmation { display:grid; gap:9px; margin-top:10px; padding:12px; border:1px solid #e7b2aa; border-radius:10px; background:#fff4f1; color:#68352b; }
 .p-police-confirmation[hidden] { display:none; }
 .p-police-confirm-copy { display:grid; gap:4px; font-size:12px; line-height:1.5; }
