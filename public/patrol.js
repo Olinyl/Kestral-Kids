@@ -33,7 +33,13 @@ export function createPatrol(root, seed, { onSignOut }) {
         <p class="p-eyebrow">Patrol response board</p>
         <h2 class="p-title">Alerted missing children</h2>
         <p class="p-intro">Active alerts from the school desk and instructors are shown.</p>
-        ${alerts.length ? `<div class="p-alert-list">${alerts.map(alert => `<article class="p-alert-card" data-testid="patrol-alert" data-alert-id="${escapeHtml(alert.id)}">
+        ${alerts.length ? `<div class="p-alert-carousel" data-testid="patrol-alert-carousel">
+          ${alerts.length > 1 ? `<div class="p-carousel-controls p-carousel-controls-desktop" aria-label="Alert navigation">
+            <button type="button" data-testid="patrol-alert-previous" aria-label="Previous alert" disabled>‹ Previous</button>
+            <span data-testid="patrol-alert-position-desktop" aria-live="polite">Alert 1 of ${alerts.length}</span>
+            <button type="button" data-testid="patrol-alert-next" aria-label="Next alert">Next ›</button>
+          </div>` : ''}
+          <div class="p-alert-list" data-testid="patrol-alert-list" aria-label="Active missing child alerts" tabindex="0">${alerts.map(alert => `<article class="p-alert-card" data-testid="patrol-alert" data-alert-id="${escapeHtml(alert.id)}">
           <div class="p-alert-main">
           <div class="p-alert-head">
             <span class="p-icon p-alert-icon">${icons.alert}</span>
@@ -96,9 +102,41 @@ export function createPatrol(root, seed, { onSignOut }) {
               <p class="p-log-note">Entries are demo-only; radio messages are not sent or recorded.</p>
             </section>
           </div>
-        </article>`).join('')}</div>` : '<p class="p-empty" data-testid="patrol-empty">No active alerts from the school desk.</p>'}
+        </article>`).join('')}</div>
+          ${alerts.length > 1 ? `<div class="p-carousel-pagination-mobile" aria-label="Alert pages">
+            <span data-testid="patrol-alert-position-mobile" aria-live="polite">Alert 1 of ${alerts.length}</span>
+            <div class="p-carousel-dots">${alerts.map((alert,index) => `<button type="button" class="p-carousel-dot" data-testid="patrol-alert-dot-${index + 1}" data-alert-index="${index}" aria-label="Show alert ${index + 1} of ${alerts.length}" aria-current="${index === 0 ? 'true' : 'false'}"></button>`).join('')}</div>
+          </div>` : ''}
+        </div>` : '<p class="p-empty" data-testid="patrol-empty">No active alerts from the school desk.</p>'}
       </div>
     </section>`;
+    const alertTrack = root.querySelector('[data-testid="patrol-alert-list"]');
+    if (alertTrack && alerts.length > 1) {
+      const previous = root.querySelector('[data-testid="patrol-alert-previous"]');
+      const next = root.querySelector('[data-testid="patrol-alert-next"]');
+      const desktopPosition = root.querySelector('[data-testid="patrol-alert-position-desktop"]');
+      const mobilePosition = root.querySelector('[data-testid="patrol-alert-position-mobile"]');
+      const dots = [...root.querySelectorAll('.p-carousel-dot')];
+      const scrollStep = () => alertTrack.clientWidth + (parseFloat(getComputedStyle(alertTrack).columnGap) || 0);
+      const updatePosition = () => {
+        const index = Math.max(0, Math.min(alerts.length - 1, Math.round(alertTrack.scrollLeft / scrollStep())));
+        const label = `Alert ${index + 1} of ${alerts.length}`;
+        if (desktopPosition) desktopPosition.textContent = label;
+        if (mobilePosition) mobilePosition.textContent = label;
+        dots.forEach((dot,dotIndex) => dot.setAttribute('aria-current', String(dotIndex === index)));
+        previous.disabled = index === 0;
+        next.disabled = index === alerts.length - 1;
+      };
+      previous.addEventListener('click', () => alertTrack.scrollBy({left:-scrollStep(), behavior:'smooth'}));
+      next.addEventListener('click', () => alertTrack.scrollBy({left:scrollStep(), behavior:'smooth'}));
+      dots.forEach(dot => dot.addEventListener('click', () => {
+        const targetIndex = Number(dot.dataset.alertIndex);
+        const currentIndex = Math.round(alertTrack.scrollLeft / scrollStep());
+        alertTrack.scrollBy({left:(targetIndex - currentIndex) * scrollStep(), behavior:'smooth'});
+      }));
+      alertTrack.addEventListener('scroll', () => requestAnimationFrame(updatePosition), {passive:true});
+      updatePosition();
+    }
     root.querySelectorAll('[data-action]').forEach(button => button.addEventListener('click', async () => {
       const selectedAlert = alerts.find(item => item.id === button.dataset.alertId);
       if (!selectedAlert) return;
