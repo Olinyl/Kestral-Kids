@@ -22,7 +22,7 @@ GitHub tracks source. Keep generated builds and private environment files out of
 
 - Repository: https://github.com/Olinyl/Kestral-Kids
 - Piezas app: [Kestrel-Kids](https://app.piezas.ai/apps/5f6d96c7-a11c-489f-a1f8-bcc5734401b7), in SFU Experience Ventures.
-- Preview address after publishing: https://kestrel-kids.apps.piezas.ai
+- Live preview: [Open the Kestrel Kids director preview](https://kestrel-kids.apps.piezas.ai/?view=director)
 - Team workflow and ownership: [START-HERE.md](START-HERE.md).
 - Current milestone and checks: [SPEC.md](SPEC.md). Deferred features: [ROADMAP.md](ROADMAP.md).
 
